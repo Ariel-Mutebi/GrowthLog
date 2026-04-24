@@ -13,7 +13,7 @@ export default [
       'semi': ['error', 'always'],
       'quotes': ['error', 'single'],
       'eol-last': ['error', 'always'],
-      'import/extensions': ['error', 'always'],
+      'import/extensions': ['error', 'ignorePackages'],
       'comma-dangle': ['error', 'always-multiline'],
     },
   },
