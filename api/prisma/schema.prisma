@@ -4,5 +4,31 @@ datasource db {
 
 generator client {
   provider = "prisma-client"
-  output = "./generated"
+  output   = "./generated"
+}
+
+enum Role {
+  AUTOBIOGRAPHER
+  ADVERTISER
+  BIOGRAPHER
+  MODERATOR
+}
+
+model User {
+  id        String       @id @default(uuid())
+  email     String       @unique
+  name      String
+  username  String       @unique
+  role      Role         @default(AUTOBIOGRAPHER)
+  following FollowUser[] @relation("following")
+  followers FollowUser[] @relation("follower")
+}
+
+// Join table representing a many-to-many self-referencing relationship on the User model.
+model FollowUser {
+  id          Int    @id @default(autoincrement())
+  followerId  String
+  followingId String
+  follower    User   @relation("following", fields: [followerId], references: [id])
+  following   User   @relation("follower", fields: [followingId], references: [id])
 }
