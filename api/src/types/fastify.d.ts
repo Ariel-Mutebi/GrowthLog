@@ -1,8 +1,10 @@
 import 'fastify';
-import { PrismaClient } from '../../prisma/generated/client.js';
+import type { PrismaClient } from '../../prisma/generated/client.js';
+import type { Authenticator } from '@fastify/passport';
 
 declare module 'fastify' {
   interface FastifyInstance {
-    prisma: PrismaClient
+    prisma: PrismaClient;
+    auth: Authenticator;
   }
 }

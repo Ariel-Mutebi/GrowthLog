@@ -1,37 +1,39 @@
+import path from 'path';
 import Fastify from 'fastify';
+import autoload from '@fastify/autoload';
 import sensible from '@fastify/sensible';
 import fastifyHelmet from '@fastify/helmet';
-import prisma from './plugins/prisma.js';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
-import { auth } from './auth/authenticator.js';
-import { getSecret } from './auth/getSecret.js';
-import { buildLocalStrategy } from './auth/localStrategy.js';
-import { serializeUser } from './auth/serializeUser.js';
-import { buildDeserializeUser } from './auth/deserializeUser.js';
+
+import isProd from './env/isProd.js';
+import { getSecret } from './env/getSecret.js';
+import { prismaPlugin } from './plugins/prisma.js';
+import { authPlugin } from './plugins/auth.js';
 
 export function buildApp() {
   const app = Fastify({ logger: true });
 
   app.register(fastifyHelmet);
-  app.register(prisma);
   app.register(fastifyCookie);
   app.register(fastifySession, {
     secret: getSecret(),
     cookie: {
-      secure: false, // set to true in prod, where HTTPS will be used
+      secure: isProd(),
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
     },
   });
-
-  app.register(async (app) => {
-    app.register(auth.initialize());
-    app.register(auth.secureSession());
-    auth.use(buildLocalStrategy(app.prisma));
-    auth.registerUserSerializer(serializeUser);
-    auth.registerUserDeserializer(buildDeserializeUser(app.prisma, app.log.error));
-  });
-
+  app.register(prismaPlugin);
+  app.register(authPlugin);
   app.register(sensible);
+  app.register(autoload, {
+    prefix: '/api/v1',
+    dir: path.join(__dirname, 'routes'),
+    dirNameRoutePrefix: true,
+    matchFilter: (path) => /index\.(js|ts)$/.test(path),
+  });
 
   return app;
 }

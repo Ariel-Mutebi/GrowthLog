@@ -6,7 +6,7 @@ const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
 });
 
-export default fp(async (app) => {
+export const prismaPlugin = fp(async (app) => {
   const prisma = new PrismaClient({ adapter });
   app.decorate('prisma', prisma);
 
