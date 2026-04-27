@@ -1,4 +1,3 @@
-import path from 'path';
 import Fastify from 'fastify';
 import autoload from '@fastify/autoload';
 import fastifyHelmet from '@fastify/helmet';
@@ -10,6 +9,12 @@ import isProd from './env/isProd.js';
 import { getSecret } from './env/getSecret.js';
 import { prismaPlugin } from './plugins/prisma.js';
 import { authPlugin } from './plugins/auth.js';
+
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export function buildApp() {
   const app = Fastify({ logger: true });
@@ -42,7 +47,7 @@ export function buildApp() {
     prefix: '/api/v1',
     dir: path.join(__dirname, 'routes'),
     dirNameRoutePrefix: true,
-    matchFilter: (path) => /index\.(js|ts)$/.test(path),
+    matchFilter: (path) => path.endsWith('index.js'),
   });
 
   return app;
