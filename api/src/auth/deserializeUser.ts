@@ -1,5 +1,5 @@
 import type { FastifyLogFn } from 'fastify';
-import type { PrismaClient } from '../../prisma/generated/client.js';
+import type { PrismaClient } from '../db/client.js';
 
 export function buildDeserializeUser(prisma: PrismaClient, logger: FastifyLogFn) {
   return async (id: string) => {
