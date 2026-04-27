@@ -6,11 +6,14 @@ const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
 });
 
-const prisma = new PrismaClient({ adapter });
-
 export default fp(async (app) => {
-  await prisma.$connect();
+  const prisma = new PrismaClient({ adapter });
   app.decorate('prisma', prisma);
+
+  app.addHook('onReady', async () => {
+    await prisma.$connect();
+  });
+
   app.addHook('onClose', async () => {
     await prisma.$disconnect();
   });
