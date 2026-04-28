@@ -47,7 +47,7 @@ export function buildApp() {
     prefix: '/api/v1',
     dir: path.join(__dirname, 'routes'),
     dirNameRoutePrefix: true,
-    matchFilter: (path) => path.endsWith('index.js'),
+    matchFilter: (path) => path.endsWith('Router.js'),
   });
 
   return app;

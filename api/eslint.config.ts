@@ -16,5 +16,6 @@ export default [
       'import/extensions': ['error', 'ignorePackages'],
       'comma-dangle': ['error', 'always-multiline'],
     },
+    ignores: ['src/db/'],
   },
 ] satisfies ConfigArray;
