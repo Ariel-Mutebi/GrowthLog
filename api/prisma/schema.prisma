@@ -15,7 +15,7 @@ enum Role {
 }
 
 model User {
-  id            Int          @id @default(autoincrement())
+  id            String       @id @default(cuid())
   name          String
   username      String       @unique
   email         String       @unique
@@ -31,26 +31,26 @@ model User {
 
 // Join table representing a many-to-many self-referencing relationship on the User model.
 model FollowUser {
-  followerId  Int
-  followingId Int
-  follower    User @relation("following", fields: [followerId], references: [id])
-  following   User @relation("follower", fields: [followingId], references: [id])
+  followerId  String
+  followingId String
+  follower    User   @relation("following", fields: [followerId], references: [id])
+  following   User   @relation("follower", fields: [followingId], references: [id])
 
   @@id([followerId, followingId])
 }
 
 model FollowTag {
-  userId Int
-  tagId  Int
-  user   User @relation(fields: [userId], references: [id])
-  tag    Tags @relation(fields: [tagId], references: [id])
+  userId String
+  tagId  String
+  user   User   @relation(fields: [userId], references: [id])
+  tag    Tags   @relation(fields: [tagId], references: [id])
 
   @@id([userId, tagId])
 }
 
 model Post {
-  id         Int          @id @default(autoincrement())
-  authorId   Int
+  id         String       @id @default(cuid())
+  authorId   String
   author     User         @relation(fields: [authorId], references: [id])
   tags       Tags[]
   title      String
@@ -63,15 +63,15 @@ model Post {
 }
 
 model Tags {
-  id        Int         @id @default(autoincrement())
+  id        String      @id @default(cuid())
   name      String
   posts     Post[]
   followers FollowTag[]
 }
 
 model Impressions {
-  postId Int  @id
-  post   Post @relation(fields: [postId], references: [id])
+  postId String @id
+  post   Post   @relation(fields: [postId], references: [id])
 
   views    Int @default(0)
   likes    Int @default(0)
@@ -81,9 +81,9 @@ model Impressions {
 }
 
 model Comment {
-  id        Int         @id @default(autoincrement())
-  postId    Int
-  authorId  Int
+  id        String      @id @default(cuid())
+  postId    String
+  authorId  String
   post      Impressions @relation(fields: [postId], references: [postId])
   author    User        @relation(fields: [authorId], references: [id])
   text      String

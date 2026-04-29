@@ -1,7 +1,7 @@
 import fp from 'fastify-plugin';
 import { Authenticator } from '@fastify/passport';
 import { serializeUser } from '../auth/serializeUser.js';
-import { buildDeserializeUser } from '../auth/deserializeUser.js';
+import { deserializeUser } from '../auth/deserializeUser.js';
 import { buildLocalStrategy } from '../auth/localStrategy.js';
 
 export const authPlugin = fp(async (app) => {
@@ -13,7 +13,7 @@ export const authPlugin = fp(async (app) => {
   auth.use(buildLocalStrategy(app.prisma));
 
   auth.registerUserSerializer(serializeUser);
-  auth.registerUserDeserializer(buildDeserializeUser(app.prisma, app.log.error));
+  auth.registerUserDeserializer(deserializeUser);
 
   app.decorate('auth', auth);
 });
