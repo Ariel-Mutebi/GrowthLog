@@ -13,6 +13,7 @@ export const userRouter: FastifyPluginAsyncTypebox = async (app) => {
       surname,
       username,
       email,
+      role,
       password,
     } = req.body;
 
@@ -24,6 +25,7 @@ export const userRouter: FastifyPluginAsyncTypebox = async (app) => {
         surname,
         username,
         email,
+        role,
         password: hashedPassword,
       },
     });
