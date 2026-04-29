@@ -4,6 +4,7 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
 import fastifyRateLimit from '@fastify/rate-limit';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import isProd from './env/isProd.js';
 import { getSecret } from './env/getSecret.js';
@@ -17,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function buildApp() {
-  const app = Fastify({ logger: true });
+  const app = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
 
   // basic protection against DOS, brute-forcing log-ins
   app.register(fastifyRateLimit, {
