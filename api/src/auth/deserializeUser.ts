@@ -1,3 +1,3 @@
-import type { SerializedUser } from '../types/userTypes.js';
+import type { SerializedUser } from '../types/authTypes.js';
 
 export const deserializeUser = async (serializedUser: SerializedUser) => serializedUser;

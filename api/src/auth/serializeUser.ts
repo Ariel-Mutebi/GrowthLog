@@ -1,5 +1,5 @@
 import type { User } from '../db/client.js';
-import type { SerializedUser } from '../types/userTypes.js';
+import type { SerializedUser } from '../types/authTypes.js';
 
 export async function serializeUser(user: User) {
   return {
