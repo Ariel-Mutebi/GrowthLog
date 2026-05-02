@@ -4,7 +4,7 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
 import fastifyRateLimit from '@fastify/rate-limit';
-import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import isProd from './env/isProd.js';
 import { getSecret } from './env/getSecret.js';
