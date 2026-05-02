@@ -1,3 +1,3 @@
-import type { SerializedUser } from '../types/authTypes.js';
+import type { PassportUser } from 'fastify';
 
-export const deserializeUser = async (serializedUser: SerializedUser) => serializedUser;
+export const deserializeUser = async (serializedUser: PassportUser) => serializedUser;
