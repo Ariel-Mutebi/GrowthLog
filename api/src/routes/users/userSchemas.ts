@@ -14,3 +14,8 @@ export const CreateUserBody = Type.Object({
   password: Type.String(),
   role: ExposedRoles,
 } satisfies userFields);
+
+export const ConflictResponse = Type.Object({
+  error: Type.Literal('Conflict'),
+  message: Type.String(),
+});
