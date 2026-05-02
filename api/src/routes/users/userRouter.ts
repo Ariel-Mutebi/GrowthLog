@@ -2,7 +2,7 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { CreateUserBody } from './userSchemas.js';
 import { hash } from 'bcrypt';
 import { Type } from '@sinclair/typebox';
-import type { preValidationHookHandler } from 'fastify';
+import { isLoggedIn } from '../../auth/isLoggedIn.js';
 
 export const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   app.post('/', {
@@ -37,7 +37,7 @@ export const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   });
 
   app.patch('/', {
-    preValidation: app.auth.authenticate('session') as preValidationHookHandler,
+    preValidation: isLoggedIn(app.auth),
     schema: {
       body: Type.Partial(CreateUserBody),
     },
@@ -48,6 +48,23 @@ export const userRouter: FastifyPluginAsyncTypebox = async (app) => {
       },
       data: req.body,
     });
+
+    return res.code(204).send();
+  });
+
+  app.delete('/', {
+    preValidation: isLoggedIn(app.auth),
+  }, async (req, res) => {
+    await app.prisma.user.update({
+      where: {
+        id: req.user?.id,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+
+    await req.logOut();
     return res.code(204).send();
   });
 };

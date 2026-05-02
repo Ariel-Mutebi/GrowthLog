@@ -1,4 +1,4 @@
-import { PrismaClient } from '../db/client.js';
+import type { PrismaClient } from '../db/client.js';
 import { Strategy } from 'passport-local';
 import { compare } from 'bcrypt';
 

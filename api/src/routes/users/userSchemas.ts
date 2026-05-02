@@ -1,8 +1,10 @@
 import { Type } from '@sinclair/typebox';
-import { Alphanumeric, Email, ExposedRoles, LettersOnlyString } from '../../types/customTypebox.js';
 
 import type { User } from '../../db/client.js';
 import type { AllUnknown } from '../../types/mappedTypes.js';
+import { Alphanumeric, Email, ExposedRoles, LettersOnlyString } from '../../types/customTypebox.js';
+
+type userFields = Partial<AllUnknown<User>>;
 
 export const CreateUserBody = Type.Object({
   forename: LettersOnlyString,
@@ -11,4 +13,4 @@ export const CreateUserBody = Type.Object({
   email: Email,
   password: Type.String(),
   role: ExposedRoles,
-} satisfies Partial<AllUnknown<User>>);
+} satisfies userFields);

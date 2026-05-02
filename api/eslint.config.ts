@@ -1,5 +1,5 @@
 import js from '@eslint/js';
-import { configs, ConfigArray } from 'typescript-eslint';
+import { configs, type ConfigArray } from 'typescript-eslint';
 import importX from 'eslint-plugin-import-x';
 
 export default [
@@ -15,6 +15,13 @@ export default [
       'eol-last': ['error', 'always'],
       'import/extensions': ['error', 'ignorePackages'],
       'comma-dangle': ['error', 'always-multiline'],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          prefer: 'type-imports',
+          fixStyle: 'separate-type-imports',
+        },
+      ],
     },
     ignores: ['src/db/'],
   },
