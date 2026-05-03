@@ -5,12 +5,14 @@
   "private": "true",
   "scripts": {
     "build": "tsc",
-    "test": "node --test",
-    "start": "node dist/server.js",
-    "dev": "tsx watch src/server.ts",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "system:up": "docker compose up --build",
+    "system:down": "docker compose down",
+    "system:logs": "docker compose logs -f",
+    "system:restart": "docker compose up --build app",
+    "test": "node --test"
   },
   "author": "Ariel Robert Mutebi",
   "license": "BUSL-1.1",

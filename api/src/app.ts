@@ -6,10 +6,8 @@ import fastifySession from '@fastify/session';
 import fastifyRateLimit from '@fastify/rate-limit';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
-import isProd from './env/isProd.js';
-import { getSecret } from './env/getSecret.js';
-import { prismaPlugin } from './plugins/prisma.js';
 import { authPlugin } from './plugins/auth.js';
+import { prismaPlugin } from './plugins/prisma.js';
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -35,9 +33,9 @@ export function buildApp() {
   app.register(fastifyHelmet);
   app.register(fastifyCookie);
   app.register(fastifySession, {
-    secret: getSecret(),
+    secret: process.env.SESSION_SECRET!,
     cookie: {
-      secure: isProd(),
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
