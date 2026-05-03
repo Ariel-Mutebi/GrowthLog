@@ -7,7 +7,7 @@ import { CreateUserSchema, UpdateUserSchema } from './userSchemas.js';
 
 const ROUNDS = 10;
 
-export const userRouter: FastifyPluginAsyncTypebox = async (app) => {
+const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   app.post('/', {
     schema: CreateUserSchema,
   }, async (req, res) => {
@@ -64,3 +64,5 @@ export const userRouter: FastifyPluginAsyncTypebox = async (app) => {
     return res.code(204).send();
   });
 };
+
+export default userRouter;

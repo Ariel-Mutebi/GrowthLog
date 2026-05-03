@@ -18,7 +18,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function buildApp() {
-  const app = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
+  const app = Fastify({
+    logger: true,
+    routerOptions: {
+      ignoreTrailingSlash: true,
+    },
+  }).withTypeProvider<TypeBoxTypeProvider>();
 
   // basic protection against DOS, brute-forcing log-ins
   app.register(fastifyRateLimit, {
@@ -43,12 +48,24 @@ export function buildApp() {
   app.register(prismaPlugin);
   app.register(authPlugin);
 
-  // load routers
+  /**
+   * Load routers using autoload, with sub-directory names becoming endpoints.
+   * Note: autoload only picks up default exports (e.g export default myRouter),
+   * not named exports (e.g. export const myRouter).
+   */
   app.register(autoload, {
-    prefix: '/api/v1',
     dir: path.join(__dirname, 'routes'),
     dirNameRoutePrefix: true,
-    matchFilter: (path) => path.endsWith('Router.js'),
+    options: {
+      prefix: 'v1/',
+    },
+    matchFilter: (path) => /Router\.(ts|js)$/.test(path),
+  });
+
+
+  // Log routes to avoid losing your sanity over 404 errors.
+  app.ready(() => {
+    console.log(app.printRoutes());
   });
 
   return app;

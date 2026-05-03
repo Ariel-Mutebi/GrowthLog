@@ -1,5 +1,4 @@
 import { Type } from '@sinclair/typebox';
-import { Role } from '../db/enums.js';
 
 export const NonEmptyString = Type.String({
   pattern: '\\S',
@@ -18,8 +17,8 @@ export const Email = Type.String({
 });
 
 // A client cannot create an account with the role of a moderator through the API.
-export const ExposedRoles = Type.Enum({
-  autobiographer: Role.AUTOBIOGRAPHER,
-  biographer: Role.BIOGRAPHER,
-  advertiser: Role.ADVERTISER,
-});
+export const ExposedRoles = Type.Union([
+  Type.Literal('ADVERTISER'),
+  Type.Literal('AUTOBIOGRAPHER'),
+  Type.Literal('BIOGRAPHER'),
+]);

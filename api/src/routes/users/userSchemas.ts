@@ -22,7 +22,7 @@ export const ConflictResponse = Type.Object({
 });
 
 const CreateOrUpdateResponse = {
-  204: Type.Void(),
+  204: Type.Any(),
   409: ConflictResponse,
 } satisfies FastifySchema['response'];
 
