@@ -1,7 +1,7 @@
 services:
   build:
     container_name: GrowthLogBuild
-    image: node:20-alpine
+    image: node:25-alpine
     volumes:
       - .:/app
     working_dir: /app
