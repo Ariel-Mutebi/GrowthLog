@@ -1,32 +1,50 @@
 services:
-  app:
-    build: .
+  build:
+    container_name: GrowthLogBuild
+    image: node:20-alpine
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: npx tsc --build --watch --preserveWatchOutput
+    tty: true
+
+  api:
+    container_name: GrowthLogApi
+    image: node:25-alpine
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: sh -c 'until [ -f dist/server.js ]; do sleep 0.1; done && node --watch dist/server.js'
     ports:
       - "3000:3000"
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
       SESSION_SECRET: ${SESSION_SECRET}
-      NODE_ENV: production
     depends_on:
-      - db
+      - build
+      - postgres
       - redis
-    restart: always
+    tty: true
 
-  db:
-    image: postgres:16
+  postgres:
+    container_name: GrowthLogPostgres
+    image: postgres:18
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./.local/postgres-data:/var/lib/postgresql
+    logging:
+      driver: none
 
   redis:
-    image: redis:7-alpine
-    volumes:
-      - redis_data:/data
-
-volumes:
-  postgres_data:
-  redis_data:
+    container_name: GrowthLogRedis
+    image: redis:8
+    ports:
+      - "6379:6379"
+    logging:
+      driver: none

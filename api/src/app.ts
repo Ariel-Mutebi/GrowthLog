@@ -35,7 +35,7 @@ export function buildApp() {
   app.register(fastifySession, {
     secret: process.env.SESSION_SECRET!,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // TODO: find a way to set up HTTPs
       httpOnly: true,
       sameSite: 'lax',
       path: '/',

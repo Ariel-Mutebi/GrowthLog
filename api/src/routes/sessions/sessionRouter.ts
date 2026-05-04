@@ -3,7 +3,7 @@ import { isLoggedIn } from '../../auth/isLoggedIn.js';
 import { CreateSessionSchema } from './sessionSchemas.js';
 import type { User } from '../../db/client.js';
 
-export const sessionRouter: FastifyPluginAsync = async (app) => {
+const sessionRouter: FastifyPluginAsync = async (app) => {
   app.post('/', {
     schema: CreateSessionSchema,
     preHandler: app.auth.authenticate('local') as preHandlerHookHandler,
@@ -35,3 +35,5 @@ export const sessionRouter: FastifyPluginAsync = async (app) => {
     return res.code(204).send();
   });
 };
+
+export default sessionRouter;

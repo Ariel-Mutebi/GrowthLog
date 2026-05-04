@@ -8,10 +8,8 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "prepare": "husky",
-    "system:up": "docker compose up --build",
+    "system:up": "docker compose up",
     "system:down": "docker compose down",
-    "system:logs": "docker compose logs -f",
-    "system:restart": "docker compose up --build app",
     "test": "node --test"
   },
   "author": "Ariel Robert Mutebi",
