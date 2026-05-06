@@ -1,0 +1,15 @@
+Wednesday 6 May, 2026.
+
+# The GrowthLog REST API tech stack
+
+## Web framework: Fastify
+The Odin Project recommended that we use Express because that's what it had taught us. I had used Express to build my last personal project, [Eureka](https://github.com/Ariel-Mutebi/Eureka). Express was nice and simple. That's why I didn't want it. Express was recommended for its minimalism, flexibility, and extensive ecosystem. All those were red flags as far as building GrowthLog was concerned. I wanted a framework that was opinionated, which foresaw the complexity of a production-grade API and did its best to provide optimized structures for me to build on top of. That was why when I heard about Fastify, I knew that it was the one. Fastify had built-in schema validation, which used your schemas to optimize the process of JSON deserialization and serialization so that it was two to three times faster! It had a plugin architecture which meant that I wouldn't have to have singletons scattered across the code base to handle services like the database connection pool. I could define the service as a plugin, and then access it through the `app` parameter wherever I defined a route. *And* the beauty and sophistication came in for cases where one service depended on another: no risk of race conditions or any weird artifacts because the plugins were initialized in the order that you defined them. Such features were the kind of quality-of-life improvements that made the decision to use Fastify a no-brainer.
+
+## Database ORM: Prisma
+Prisma ORM was the ORM recommended by The Odin Project. I decided to stick with it because I love its concise, GraphQL-inspired syntax. I had worked with Drizzle ORM at my job, but I didn't like it. It was one layer of abstraction too low: we ended up having to write database functions for almost each of our request handlers as an extra layer of abstraction over Drizzle. Drizzle was lighter and faster, but obviously speed of development and my developer experience were orders of magnitude more important than bundle size and runtime speed. It was Prsima for the win.
+
+## Containerization: Docker
+Containerization was beyond The Odin Project's syllabus, but I decided to use it because I wanted Growthlog to deploy and scale easily, and it was an industry standard, DevOps 101. I needed Docker if I wanted to deploy my database to the same machine as my API so that I could have lower-latency latency operations than if I had to make a round-trip over the internet to an external database host, and so that I wouldn't have to worry about an external database host to being with. I needed Redis for my API to be stateless and horizontally scalable,session stores persisting across server restarts. I needed Caddy if I wanted automated HTTPs, with the Caddy server being a gateway to my internal Docker network where my API would run. Docker was a non-negotiable for me.
+
+### Conclusion
+I only wanted to discuss the fundamental building blocks of the REST API. I won't discuss specialized libraries because those are relatively trivial and liable to change. I hope that this has made my decision-making clear.
