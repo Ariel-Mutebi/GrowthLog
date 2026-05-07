@@ -1,5 +1,5 @@
 import Fastify from 'fastify';
-import { Redis } from 'ioredis';
+import type { createClient } from 'redis';
 import { RedisStore } from 'connect-redis';
 import autoload from '@fastify/autoload';
 import fastifyHelmet from '@fastify/helmet';
@@ -17,23 +17,17 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export function buildApp() {
+export function buildApp(redisClient: ReturnType<typeof createClient>) {
   const app = Fastify({
     logger: true,
+    trustProxy: true,
     routerOptions: {
       ignoreTrailingSlash: true,
     },
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  const redis = new Redis(process.env.REDIS_URL!);
-  
-  redis.on('error', (err) => {
-    app.log.error({ err }, 'Redis client error');
-  });
-
   // basic protection against DOS, brute-forcing log-ins
   app.register(fastifyRateLimit, {
-    redis,
     max: 60,
     timeWindow: '1 minute',
   });
@@ -44,11 +38,11 @@ export function buildApp() {
   app.register(fastifySession, {
     secret: process.env.SESSION_SECRET!,
     store: new RedisStore({
-      client: redis,
+      client: redisClient,
       prefix: 'session:',
     }),
     cookie: {
-      secure: false, // TODO: find a way to set up HTTPs
+      secure: true,
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
@@ -76,11 +70,6 @@ export function buildApp() {
   // Log routes to avoid losing your sanity over 404 errors.
   app.ready(() => {
     console.log(app.printRoutes());
-  });
-
-  // Graceful shutdown
-  app.addHook('onClose', async () => {
-    await redis.quit();
   });
 
   return app;

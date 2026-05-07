@@ -1,0 +1,4 @@
+localhost {
+    reverse_proxy api:3000
+    tls /etc/caddy/certs/localhost.pem /etc/caddy/certs/localhost-key.pem
+}

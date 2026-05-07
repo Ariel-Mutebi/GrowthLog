@@ -7,6 +7,10 @@ services:
     working_dir: /app
     command: npx tsc --build --watch --preserveWatchOutput
     tty: true
+    healthcheck:
+      test: ["CMD", "test", "-f", "/app/dist/server.js"]
+      interval: 1s
+      retries: 30
 
   api:
     container_name: GrowthLogApi
@@ -14,18 +18,34 @@ services:
     volumes:
       - .:/app
     working_dir: /app
-    command: sh -c 'until [ -f dist/server.js ]; do sleep 0.1; done && node --watch dist/server.js'
-    ports:
-      - "3000:3000"
+    command: node --watch dist/server.js
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
       SESSION_SECRET: ${SESSION_SECRET}
     depends_on:
-      - build
-      - postgres
-      - redis
+      build:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
     tty: true
+
+  caddy:
+    container_name: GrowthLogCaddy
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./.local/certs:/etc/caddy/certs
+      - ${CADDYFILE:-./Caddyfile.local}:/etc/caddy/Caddyfile
+      - ./.local/caddy-data:/data
+      - ./.local/caddy-config:/config
+    depends_on:
+      - api
 
   postgres:
     container_name: GrowthLogPostgres
