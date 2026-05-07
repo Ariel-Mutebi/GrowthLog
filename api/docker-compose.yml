@@ -9,7 +9,8 @@ services:
     tty: true
     healthcheck:
       test: ["CMD", "test", "-f", "/app/dist/server.js"]
-      interval: 1s
+      start_interval: 1s
+      interval: 24h
       retries: 30
 
   api:
