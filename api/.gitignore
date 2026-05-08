@@ -1,6 +1,8 @@
 node_modules
 dist
 .env
+.env.docker
+.env.local
 src/db
 .tsbuildinfo
 .local

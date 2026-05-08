@@ -21,10 +21,9 @@ services:
       - .:/app
     working_dir: /app
     command: node --watch dist/server.js
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: ${REDIS_URL}
-      SESSION_SECRET: ${SESSION_SECRET}
+    env_file:
+      - .env
+      - .env.docker
     depends_on:
       build:
         condition: service_healthy
@@ -53,11 +52,9 @@ services:
     container_name: GrowthLogPostgres
     image: postgres:18
     ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      - "5432:5432" # for migrations in dev, remove from prod to prevent exposing database to the internet
+    env_file:
+      - .env
     volumes:
       - ./.local/postgres-data:/var/lib/postgresql
     logging:
@@ -66,7 +63,5 @@ services:
   redis:
     container_name: GrowthLogRedis
     image: redis:8
-    ports:
-      - "6379:6379"
     logging:
       driver: none
