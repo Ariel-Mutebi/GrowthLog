@@ -8,11 +8,11 @@ services:
     command: npx tsc --build --watch --preserveWatchOutput
     tty: true
     healthcheck:
-      test: ["CMD", "test", "-f", "/app/dist/server.js"]
+      test: ["CMD-SHELL", "[ -d /app/src ] && [ -f /app/dist/server.js ]"]
       start_period: 10s
       start_interval: 1s
       interval: 24h
-      retries: 30
+      retries: 10
 
   api:
     container_name: GrowthLogApi
@@ -52,7 +52,7 @@ services:
     container_name: GrowthLogPostgres
     image: postgres:18
     ports:
-      - "5432:5432" # for migrations in dev, remove from prod to prevent exposing database to the internet
+      - "5432:5432"
     env_file:
       - .env
     volumes:
