@@ -1,0 +1,2 @@
+# The GrowthLog Rest API: Architecture
+This document offers a comprehensive recollection of the *story* behind the design decisions of the architecture. It should elucidate what problems certain aspects of the architecture were designed to solve. Additionally, it should give a clear mental model of the structure, and data flow of the GrowthLog API.

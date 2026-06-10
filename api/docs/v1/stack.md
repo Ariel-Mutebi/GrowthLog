@@ -1,15 +1,69 @@
-Wednesday 6 May, 2026.
+# Growth Log REST API: Tech Stack
+A series of architecture decision records pertaining to the core parts of the API's tech stack.
 
-# The GrowthLog REST API tech stack
+## ADR 1: Web Framework — Fastify
 
-## Web framework: Fastify
-The Odin Project recommended that we use Express because that's what it had taught us. I had used Express to build my last personal project, [Eureka](https://github.com/Ariel-Mutebi/Eureka). Express was nice and simple. That's why I didn't want it. Express was recommended for its minimalism, flexibility, and extensive ecosystem. All those were red flags as far as building GrowthLog was concerned. I wanted a framework that was opinionated, which foresaw the complexity of a production-grade API and did its best to provide optimized structures for me to build on top of. That was why when I heard about Fastify, I knew that it was the one. Fastify had built-in schema validation, which used your schemas to optimize the process of JSON deserialization and serialization so that it was two to three times faster! It had a plugin architecture which meant that I wouldn't have to have singletons scattered across the code base to handle services like the database connection pool. I could define the service as a plugin, and then access it through the `app` parameter wherever I defined a route. *And* the beauty and sophistication came in for cases where one service depended on another: no risk of race conditions or any weird artifacts because the plugins were initialized in the order that you defined them. Such features were the kind of quality-of-life improvements that made the decision to use Fastify a no-brainer.
+**Status:** Accepted
 
-## Database ORM: Prisma
-Prisma ORM was the ORM recommended by The Odin Project. I decided to stick with it because I love its concise, GraphQL-inspired syntax. I had worked with Drizzle ORM at my job, but I didn't like it. It was one layer of abstraction too low: we ended up having to write database functions for almost each of our request handlers as an extra layer of abstraction over Drizzle. Drizzle was lighter and faster, but obviously speed of development and my developer experience were orders of magnitude more important than bundle size and runtime speed. It was Prsima for the win.
+### Context
+GrowthLog needed a Node.js web framework. Express was the natural default — used in a prior project (Eureka) and recommended by The Odin Project. However, Express's minimal, unopinionated design requires manually wiring together services and writing validation boilerplate, and its lack of enforced structure means conventions must be defined from scratch — choices that accumulate into maintenance debt in a production-grade API.
 
-## Containerization: Docker
-Containerization was beyond The Odin Project's syllabus, but I decided to use it because I wanted Growthlog to deploy and scale easily, and it was an industry standard, DevOps 101. I needed Docker if I wanted to deploy my database to the same machine as my API so that I could have lower-latency latency operations than if I had to make a round-trip over the internet to an external database host, and so that I wouldn't have to worry about an external database host to being with. I needed Redis for my API to be stateless and horizontally scalable,session stores persisting across server restarts. I needed Caddy if I wanted HTTPs, with the Caddy server being a reverse proxy to my internal Docker network where my API would run. Docker was a non-negotiable for me.
+### Decision
+Fastify. Its plugin architecture, built-in schema validation, and performance-first design address production concerns without reaching for third-party middleware.
 
-### Conclusion
-I only wanted to discuss the fundamental building blocks of the REST API. I won't discuss specialized libraries because those are relatively trivial and liable to change. I hope that this has made my decision-making clear.
+- Plugin architecture eliminates singletons; services registered as plugins and accessed via `app` in any route handler
+- Plugins initialize in declared order, preventing race conditions in service dependency chains
+- Schemas pre-compiled at startup via `fast-json-stringify`: 2–3× faster serialization than Express's per-request `JSON.stringify`
+- `find-my-way` radix tree router: ~3× faster route matching than Express's linear scan — gap widens with route count
+- Pino logger uses worker threads for I/O, keeping the event loop unblocked
+
+### Consequences
+**Tradeoffs accepted:**
+- Schema definitions add upfront verbosity compared to Express's minimal setup
+- The performance advantage narrows significantly in DB-bound workloads, where the bottleneck is the query, not the framework
+
+---
+
+## ADR 2: Database ORM — Prisma
+
+**Status:** Accepted
+
+### Context
+GrowthLog needed an ORM for PostgreSQL. Drizzle was the alternative from professional experience (Mapka). There, Drizzle's SQL-first philosophy required creating an abstraction layer of a custom DB function per request-handler.
+
+### Decision
+Prisma. Its high-level, GraphQL-inspired API prioritizes developer experience and development velocity over marginal performance gains.
+
+- Higher-level abstraction than Drizzle's SQL-mirroring approach improves development velocity
+- Auto-generates complex nested relation input types; Drizzle requires manual construction
+- Migration system more battle-tested for complex scenarios: type changes, multi-step schema migrations
+
+### Consequences
+**Tradeoffs accepted:**
+- Requires migration *and* client regeneration on every schema change, adding friction.
+- Less control over generated SQL; can only optimize queries via a raw SQL escape hatch.
+- Heavier runtime footprint than Drizzle (~7.4 KB)
+
+---
+
+## ADR 3: Containerization — Docker
+
+**Status:** Accepted
+
+### Context
+GrowthLog required PostgreSQL, Redis for session storage, and HTTPS. Without containerization, these would either be hosted externally (adding network latency and third-party dependencies) or installed directly on the host (creating environment inconsistencies and making the stack harder to reproduce).
+
+### Decision
+Docker with Docker Compose. All services run on the same machine within an isolated internal network, with Caddy as a reverse proxy handling HTTPS.
+
+- Same-machine DB via Docker Compose eliminates internet round-trip latency of an external host
+- Removes dependency on third-party database hosting providers
+- Redis keeps API containers stateless; sessions survive restarts
+- Caddy provides automatic HTTPS and reverse-proxies to the internal Docker network
+- Entire stack declared in `docker-compose.yml` — reproducible across environments with clean teardown
+
+### Consequences
+**Tradeoffs accepted:**
+- More moving parts than a bare deployment; Docker networking knowledge required to diagnose container communication issues
+- Running multiple containers on one machine increases resource consumption
+- Local HTTPS setup (via `mkcert`) adds a one-time configuration step not present in a plain HTTP development server
