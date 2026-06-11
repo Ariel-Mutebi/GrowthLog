@@ -8,7 +8,7 @@ services:
     command: npx tsc --build --watch --preserveWatchOutput
     tty: true
     healthcheck:
-      test: ["CMD-SHELL", "[ -d /app/src ] && [ -f /app/dist/server.js ]"]
+      test: ["CMD-SHELL", "[ -f /app/dist/server.js ]"]
       start_period: 10s
       start_interval: 1s
       interval: 24h
@@ -23,7 +23,9 @@ services:
     command: node --watch dist/server.js
     env_file:
       - .env
-      - .env.docker
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      REDIS_URL: redis://redis:6379
     depends_on:
       build:
         condition: service_healthy
@@ -41,8 +43,8 @@ services:
       - "443:443"
       - "443:443/udp"
     volumes:
+      - ./Caddyfile.dev:/etc/caddy/Caddyfile
       - ./.local/certs:/etc/caddy/certs
-      - ${CADDYFILE:-./Caddyfile.local}:/etc/caddy/Caddyfile
       - ./.local/caddy-data:/data
       - ./.local/caddy-config:/config
     depends_on:
@@ -52,16 +54,19 @@ services:
     container_name: GrowthLogPostgres
     image: postgres:18
     ports:
-      - "5432:5432"
+      - "5432:5432" # exposed to run Prisma migrations against
     env_file:
       - .env
     volumes:
-      - ./.local/postgres-data:/var/lib/postgresql
+      - ./.local/postgres-data:/var/lib/postgresql/data
     logging:
       driver: none
 
   redis:
     container_name: GrowthLogRedis
     image: redis:8
+    command: redis-server --appendonly yes
+    volumes:
+      - ./.local/redis-data:/data
     logging:
       driver: none
