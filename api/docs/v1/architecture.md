@@ -127,14 +127,14 @@ In production, a single image built from `Dockerfile` is used. Running `docker c
 FROM node:25-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev          # production dependencies only
+RUN npm ci
 COPY . .
-RUN npm run build              # compile once, at build time
+RUN npm run build && npm prune --omit=dev
 EXPOSE 3000
 CMD ["node", "dist/server.js"]
 ```
 
-The dependency layer is ordered deliberately: `package*.json` is copied and dependencies installed before source files are added. A source-only change skips the `npm ci` step and reuses the cached dependency layer, keeping image rebuild times short.
+The dependency layer is ordered deliberately: `package*.json` is copied and all dependencies installed before source files are added. Dev dependencies are needed at compile time for TypeScript type declarations, so `npm ci` installs everything. `npm prune --omit=dev` runs immediately after the build to strip them out, leaving the final image with a production-only footprint. A source-only change skips the `npm ci` step and reuses the cached dependency layer, keeping image rebuild times short.
 
 Production uses named volumes rather than bind mounts. Docker manages these independently of the project directory, which is appropriate since there is no reason to inspect raw database or session files from the host.
 
