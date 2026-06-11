@@ -2,7 +2,7 @@ import type { FastifyReply } from 'fastify';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 import type { Static } from '@sinclair/typebox';
-import type { ConflictResponse } from './userSchemas.js';
+import type { ConflictResponse } from '../routes/users/userSchemas.js';
 
 const listFormatter = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
 

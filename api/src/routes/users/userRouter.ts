@@ -2,8 +2,9 @@ import { hash } from 'bcrypt';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 import { isLoggedIn } from '../../auth/isLoggedIn.js';
-import { handleDBConflict } from './handleDBConflict.js';
-import { CreateUserSchema, UpdateUserSchema } from './userSchemas.js';
+import { handleDBConflict } from '../../utils/handleDBConflict.js';
+import { CreateUserSchema, SuccessfulResponse, UpdateUserSchema } from './userSchemas.js';
+import type { NonModeratorUser } from '../../types/generic.js';
 
 const ROUNDS = 10;
 
@@ -14,9 +15,9 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
     req.body.password = await hash(req.body.password, ROUNDS);
     
     try {
-      const user = await app.prisma.user.create({ data: req.body });
+      const user = await app.prisma.user.create({ data: req.body }) as NonModeratorUser;
       await req.logIn(user);
-      return res.code(204).send();
+      return res.send(user);
     } catch (error) {
       handleDBConflict(error, res);
     }
@@ -36,13 +37,13 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
           id: req.user?.id,
         },
         data: req.body,
-      });
+      }) as NonModeratorUser;
 
       if (req.body.role) {
         req.logIn(updatedUser);
       }
 
-      return res.code(204).send();
+      return res.send(updatedUser);
     } catch (error) {
       handleDBConflict(error, res); 
     }
@@ -50,18 +51,23 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
 
   app.delete('/', {
     preValidation: isLoggedIn(app.auth),
+    schema: {
+      response: {
+        200: SuccessfulResponse,
+      },
+    },
   }, async (req, res) => {
-    await app.prisma.user.update({
+    const softDeletedUser = await app.prisma.user.update({
       where: {
         id: req.user?.id,
       },
       data: {
         deletedAt: new Date(),
       },
-    });
+    }) as NonModeratorUser;
 
     await req.logOut();
-    return res.code(204).send();
+    return res.send(softDeletedUser);
   });
 };
 

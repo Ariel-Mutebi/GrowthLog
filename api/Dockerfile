@@ -1,13 +1,8 @@
 FROM node:25-alpine
 WORKDIR /app
-
-# Dependencies layer — only rebuilds when package.json changes
 COPY package*.json ./
-RUN npm ci --omit=dev
-
-# Source layer
+RUN npm ci
 COPY . .
-RUN npm run build
-
+RUN npm run build && npm prune --omit=dev
 EXPOSE 3000
 CMD ["node", "dist/server.js"]

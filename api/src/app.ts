@@ -26,7 +26,7 @@ export function buildApp(redisClient: ReturnType<typeof createClient>) {
     },
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  // basic protection against DOS, brute-forcing log-ins
+  // basic protection against DOS
   app.register(fastifyRateLimit, {
     max: 60,
     timeWindow: '1 minute',
