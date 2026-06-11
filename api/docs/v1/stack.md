@@ -3,8 +3,6 @@ A series of architecture decision records pertaining to the core parts of the AP
 
 ## ADR 1: Web Framework — Fastify
 
-**Status:** Accepted
-
 ### Context
 GrowthLog needed a Node.js web framework. Express was the natural default — used in a prior project (Eureka) and recommended by The Odin Project. However, Express's minimal, unopinionated design requires manually wiring together services and writing validation boilerplate, and its lack of enforced structure means conventions must be defined from scratch — choices that accumulate into maintenance debt in a production-grade API.
 
@@ -26,8 +24,6 @@ Fastify. Its plugin architecture, built-in schema validation, and performance-fi
 
 ## ADR 2: Database ORM — Prisma
 
-**Status:** Accepted
-
 ### Context
 GrowthLog needed an ORM for PostgreSQL. Drizzle was the alternative from professional experience (Mapka). There, Drizzle's SQL-first philosophy required creating an abstraction layer of a custom DB function per request-handler.
 
@@ -48,10 +44,8 @@ Prisma. Its high-level, GraphQL-inspired API prioritizes developer experience an
 
 ## ADR 3: Containerization — Docker
 
-**Status:** Accepted
-
 ### Context
-GrowthLog required PostgreSQL, Redis for session storage, and HTTPS. Without containerization, these would either be hosted externally (adding network latency and third-party dependencies) or installed directly on the host (creating environment inconsistencies and making the stack harder to reproduce).
+GrowthLog required a host for its database. Instead of externally hosting it like I had learned to do from the Odin Project, I decided to host it locally in a Docker container like I had seen at Mapka. This approach eliminated the liability of relying on a PaaS with a volatile set of features, pricing plans, terminologies, and interfaces. Docker also facilitated integration of Redis for session storage, and Caddy for self-configured SSL termination.
 
 ### Decision
 Docker with Docker Compose. All services run on the same machine within an isolated internal network, with Caddy as a reverse proxy handling HTTPS.
@@ -65,5 +59,4 @@ Docker with Docker Compose. All services run on the same machine within an isola
 ### Consequences
 **Tradeoffs accepted:**
 - More moving parts than a bare deployment; Docker networking knowledge required to diagnose container communication issues
-- Running multiple containers on one machine increases resource consumption
 - Local HTTPS setup (via `mkcert`) adds a one-time configuration step not present in a plain HTTP development server
