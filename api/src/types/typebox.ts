@@ -16,9 +16,15 @@ export const Email = Type.String({
   format: 'email',
 });
 
-// A client cannot create an account with the role of a moderator through the API.
-export const ExposedRoles = Type.Union([
+export const NonModeratorRole = Type.Union([
   Type.Literal('ADVERTISER'),
   Type.Literal('AUTOBIOGRAPHER'),
   Type.Literal('BIOGRAPHER'),
+]);
+
+export const UserRole = Type.Union([
+  Type.Literal('ADVERTISER'),
+  Type.Literal('AUTOBIOGRAPHER'),
+  Type.Literal('BIOGRAPHER'),
+  Type.Literal('MODERATOR'),
 ]);

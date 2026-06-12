@@ -3,8 +3,12 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 import { isLoggedIn } from '../../auth/isLoggedIn.js';
 import { handleDBConflict } from '../../utils/handleDBConflict.js';
-import { CreateUserSchema, SuccessfulResponse, UpdateUserSchema } from './userSchemas.js';
-import type { NonModeratorUser } from '../../types/generic.js';
+import {
+  CreateUserSchema,
+  UpdateUserSchema,
+  ReadOrDeleteUserSchema,
+  PublicProfileSchema,
+} from './userSchemas.js';
 
 const ROUNDS = 10;
 
@@ -15,12 +19,70 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
     req.body.password = await hash(req.body.password, ROUNDS);
     
     try {
-      const user = await app.prisma.user.create({ data: req.body }) as NonModeratorUser;
+      const user = await app.prisma.user.create({
+        data: req.body,
+        omit: {
+          password: true,
+          deletedAt: true,
+        },
+      });
       await req.logIn(user);
       return res.send(user);
     } catch (error) {
-      handleDBConflict(error, res);
+      return handleDBConflict(error, res);
     }
+  });
+
+  app.get('/', {
+    preValidation: isLoggedIn(app.auth),
+    schema: ReadOrDeleteUserSchema,
+  }, async (req, res) => {
+    const user = await app.prisma.user.findUnique({
+      where: {
+        id: req.user!.id,
+        deletedAt: null,
+      },
+      omit: {
+        password: true,
+        deletedAt: true,
+      },
+    });
+
+    if (!user) {
+      return res.code(404).send({
+        error: 'NotFound',
+        message: 'Your user cannot be found',
+      });
+    }
+
+    return res.send(user);
+  });
+
+  // access another user's public profile
+  app.get('/:userId', {
+    preValidation: isLoggedIn(app.auth),
+    schema: PublicProfileSchema,
+  }, async (req, res) => {
+    const otherUser = await app.prisma.user.findUnique({
+      where: {
+        id: req.params.userId,
+        deletedAt: null,
+      },
+      omit: {
+        email: true,
+        password: true,
+        deletedAt: true,
+      },
+    });
+
+    if (!otherUser) {
+      return res.code(404).send({
+        error: 'NotFound',
+        message: `User with the id ${req.params.userId} not found`,
+      });
+    }
+
+    return res.send(otherUser);
   });
 
   app.patch('/', {
@@ -34,28 +96,28 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
     try {
       const updatedUser = await app.prisma.user.update({
         where: {
-          id: req.user?.id,
+          id: req.user!.id,
         },
         data: req.body,
-      }) as NonModeratorUser;
+        omit: {
+          password: true,
+          deletedAt: true,
+        },
+      });
 
       if (req.body.role) {
-        req.logIn(updatedUser);
+        await req.logIn(updatedUser);
       }
 
       return res.send(updatedUser);
     } catch (error) {
-      handleDBConflict(error, res); 
+      return handleDBConflict(error, res); 
     }
   });
 
   app.delete('/', {
     preValidation: isLoggedIn(app.auth),
-    schema: {
-      response: {
-        200: SuccessfulResponse,
-      },
-    },
+    schema: ReadOrDeleteUserSchema,
   }, async (req, res) => {
     const softDeletedUser = await app.prisma.user.update({
       where: {
@@ -64,7 +126,10 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
       data: {
         deletedAt: new Date(),
       },
-    }) as NonModeratorUser;
+      omit: {
+        password: true,
+      },
+    });
 
     await req.logOut();
     return res.send(softDeletedUser);
