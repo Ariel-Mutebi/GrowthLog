@@ -8,6 +8,7 @@ declare module 'fastify' {
   interface FastifyInstance {
     prisma: PrismaClient;
     auth: Authenticator;
+    redis: ReturnType<typeof createClient>;
   }
   interface PassportUser {
     id: string;

@@ -2,9 +2,9 @@ import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import type { User } from '../../db/client.js';
 import type { AllUnknown } from '../../types/generic.js';
-import { Alphanumeric, Email, LettersOnlyString, UserRole } from '../../types/typebox.js';
+import { Alphanumeric, Email, LettersOnlyString, NonModeratorRole, UserRole } from '../../types/typebox.js';
 
-type userFields = Partial<AllUnknown<User>>;
+type UserFields = Partial<AllUnknown<User>>;
 
 const body = Type.Object({
   forename: LettersOnlyString,
@@ -12,31 +12,31 @@ const body = Type.Object({
   username: Alphanumeric,
   email: Email,
   password: Type.String(),
-  role: UserRole,
-} satisfies userFields);
+  role: NonModeratorRole,
+} satisfies UserFields);
 
-// Note: password omitted so that it's never serialized and sent back.
-export const SuccessfulResponse = Type.Object({
+// Hashed password and internal deletedAt flag omitted
+export const UserWithoutInternals = Type.Object({
   forename: LettersOnlyString,
   surname: LettersOnlyString,
   username: Alphanumeric,
   email: Email,
   role: UserRole,
   createdAt: Type.Date(),
-} satisfies userFields);
+} satisfies Omit<UserFields, 'password' | 'deletedAt'>);
 
-const ConflictResponse = Type.Object({
+export const ConflictResponse = Type.Object({
   error: Type.Literal('Conflict'),
   message: Type.String(),
 });
 
-const NotFoundResponse = Type.Object({
+export const NotFoundResponse = Type.Object({
   error: Type.Literal('NotFound'),
   message: Type.String(),
 });
 
 const response = {
-  200: SuccessfulResponse,
+  200: UserWithoutInternals,
   404: NotFoundResponse,
   409: ConflictResponse,
 } satisfies FastifySchema['response'];
@@ -50,7 +50,7 @@ export const UpdateUserSchema = {
 
 export const ReadOrDeleteUserSchema = {
   response: {
-    200: SuccessfulResponse,
+    200: UserWithoutInternals,
     404: NotFoundResponse,
   },
 } satisfies FastifySchema;

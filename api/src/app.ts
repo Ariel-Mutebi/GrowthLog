@@ -1,10 +1,7 @@
 import Fastify from 'fastify';
-import type { createClient } from 'redis';
-import { RedisStore } from 'connect-redis';
 import autoload from '@fastify/autoload';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
-import fastifySession from '@fastify/session';
 import fastifyRateLimit from '@fastify/rate-limit';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
@@ -13,11 +10,13 @@ import { prismaPlugin } from './plugins/prisma.js';
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { redisPlugin } from './plugins/redis.js';
+import { sessionPlugin } from './plugins/session.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export function buildApp(redisClient: ReturnType<typeof createClient>) {
+export function buildApp() {
   const app = Fastify({
     logger: true,
     trustProxy: true,
@@ -26,36 +25,22 @@ export function buildApp(redisClient: ReturnType<typeof createClient>) {
     },
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  // basic protection against DOS
+  // DOS hardening: per-IP rate-limiting (per-server as redis not used)
   app.register(fastifyRateLimit, {
     max: 60,
     timeWindow: '1 minute',
   });
 
-  // basic security, cookie-based session management
   app.register(fastifyHelmet);
   app.register(fastifyCookie);
-  app.register(fastifySession, {
-    secret: process.env.SESSION_SECRET!,
-    store: new RedisStore({
-      client: redisClient,
-      prefix: 'session:',
-    }),
-    cookie: {
-      secure: true,
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/',
-    },
-  });
-
-  // custom plugins
+  app.register(redisPlugin);
+  app.register(sessionPlugin);
   app.register(prismaPlugin);
   app.register(authPlugin);
 
   /**
    * Load routers from ./routes using autoload, with sub-folder names becoming endpoints.
-   * Note: autoload only picks up default exports (e.g export default myRouter).
+   * Note: autoload only picks up default exports.
    */
   app.register(autoload, {
     dir: path.join(__dirname, 'routes'),
@@ -67,7 +52,6 @@ export function buildApp(redisClient: ReturnType<typeof createClient>) {
   });
 
 
-  // Log routes to avoid losing your sanity over 404 errors.
   app.ready(() => {
     console.log(app.printRoutes());
   });

@@ -1,8 +1,8 @@
 import { hash } from 'bcrypt';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
-import { isLoggedIn } from '../../auth/isLoggedIn.js';
-import { handleDBConflict } from '../../utils/handleDBConflict.js';
+import { isLoggedIn } from '../../auth/prevalidation.js';
+import { handleDBError } from '../../utils/handleDBConflict.js';
 import {
   CreateUserSchema,
   UpdateUserSchema,
@@ -29,7 +29,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
       await req.logIn(user);
       return res.send(user);
     } catch (error) {
-      return handleDBConflict(error, res);
+      return handleDBError(error, res);
     }
   });
 
@@ -97,6 +97,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
       const updatedUser = await app.prisma.user.update({
         where: {
           id: req.user!.id,
+          deletedAt: null,
         },
         data: req.body,
         omit: {
@@ -111,7 +112,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
 
       return res.send(updatedUser);
     } catch (error) {
-      return handleDBConflict(error, res); 
+      return handleDBError(error, res); 
     }
   });
 
@@ -121,13 +122,14 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   }, async (req, res) => {
     const softDeletedUser = await app.prisma.user.update({
       where: {
-        id: req.user?.id,
+        id: req.user!.id,
       },
       data: {
         deletedAt: new Date(),
       },
       omit: {
         password: true,
+        deletedAt: true,
       },
     });
 
