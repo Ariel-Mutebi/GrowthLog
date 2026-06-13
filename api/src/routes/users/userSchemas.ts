@@ -2,18 +2,30 @@ import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import type { User } from '../../db/client.js';
 import type { AllUnknown } from '../../types/generic.js';
-import { Alphanumeric, Email, LettersOnlyString, NonModeratorRole, UserRole } from '../../types/typebox.js';
+import {
+  Alphanumeric,
+  Email,
+  LettersOnlyString,
+  NonModeratorRole,
+  Password,
+  UserRole,
+} from '../../types/typebox/inputs.js';
+import { errorResponses } from '../../types/typebox/responses.js';
 
 type UserFields = Partial<AllUnknown<User>>;
 
-const body = Type.Object({
+const CreateUser = Type.Object({
   forename: LettersOnlyString,
   surname: LettersOnlyString,
   username: Alphanumeric,
   email: Email,
-  password: Type.String(),
+  password: Password,
   role: NonModeratorRole,
 } satisfies UserFields);
+
+const revalidateIdentity = Type.Object({
+  currentPassword: Password,
+});
 
 // Hashed password and internal deletedAt flag omitted
 export const UserWithoutInternals = Type.Object({
@@ -25,34 +37,26 @@ export const UserWithoutInternals = Type.Object({
   createdAt: Type.Date(),
 } satisfies Omit<UserFields, 'password' | 'deletedAt'>);
 
-export const ConflictResponse = Type.Object({
-  error: Type.Literal('Conflict'),
-  message: Type.String(),
-});
-
-export const NotFoundResponse = Type.Object({
-  error: Type.Literal('NotFound'),
-  message: Type.String(),
-});
-
 const response = {
   200: UserWithoutInternals,
-  404: NotFoundResponse,
-  409: ConflictResponse,
-} satisfies FastifySchema['response'];
+  ...errorResponses,
+};
 
-export const CreateUserSchema = { body, response } satisfies FastifySchema;
+export const CreateUserSchema = { body: CreateUser, response } satisfies FastifySchema;
 
 export const UpdateUserSchema = {
-  body: Type.Partial(body),
+  body: Type.Intersect([
+    Type.Partial(revalidateIdentity),
+    Type.Partial(CreateUser),
+  ]),
   response,
 } satisfies FastifySchema;
 
-export const ReadOrDeleteUserSchema = {
-  response: {
-    200: UserWithoutInternals,
-    404: NotFoundResponse,
-  },
+export const ReadUserSchema = { response } satisfies FastifySchema;
+
+export const DeleteUserSchema = {
+  body: revalidateIdentity,
+  response,
 } satisfies FastifySchema;
 
 const PublicProfile = Type.Object({
@@ -69,6 +73,6 @@ export const PublicProfileSchema = {
   }),
   response: {
     200: PublicProfile,
-    404: NotFoundResponse,
+    ...errorResponses,
   },
 } satisfies FastifySchema;

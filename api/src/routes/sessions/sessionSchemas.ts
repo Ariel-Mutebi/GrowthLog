@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { Email } from '../../types/typebox.js';
+import { Email } from '../../types/typebox/inputs.js';
 import { UserWithoutInternals } from '../users/userSchemas.js';
 
 const credentials = Type.Object({

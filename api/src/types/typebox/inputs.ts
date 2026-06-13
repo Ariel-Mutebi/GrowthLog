@@ -1,5 +1,7 @@
 import { Type } from '@sinclair/typebox';
 
+export const Password = Type.String({ minLength: 12 });
+
 export const NonEmptyString = Type.String({
   pattern: '\\S',
 });

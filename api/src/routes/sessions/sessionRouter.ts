@@ -5,7 +5,7 @@ import type { User } from '../../db/client.js';
 
 /*
   * Stricter rate limiting on POST session/ to prevent single machine targeting multiple accounts,
-  * and prevent this endpoint being used as a resource exhaustion vector (compare is expensive).
+  * and prevent this endpoint being used as a resource exhaustion vector (bcrypt compare is expensive).
 */
 const sessionRouter: FastifyPluginAsync = async (app) => {
   app.post('/', {
