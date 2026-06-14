@@ -1,18 +1,29 @@
 services:
+  clean:
+    container_name: GrowthLogClean
+    image: node:25-alpine
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: ["sh", "-c", "npx tsc --build --clean"]
+
   build:
     container_name: GrowthLogBuild
     image: node:25-alpine
     volumes:
       - .:/app
     working_dir: /app
-    command: npx tsc --build --watch --preserveWatchOutput
+    command: ["sh", "-c", "exec npx tsc --build --watch"]
     tty: true
+    depends_on:
+      clean:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "[ -f /app/dist/server.js ]"]
-      start_period: 10s
+      test: ["CMD-SHELL", "[ -s /app/dist/server.js ]"]
+      start_period: 30s
       start_interval: 1s
       interval: 24h
-      retries: 10
+      retries: 30
 
   api:
     container_name: GrowthLogApi
@@ -58,7 +69,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./.local/postgres-data:/var/lib/postgresql/data
+      - ./.local/postgres-data:/var/lib/postgresql
     logging:
       driver: none
 

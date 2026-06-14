@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { isLoggedIn, localStrategy } from '../../auth/prevalidation.js';
-import { CreateSessionSchema } from './sessionSchemas.js';
+import { CreateSessionSchema, DeleteSessionSchema } from './sessionSchemas.js';
 import type { User } from '../../db/client.js';
 
 /*
@@ -62,6 +62,7 @@ const sessionRouter: FastifyPluginAsync = async (app) => {
 
   app.delete('/', {
     preValidation: isLoggedIn(app.auth),
+    schema: DeleteSessionSchema,
   }, async (req, res) => {
     await req.logOut();
     await req.session.destroy();

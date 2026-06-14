@@ -1,7 +1,5 @@
 import { compare, hash } from 'bcrypt';
-import { ZxcvbnFactory } from '@zxcvbn-ts/core';
-import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
-import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en';
+import { zxcvbn } from 'zxcvbn-ts';
 import type { Static } from '@sinclair/typebox';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
@@ -17,15 +15,6 @@ import {
 } from './userSchemas.js';
 
 const ROUNDS = 10;
-
-const zxcvbn = new ZxcvbnFactory({
-  dictionary: {
-    ...zxcvbnCommonPackage.dictionary,
-    ...zxcvbnEnPackage.dictionary,
-  },
-  graphs: zxcvbnCommonPackage.adjacencyGraphs,
-  translations: zxcvbnEnPackage.translations,
-});
 
 const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   app.post('/', {
@@ -43,13 +32,13 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
       },
     },
   }, async (req, res) => {
-    const passwordCheck = zxcvbn.check(req.body.password);
+    const passwordCheck = zxcvbn(req.body.password);
 
     if (passwordCheck.score < 3) {
       return res.code(400).send({
         error: 'BadRequest',
         message: 'Password too weak',
-        suggestions: passwordCheck.feedback.suggestions,
+        suggestions: passwordCheck.feedback.suggestions as string[],
       } satisfies Static<typeof BadRequest>);
     }
     req.body.password = await hash(req.body.password, ROUNDS);
@@ -125,41 +114,41 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
     preValidation: isLoggedIn(app.auth),
     schema: UpdateUserSchema,
   }, async (req, res) => {
-    const { currentPassword, ...updateData } = req.body;
-
-    if (updateData.email || updateData.password) {
-      const { password } = await app.prisma.user.findUniqueOrThrow({
-        where: {
-          id: req.user!.id,
-        },
-        select: {
-          password: true,
-        },
-      });
-
-      if (!currentPassword || !(await compare(currentPassword, password))) {
-        return res.code(401).send({
-          error: 'Unauthorized',
-          message: 'Provide your password to update these credentials',
-        } satisfies Static<typeof UnauthorizedResponse>);
-      }
-    }
-
-    if (updateData.password) {
-      const passwordCheck = zxcvbn.check(updateData.password);
-
-      if (passwordCheck.score < 3) {
-        return res.code(400).send({
-          error: 'BadRequest',
-          message: 'Password too weak',
-          suggestions: passwordCheck.feedback.suggestions,
-        } satisfies Static<typeof BadRequest>);
-      }
-
-      updateData.password = await hash(updateData.password, ROUNDS);
-    }
-
     try {
+      const { currentPassword, ...updateData } = req.body;
+
+      if (updateData.email || updateData.password) {
+        const { password } = await app.prisma.user.findUniqueOrThrow({
+          where: {
+            id: req.user!.id,
+          },
+          select: {
+            password: true,
+          },
+        });
+
+        if (!currentPassword || !(await compare(currentPassword, password))) {
+          return res.code(401).send({
+            error: 'Unauthorized',
+            message: 'Provide your password to update these credentials',
+          } satisfies Static<typeof UnauthorizedResponse>);
+        }
+      }
+
+      if (updateData.password) {
+        const passwordCheck = zxcvbn(updateData.password);
+
+        if (passwordCheck.score < 3) {
+          return res.code(400).send({
+            error: 'BadRequest',
+            message: 'Password too weak',
+            suggestions: passwordCheck.feedback.suggestions as string[],
+          } satisfies Static<typeof BadRequest>);
+        }
+
+        updateData.password = await hash(updateData.password, ROUNDS);
+      }
+
       const updatedUser = await app.prisma.user.update({
         where: {
           id: req.user!.id,

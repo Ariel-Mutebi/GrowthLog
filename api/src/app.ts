@@ -1,17 +1,17 @@
 import Fastify from 'fastify';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import autoload from '@fastify/autoload';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
-import fastifyRateLimit from '@fastify/rate-limit';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import { authPlugin } from './plugins/auth.js';
 import { prismaPlugin } from './plugins/prisma.js';
-
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { redisPlugin } from './plugins/redis.js';
 import { sessionPlugin } from './plugins/session.js';
+import { swaggerPlugin } from './plugins/swagger.js';
+import { rateLimitPlugin } from './plugins/rate.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,22 +25,18 @@ export function buildApp() {
     },
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  // DOS hardening: per-IP rate-limiting (per-server as redis not used)
-  app.register(fastifyRateLimit, {
-    max: 60,
-    timeWindow: '1 minute',
-  });
-
   app.register(fastifyHelmet);
   app.register(fastifyCookie);
   app.register(redisPlugin);
+  app.register(rateLimitPlugin);
   app.register(sessionPlugin);
   app.register(prismaPlugin);
   app.register(authPlugin);
+  app.register(swaggerPlugin);
 
   /**
-   * Load routers from ./routes using autoload, with sub-folder names becoming endpoints.
-   * Note: autoload only picks up default exports.
+   * Auto-register all default-exported routers from files ending in `Router.(ts|js)` within
+   * the `routes` directory tree under the `/v1` namespace, using directory names as route prefixes.
    */
   app.register(autoload, {
     dir: path.join(__dirname, 'routes'),

@@ -42,9 +42,26 @@ const response = {
   ...errorResponses,
 };
 
-export const CreateUserSchema = { body: CreateUser, response } satisfies FastifySchema;
+export const CreateUserSchema = {
+  summary: 'Register a new user',
+  description: 'Creates a user account and opens a session. Rate limited to one registration per IP per day.',
+  tags: ['Users'],
+  body: CreateUser,
+  response,
+} satisfies FastifySchema;
+
+export const ReadUserSchema = {
+  summary: 'Get current user',
+  tags: ['Users'],
+  security: [{ session: [] }],
+  response,
+} satisfies FastifySchema;
 
 export const UpdateUserSchema = {
+  summary: 'Update current user',
+  description: 'Updating email or password requires `currentPassword` to be provided.',
+  tags: ['Users'],
+  security: [{ session: [] }],
   body: Type.Intersect([
     Type.Partial(revalidateIdentity),
     Type.Partial(CreateUser),
@@ -52,9 +69,11 @@ export const UpdateUserSchema = {
   response,
 } satisfies FastifySchema;
 
-export const ReadUserSchema = { response } satisfies FastifySchema;
-
 export const DeleteUserSchema = {
+  summary: 'Delete current user',
+  description: 'Soft deletes the account. The account can be recovered by logging in within 7 days.',
+  tags: ['Users'],
+  security: [{ session: [] }],
   body: revalidateIdentity,
   response,
 } satisfies FastifySchema;
@@ -68,6 +87,9 @@ const PublicProfile = Type.Object({
 });
 
 export const PublicProfileSchema = {
+  summary: 'Get a user\'s public profile',
+  tags: ['Users'],
+  security: [{ session: [] }],
   params: Type.Object({
     userId: Type.String(),
   }),

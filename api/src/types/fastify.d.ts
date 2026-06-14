@@ -1,6 +1,6 @@
 import 'fastify';
+import type { createClient } from 'redis';
 import type { Authenticator } from '@fastify/passport';
-
 import type { Role } from '../db/enums.js';
 import type { PrismaClient } from '../db/client.js';
 
