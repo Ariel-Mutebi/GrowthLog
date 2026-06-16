@@ -1,5 +1,4 @@
 import { compare, hash } from 'bcrypt';
-import { zxcvbn } from 'zxcvbn-ts';
 import type { Static } from '@sinclair/typebox';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
@@ -13,6 +12,16 @@ import {
   PublicProfileSchema,
   ReadUserSchema,
 } from './userSchemas.js';
+
+/**
+ * Workaround for zxcvbn's broken ESM build as I wait for
+ * my PR: https://github.com/KunalTanwar/zxcvbn-ts/pull/1
+ */
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+const { zxcvbn } = require('zxcvbn-ts') as typeof import('zxcvbn-ts');
 
 const ROUNDS = 10;
 
