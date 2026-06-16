@@ -33,13 +33,13 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
      * also protects against enumeration attacks where an attacker could
      * try to see which credentials cause database conflicts.
      */
-    config: {
-      rateLimit: {
-        max: 1,
-        timeWindow: '1 day',
-        keyGenerator: (req) => `registration:${req.ip}`,
-      },
-    },
+    // config: {
+    //   rateLimit: {
+    //     max: 1,
+    //     timeWindow: 24 * 3600 * 1000,
+    //     keyGenerator: (req) => `registration:${req.ip}`,
+    //   },
+    // },
   }, async (req, res) => {
     const passwordCheck = zxcvbn(req.body.password);
 

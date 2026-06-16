@@ -1,9 +1,9 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import type { User } from '../../db/client.js';
-import type { AllUnknown } from '../../types/generic.js';
+import type { AllUnknown } from '../../types/mapped.js';
 import {
-  Alphanumeric,
+  Username,
   Email,
   LettersOnlyString,
   NonModeratorRole,
@@ -11,13 +11,14 @@ import {
   UserRole,
 } from '../../types/typebox/inputs.js';
 import { errorResponses } from '../../types/typebox/responses.js';
+import { Date } from '../../types/typebox/compatability.js';
 
 type UserFields = Partial<AllUnknown<User>>;
 
 const CreateUser = Type.Object({
   forename: LettersOnlyString,
   surname: LettersOnlyString,
-  username: Alphanumeric,
+  username: Username,
   email: Email,
   password: Password,
   role: NonModeratorRole,
@@ -31,10 +32,10 @@ const revalidateIdentity = Type.Object({
 export const UserWithoutInternals = Type.Object({
   forename: LettersOnlyString,
   surname: LettersOnlyString,
-  username: Alphanumeric,
+  username: Username,
   email: Email,
   role: UserRole,
-  createdAt: Type.Date(),
+  createdAt: Date,
 } satisfies Omit<UserFields, 'password' | 'deletedAt'>);
 
 const response = {
@@ -81,9 +82,9 @@ export const DeleteUserSchema = {
 const PublicProfile = Type.Object({
   forename: LettersOnlyString,
   surname: LettersOnlyString,
-  username: Alphanumeric,
+  username: Username,
   role: UserRole,
-  createdAt: Type.Date(),
+  createdAt: Date,
 });
 
 export const PublicProfileSchema = {
