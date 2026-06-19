@@ -47,7 +47,6 @@ export function buildApp() {
     matchFilter: (path) => /Router\.(ts|js)$/.test(path),
   });
 
-
   app.ready(() => {
     console.log(app.printRoutes());
   });

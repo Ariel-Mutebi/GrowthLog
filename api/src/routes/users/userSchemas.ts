@@ -24,6 +24,14 @@ const CreateUser = Type.Object({
   role: NonModeratorRole,
 } satisfies UserFields);
 
+const UpdateUser = Type.Partial(Type.Object({
+  forename: LettersOnlyString,
+  surname: LettersOnlyString,
+  username: Username,
+  email: Email,
+  password: Password,
+} satisfies UserFields));
+
 const revalidateIdentity = Type.Object({
   currentPassword: Password,
 });
@@ -63,10 +71,7 @@ export const UpdateUserSchema = {
   description: 'Updating email or password requires `currentPassword` to be provided.',
   tags: ['Users'],
   security: [{ session: [] }],
-  body: Type.Intersect([
-    Type.Partial(revalidateIdentity),
-    Type.Partial(CreateUser),
-  ]),
+  body: Type.Intersect([Type.Partial(revalidateIdentity), UpdateUser]),
   response,
 } satisfies FastifySchema;
 

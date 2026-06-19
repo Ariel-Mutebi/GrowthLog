@@ -4,7 +4,7 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 import { isLoggedIn } from '../../auth/prevalidation.js';
 import { handleDBError } from '../../utils/handleDBConflict.js';
-import type { BadRequest, NotFoundResponse, UnauthorizedResponse } from '../../types/typebox/responses.js';
+import type { NotFoundResponse, UnauthorizedResponse } from '../../types/typebox/responses.js';
 import {
   CreateUserSchema,
   UpdateUserSchema,
@@ -12,16 +12,7 @@ import {
   PublicProfileSchema,
   ReadUserSchema,
 } from './userSchemas.js';
-
-/**
- * Workaround for zxcvbn's broken ESM build as I wait for
- * my PR: https://github.com/KunalTanwar/zxcvbn-ts/pull/1
- */
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-const { zxcvbn } = require('zxcvbn-ts') as typeof import('zxcvbn-ts');
+import { rejectWeakPassword } from '../../utils/password.js';
 
 const ROUNDS = 10;
 
@@ -33,23 +24,15 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
      * also protects against enumeration attacks where an attacker could
      * try to see which credentials cause database conflicts.
      */
-    // config: {
-    //   rateLimit: {
-    //     max: 1,
-    //     timeWindow: 24 * 3600 * 1000,
-    //     keyGenerator: (req) => `registration:${req.ip}`,
-    //   },
-    // },
+    config: {
+      rateLimit: {
+        max: 1,
+        timeWindow: 24 * 3600 * 1000,
+        keyGenerator: (req) => `registration:${req.ip}`,
+      },
+    },
   }, async (req, res) => {
-    const passwordCheck = zxcvbn(req.body.password);
-
-    if (passwordCheck.score < 3) {
-      return res.code(400).send({
-        error: 'BadRequest',
-        message: 'Password too weak',
-        suggestions: passwordCheck.feedback.suggestions as string[],
-      } satisfies Static<typeof BadRequest>);
-    }
+    if (rejectWeakPassword(req.body.password, res)) return;
     req.body.password = await hash(req.body.password, ROUNDS);
     
     try {
@@ -71,25 +54,23 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
     preValidation: isLoggedIn(app.auth),
     schema: ReadUserSchema,
   }, async (req, res) => {
-    const user = await app.prisma.user.findUnique({
-      where: {
-        id: req.user!.id,
-        deletedAt: null,
-      },
-      omit: {
-        password: true,
-        deletedAt: true,
-      },
-    });
+    try {
+      const user = await app.prisma.user.findUniqueOrThrow({
+        where: {
+          id: req.user!.id,
+          deletedAt: null,
+        },
+        omit: {
+          password: true,
+          deletedAt: true,
+        },
+      });
 
-    if (!user) {
-      return res.code(404).send({
-        error: 'NotFound',
-        message: 'Your user cannot be found',
-      } satisfies Static<typeof NotFoundResponse>);
+      return res.send(user);
+    } catch (error) {
+      // 99% unreachable: deserializeUser already guarantees live user.
+      return handleDBError(error, res);
     }
-
-    return res.send(user);
   });
 
   // access another user's public profile
@@ -145,16 +126,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
       }
 
       if (updateData.password) {
-        const passwordCheck = zxcvbn(updateData.password);
-
-        if (passwordCheck.score < 3) {
-          return res.code(400).send({
-            error: 'BadRequest',
-            message: 'Password too weak',
-            suggestions: passwordCheck.feedback.suggestions as string[],
-          } satisfies Static<typeof BadRequest>);
-        }
-
+        if (rejectWeakPassword(updateData.password, res)) return;
         updateData.password = await hash(updateData.password, ROUNDS);
       }
 
@@ -169,10 +141,6 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
           deletedAt: true,
         },
       });
-
-      if (req.body.role) {
-        await req.logIn(updatedUser);
-      }
 
       return res.send(updatedUser);
     } catch (error) {

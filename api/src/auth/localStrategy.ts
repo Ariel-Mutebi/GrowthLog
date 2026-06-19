@@ -1,13 +1,14 @@
 import type { PrismaClient } from '../db/client.js';
 import type { createClient } from 'redis';
 import { Strategy } from 'passport-local';
-import { compare } from 'bcrypt';
+import { compare, hashSync } from 'bcrypt';
 
 /**
  * Timing attack hardening: always run compare — even when no user is found — so
  * response time is consistent, regardless of whether the email is registered.
  */
-const DUMMY_HASH = '$2a$12$R9h/cIPz0gi.URNNX3kh2OPST9/PgBkqquzi.Ss7KIUgO2t0jWMUW';
+const ROUNDS = 10;
+const DUMMY_HASH = hashSync('invalid', ROUNDS);
 
 export function buildLocalStrategy(
   prisma: PrismaClient,

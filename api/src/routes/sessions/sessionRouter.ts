@@ -22,10 +22,6 @@ const sessionRouter: FastifyPluginAsync = async (app) => {
     // user is fully hydrated by local strategy
     const user = req.user as User;
 
-    // prevent session fixation attacks
-    await req.session.regenerate();
-    await req.logIn(user);
-
     // Restore soft-deleted user if they log back in within 7-days.
     if (user.deletedAt) {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -46,8 +42,9 @@ const sessionRouter: FastifyPluginAsync = async (app) => {
         },
       });
     }
-
-    // Extract non-internal fields and respond
+    
+    await req.session.regenerate(); // prevent session fixation attacks
+    await req.logIn(user);
     const { forename, surname, username, email, role, createdAt } = user;
 
     return res.code(200).send({
