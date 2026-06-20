@@ -3,7 +3,7 @@ import type { Static } from '@sinclair/typebox';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 import { isLoggedIn } from '../../auth/prevalidation.js';
-import { handleDBError } from '../../utils/handleDBConflict.js';
+import { handleDBError } from '../../utils/database.js';
 import type { NotFoundResponse, UnauthorizedResponse } from '../../types/typebox/responses.js';
 import {
   CreateUserSchema,

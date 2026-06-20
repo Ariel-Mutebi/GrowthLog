@@ -14,7 +14,7 @@ const sessionRouter: FastifyPluginAsync = async (app) => {
     config: {
       rateLimit: {
         max: 5,
-        timeWindow: '15 minutes',
+        timeWindow: 15 * 60 * 1000, // 15 minutes
         keyGenerator: (req) => `login:${req.ip}`,
       },
     },

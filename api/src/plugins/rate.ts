@@ -3,6 +3,7 @@ import fastifyRateLimit, {
   type FastifyRateLimitStore,
 } from '@fastify/rate-limit';
 import type { RouteOptions } from 'fastify';
+import { redisKey } from '../utils/redis.js';
 
 export const rateLimitPlugin = fp(async (app) => {
   /*
@@ -18,9 +19,11 @@ export const rateLimitPlugin = fp(async (app) => {
     }
 
     incr(
-      key: string,
+      unscopedKey: string,
       cb: (err: Error | null, result?: { current: number; ttl: number }) => void,
     ) {
+      const key = redisKey(unscopedKey);
+
       app.redis
         .multi()
         .incr(key)

@@ -7,14 +7,15 @@ export const sessionPlugin = fp(async (app) => {
     secret: process.env.SESSION_SECRET!,
     store: new RedisStore({
       client: app.redis,
-      prefix: 'session:',
+      // REDIS_KEY_PREFIX to facilitate isolation between tests
+      prefix: `${process.env.REDIS_KEY_PREFIX ?? ''}session:`,
     }),
     cookie: {
       secure: true,
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 1 month
+      maxAge: 30 * 24 * 3600 * 1000, // 1 month
     },
   });
 });
