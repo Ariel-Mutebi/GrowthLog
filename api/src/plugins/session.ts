@@ -7,11 +7,10 @@ export const sessionPlugin = fp(async (app) => {
     secret: process.env.SESSION_SECRET!,
     store: new RedisStore({
       client: app.redis,
-      // REDIS_KEY_PREFIX to facilitate isolation between tests
-      prefix: `${process.env.REDIS_KEY_PREFIX ?? ''}session:`,
+      prefix: `${process.env.REDIS_KEY_PREFIX ?? ''}session:`, // see ../utils/redis.ts
     }),
     cookie: {
-      secure: true,
+      secure: process.env.NODE_ENV !== 'test',
       httpOnly: true,
       sameSite: 'lax',
       path: '/',

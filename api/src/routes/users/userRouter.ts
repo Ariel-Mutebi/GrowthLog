@@ -13,6 +13,7 @@ import {
   ReadUserSchema,
 } from './userSchemas.js';
 import { rejectWeakPassword } from '../../utils/password.js';
+import { redisKey } from '../../utils/redis.js';
 
 const ROUNDS = 10;
 
@@ -28,7 +29,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
       rateLimit: {
         max: 1,
         timeWindow: 24 * 3600 * 1000,
-        keyGenerator: (req) => `registration:${req.ip}`,
+        keyGenerator: (req) => redisKey(`registration:${req.ip}`),
       },
     },
   }, async (req, res) => {

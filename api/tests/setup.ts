@@ -3,9 +3,10 @@ import { spawn } from 'node:child_process';
 import { Harness } from './harness.ts';
 
 /**
- * Bootstrap script: starts shared containers, then spawns the test runner as a
- * child process with the container URLs in its environment. Child test file
- * processes inherit those URLs.
+ * Bootstrap script: starts shared containers, migrates and captures the schema
+ * once, then spawns the test runner as a child process. Container URLs and the
+ * captured-DDL path travel in the child's environment; test file processes
+ * inherit them.
  */
 
 const harness = new Harness();
@@ -19,8 +20,10 @@ const runner = spawn(
   {
     env: {
       ...process.env,
+      NODE_ENV: 'test',
       TEST_DATABASE_URL: harness.databaseUrl,
       TEST_REDIS_URL: harness.redisUrl,
+      TEST_DDL_PATH: harness.ddlPath,
     },
     stdio: 'inherit',
   },

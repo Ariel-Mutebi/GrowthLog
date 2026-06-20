@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 
 export function buildApp() {
   const app = Fastify({
-    logger: true,
+    logger: process.env.NODE_ENV !== 'test',
     trustProxy: true,
     routerOptions: {
       ignoreTrailingSlash: true,
@@ -47,9 +47,11 @@ export function buildApp() {
     matchFilter: (path) => /Router\.(ts|js)$/.test(path),
   });
 
-  app.ready(() => {
-    console.log(app.printRoutes());
-  });
+  if (process.env.NODE_ENV === 'dev') {
+    app.ready(() => {
+      console.log(app.printRoutes());
+    });
+  }
 
   return app;
 }

@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { isLoggedIn, localStrategy } from '../../auth/prevalidation.js';
 import { CreateSessionSchema, DeleteSessionSchema } from './sessionSchemas.js';
 import type { User } from '../../db/client.js';
+import { redisKey } from '../../utils/redis.js';
 
 /*
   * Stricter rate limiting on POST session/ to prevent single machine targeting multiple accounts,
@@ -14,8 +15,8 @@ const sessionRouter: FastifyPluginAsync = async (app) => {
     config: {
       rateLimit: {
         max: 5,
-        timeWindow: 15 * 60 * 1000, // 15 minutes
-        keyGenerator: (req) => `login:${req.ip}`,
+        timeWindow: 15 * 60 * 1000,
+        keyGenerator: (req) => redisKey(`login:${req.ip}`),
       },
     },
   }, async (req, res) => {

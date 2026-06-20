@@ -9,7 +9,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       REDIS_URL: redis://redis:6379
-      NODE_ENV: production
+      NODE_ENV: prod
     depends_on:
       postgres:
         condition: service_started
