@@ -3,17 +3,13 @@ import { spawn } from 'node:child_process';
 import { Harness } from './harness.ts';
 
 /**
- * Bootstrap script: starts shared containers, migrates and captures the schema
- * once, then spawns the test runner as a child process. Container URLs and the
- * captured-DDL path travel in the child's environment; test file processes
- * inherit them.
+ * Bootstrap script: starts shared containers, migrates the structure once into
+ * a template database, then spawns the test runner as a child process.
  */
-
 const harness = new Harness();
 await harness.setup();
 
 const testFiles = globSync('tests/**/*.test.ts');
-
 const runner = spawn(
   process.execPath,
   ['--import', 'tsx', '--test', ...testFiles],
@@ -21,9 +17,8 @@ const runner = spawn(
     env: {
       ...process.env,
       NODE_ENV: 'test',
-      TEST_DATABASE_URL: harness.databaseUrl,
+      TEST_ADMIN_URL: harness.adminUrl,
       TEST_REDIS_URL: harness.redisUrl,
-      TEST_DDL_PATH: harness.ddlPath,
     },
     stdio: 'inherit',
   },
