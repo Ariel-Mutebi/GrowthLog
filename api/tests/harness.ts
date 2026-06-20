@@ -71,10 +71,7 @@ export class Harness {
 export class TestEnv {
   app!: FastifyInstance;
   database!: string;
-  databaseUrl!: string;
   redisPrefix!: string;
-
-  private tables: string[] = [];
 
   async start(): Promise<void> {
     const adminUrl = process.env.TEST_ADMIN_URL;
@@ -84,15 +81,13 @@ export class TestEnv {
 
     this.database = `test_${randomUUID().replace(/-/g, '')}`;
     this.redisPrefix = `${this.database}:`;
-    this.databaseUrl = `${withDatabase(adminUrl, this.database)}?connection_limit=2`;
+    const databaseUrl = `${withDatabase(adminUrl, this.database)}?connection_limit=2`;
 
     // Clone the migrated structure at the filesystem level
     await runSql(adminUrl, `CREATE DATABASE "${this.database}" TEMPLATE "${TEMPLATE_DB}";`);
 
-    this.tables = await this.listTables();
-
     // Env must be set before the app is imported, since plugins read it at load.
-    process.env.DATABASE_URL = this.databaseUrl;
+    process.env.DATABASE_URL = databaseUrl;
     process.env.REDIS_URL = redisUrl;
     process.env.REDIS_KEY_PREFIX = this.redisPrefix;
     process.env.SESSION_SECRET = 'DoNotTryAndBendTheSpoonThatIsImpossible';
@@ -102,28 +97,25 @@ export class TestEnv {
     await this.app.ready();
   }
 
-  /** All base-table names in this file's database, for a complete truncate. */
-  private async listTables(): Promise<string[]> {
-    const client = new Client({ connectionString: this.databaseUrl });
-    await client.connect();
-    try {
-      const { rows } = await client.query<{ tablename: string }>(
-        'SELECT tablename FROM pg_tables WHERE schemaname = \'public\';',
-      );
-      return rows.map((r) => r.tablename);
-    } finally {
-      await client.end();
-    }
-  }
-
-  /** Truncates every table in this file's database and clears its Redis keys. */
+  /** Empties every table in this file's database and clears its Redis keys. */
   async reset(): Promise<void> {
-    if (this.tables.length > 0) {
-      const list = this.tables.map((t) => `"public"."${t}"`).join(', ');
-      await this.app.prisma.$executeRawUnsafe(
-        `TRUNCATE TABLE ${list} RESTART IDENTITY CASCADE;`,
-      );
-    }
+    await this.app.prisma.$executeRawUnsafe(`
+      DO $$
+      DECLARE
+        stmt text;
+      BEGIN
+        SELECT 'TRUNCATE TABLE '
+          || string_agg(format('%I.%I', schemaname, tablename), ', ')
+          || ' RESTART IDENTITY CASCADE'
+        INTO stmt
+        FROM pg_tables
+        WHERE schemaname = 'public';
+
+        IF stmt IS NOT NULL THEN
+          EXECUTE stmt;
+        END IF;
+      END $$;
+    `);
 
     const keys: string[] = [];
     for await (const batch of this.app.redis.scanIterator({ MATCH: `${this.redisPrefix}*`, COUNT: 100 })) {
@@ -133,19 +125,18 @@ export class TestEnv {
   }
 
   async stop(): Promise<void> {
-    // The app's pool must close before the database can be dropped — an open
-    // session blocks DROP DATABASE. Sequence the close ahead of the drop.
-    const results = await Promise.allSettled([this.app?.close()]);
+    try {
+      await this.app?.close();
+    } catch (reason) {
+      console.error('Teardown error (app close):', reason);
+    }
     try {
       await runSql(
         process.env.TEST_ADMIN_URL!,
         `DROP DATABASE IF EXISTS "${this.database}";`,
       );
     } catch (reason) {
-      results.push({ status: 'rejected', reason } as PromiseSettledResult<undefined>);
-    }
-    for (const r of results) {
-      if (r.status === 'rejected') console.error('Teardown error:', r.reason);
+      console.error('Teardown error (drop database):', reason);
     }
   }
 }
