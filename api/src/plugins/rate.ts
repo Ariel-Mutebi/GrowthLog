@@ -1,6 +1,7 @@
 import fp from 'fastify-plugin';
 import fastifyRateLimit, {
   type FastifyRateLimitStore,
+  type RateLimitOptions,
 } from '@fastify/rate-limit';
 import type { RouteOptions } from 'fastify';
 import { redisKey } from '../utils/redis.js';
@@ -15,7 +16,7 @@ export const rateLimitPlugin = fp(async (app) => {
     private timeWindow: number;
 
     constructor(opts: { timeWindow?: number }) {
-      this.timeWindow = opts.timeWindow ?? 60 * 1000;
+      this.timeWindow = Number(opts.timeWindow);
     }
 
     incr(
@@ -51,9 +52,15 @@ export const rateLimitPlugin = fp(async (app) => {
     }
   }
 
-  app.register(fastifyRateLimit, {
-    max: 60,
-    timeWindow: 60 * 1000,
+  const options: RateLimitOptions = {
     store: RedisStore,
-  });
+  };
+
+  // Basic DOS hardening: rate limit of 1 request per IP per second
+  if (process.env.NODE_ENV !== 'test') {
+    options.max = 60;
+    options.timeWindow = 60 * 1000;
+  }
+
+  app.register(fastifyRateLimit, options);
 });

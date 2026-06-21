@@ -18,7 +18,9 @@ const __dirname = path.dirname(__filename);
 
 export function buildApp() {
   const app = Fastify({
-    logger: process.env.NODE_ENV !== 'test',
+    logger: {
+      level: 'warn',
+    },
     trustProxy: true,
     routerOptions: {
       ignoreTrailingSlash: true,

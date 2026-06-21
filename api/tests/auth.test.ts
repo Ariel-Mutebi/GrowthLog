@@ -18,7 +18,7 @@ const newUser = (over: Partial<Record<string, string>> = {}) => ({
   ...over,
 });
 
-/** Registers a user via the real endpoint and returns the session cookie. */
+/** Registers a user via the and returns the session cookie. */
 async function register(over: Partial<Record<string, string>> = {}) {
   const res = await env.app.inject({
     method: 'POST',
@@ -53,7 +53,6 @@ beforeEach(() => env.reset());
 describe('login', () => {
   test('succeeds with correct credentials and returns the user', async () => {
     await register();
-
     const res = await login('ada@example.com', STRONG_PASSWORD);
 
     assert.equal(res.statusCode, 200);
@@ -65,15 +64,12 @@ describe('login', () => {
 
   test('rejects a wrong password with 401', async () => {
     await register();
-
     const res = await login('ada@example.com', 'wrong-password-here-123');
-
     assert.equal(res.statusCode, 401);
   });
 
-  test('rejects an unknown email with 401 (no user enumeration)', async () => {
+  test('rejects an unknown email with 401', async () => {
     const res = await login('nobody@example.com', STRONG_PASSWORD);
-
     assert.equal(res.statusCode, 401);
   });
 });

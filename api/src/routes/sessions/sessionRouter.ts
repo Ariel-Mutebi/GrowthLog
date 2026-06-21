@@ -2,7 +2,6 @@ import type { FastifyPluginAsync } from 'fastify';
 import { isLoggedIn, localStrategy } from '../../auth/prevalidation.js';
 import { CreateSessionSchema, DeleteSessionSchema } from './sessionSchemas.js';
 import type { User } from '../../db/client.js';
-import { redisKey } from '../../utils/redis.js';
 
 /*
   * Stricter rate limiting on POST session/ to prevent single machine targeting multiple accounts,
@@ -16,13 +15,14 @@ const sessionRouter: FastifyPluginAsync = async (app) => {
       rateLimit: {
         max: 5,
         timeWindow: 15 * 60 * 1000,
-        keyGenerator: (req) => redisKey(`login:${req.ip}`),
+        keyGenerator: (req) => `login:${req.ip}`,
       },
     },
   }, async (req, res) => {
-    // user is fully hydrated by local strategy
-    const user = req.user as User;
-
+    // user is fully hydrated by local strategy, or it may be null
+    const user = req.user as User | null;
+    if (!user) return res.code(401).send({ error: 'Unauthorized', message: 'Invalid credentials' });
+  
     // Restore soft-deleted user if they log back in within 7-days.
     if (user.deletedAt) {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
