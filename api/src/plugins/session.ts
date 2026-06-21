@@ -5,6 +5,7 @@ import { RedisStore } from 'connect-redis';
 export const sessionPlugin = fp(async (app) => {
   app.register(fastifySession, {
     secret: process.env.SESSION_SECRET!,
+    saveUninitialized: false,
     store: new RedisStore({
       client: app.redis,
       prefix: `${process.env.REDIS_KEY_PREFIX ?? ''}session:`, // see ../utils/redis.ts

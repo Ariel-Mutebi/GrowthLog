@@ -2,7 +2,7 @@ import { compare, hash } from 'bcrypt';
 import type { Static } from '@sinclair/typebox';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
-import { isLoggedIn } from '../../auth/prevalidation.js';
+import { isLoggedIn } from '../../auth/preHandler.js';
 import { handleDBError } from '../../utils/database.js';
 import type { NotFoundResponse, UnauthorizedResponse } from '../../types/typebox/responses.js';
 import {
@@ -51,7 +51,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   });
 
   app.get('/', {
-    preValidation: isLoggedIn(app.auth),
+    preHandler: isLoggedIn(app.auth),
     schema: ReadUserSchema,
   }, async (req, res) => {
     try {
@@ -75,7 +75,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
 
   // access another user's public profile
   app.get('/:userId', {
-    preValidation: isLoggedIn(app.auth),
+    preHandler: isLoggedIn(app.auth),
     schema: PublicProfileSchema,
   }, async (req, res) => {
     const otherUser = await app.prisma.user.findUnique({
@@ -101,7 +101,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   });
 
   app.patch('/', {
-    preValidation: isLoggedIn(app.auth),
+    preHandler: isLoggedIn(app.auth),
     schema: UpdateUserSchema,
   }, async (req, res) => {
     try {
@@ -149,7 +149,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   });
 
   app.delete('/', {
-    preValidation: isLoggedIn(app.auth),
+    preHandler: isLoggedIn(app.auth),
     schema: DeleteUserSchema,
   }, async (req, res) => {
     try {

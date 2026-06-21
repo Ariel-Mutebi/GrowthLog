@@ -18,7 +18,7 @@ const newUser = (over: Partial<Record<string, string>> = {}) => ({
   ...over,
 });
 
-/** Registers a user via the and returns the session cookie. */
+/** Registers a user via the endpoint and returns the session cookie. */
 async function register(over: Partial<Record<string, string>> = {}) {
   const res = await env.app.inject({
     method: 'POST',

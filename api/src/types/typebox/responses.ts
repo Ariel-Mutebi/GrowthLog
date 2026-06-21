@@ -24,9 +24,21 @@ export const BadRequest = Type.Object({
   ),
 });
 
+export const LockedResponse = Type.Object({
+  error: Type.Literal('Locked'),
+  message: Type.String(),
+});
+
+export const RateLimitedResponse = Type.Object({
+  error: Type.String(),
+  message: Type.String(),
+});
+
 export const errorResponses = {
   400: BadRequest,
   401: UnauthorizedResponse,
   404: NotFoundResponse,
   409: ConflictResponse,
+  423: LockedResponse,
+  429: RateLimitedResponse,
 } satisfies FastifySchema['response'];
