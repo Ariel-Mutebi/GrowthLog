@@ -56,7 +56,10 @@ export const CreateUserSchema = {
   description: 'Creates a user account and opens a session. Rate limited to one registration per IP per day.',
   tags: ['Users'],
   body: CreateUser,
-  response,
+  response: {
+    201: UserWithoutInternals,
+    ...errorResponses,
+  },
 } satisfies FastifySchema;
 
 export const ReadUserSchema = {

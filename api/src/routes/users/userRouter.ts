@@ -44,7 +44,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
         },
       });
       await req.logIn(user);
-      return res.send(user);
+      return res.status(201).send(user);
     } catch (error) {
       return handleDBError(error, res);
     }
