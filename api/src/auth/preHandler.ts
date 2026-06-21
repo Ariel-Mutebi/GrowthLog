@@ -1,10 +1,13 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
-import type { Authenticator } from '@fastify/passport';
 import type { User } from '../db/client.js';
 import type { Static } from '@sinclair/typebox';
 import type { LockedResponse, UnauthorizedResponse } from '../types/typebox/responses.js';
 
-export const isLoggedIn = (auth: Authenticator): preHandlerHookHandler => auth.authenticate('session');
+export const isLoggedIn: preHandlerHookHandler = async (req, reply) => {
+  if (!req.user) {
+    return reply.code(401).send({ error: 'Unauthorized', message: 'Authentication required' });
+  }
+};
 
 // logic here instead of in ../routes/sessions/sessionRouter to access info from local strategy
 export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>

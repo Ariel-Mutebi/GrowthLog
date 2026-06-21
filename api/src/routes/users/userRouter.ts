@@ -51,7 +51,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   });
 
   app.get('/', {
-    preHandler: isLoggedIn(app.auth),
+    preHandler: isLoggedIn,
     schema: ReadUserSchema,
   }, async (req, res) => {
     try {
@@ -68,14 +68,12 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
 
       return res.send(user);
     } catch (error) {
-      // 99% unreachable: deserializeUser already guarantees live user.
       return handleDBError(error, res);
     }
   });
 
-  // access another user's public profile
   app.get('/:userId', {
-    preHandler: isLoggedIn(app.auth),
+    preHandler: isLoggedIn,
     schema: PublicProfileSchema,
   }, async (req, res) => {
     const otherUser = await app.prisma.user.findUnique({
@@ -101,7 +99,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   });
 
   app.patch('/', {
-    preHandler: isLoggedIn(app.auth),
+    preHandler: isLoggedIn,
     schema: UpdateUserSchema,
   }, async (req, res) => {
     try {
@@ -149,7 +147,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   });
 
   app.delete('/', {
-    preHandler: isLoggedIn(app.auth),
+    preHandler: isLoggedIn,
     schema: DeleteUserSchema,
   }, async (req, res) => {
     try {

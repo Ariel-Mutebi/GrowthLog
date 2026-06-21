@@ -20,12 +20,11 @@ const sessionRouter: FastifyPluginAsync = async (app) => {
   }, async () => {});
 
   app.delete('/', {
-    preHandler: isLoggedIn(app.auth),
+    preHandler: isLoggedIn,
     schema: DeleteSessionSchema,
   }, async (req, res) => {
-    await req.logOut();
     await req.session.destroy();
-    await res.clearCookie('sessionId');
+    res.clearCookie('sessionId');
     return res.code(204).send();
   });
 };

@@ -191,7 +191,7 @@ describe('logout', () => {
     const res = await env.app.inject({
       method: 'DELETE',
       url: '/v1/sessions',
-      headers: { cookie: cookie!, 'x-forwarded-for': '10.0.0.1' },
+      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
 
     assert.equal(res.statusCode, 204);
@@ -200,7 +200,7 @@ describe('logout', () => {
     const after = await env.app.inject({
       method: 'GET',
       url: '/v1/users',
-      headers: { cookie: cookie!, 'x-forwarded-for': '10.0.0.1' },
+      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(after.statusCode, 401, 'destroyed session must not authenticate');
   });
