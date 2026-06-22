@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import { Email } from '../../types/typebox/inputs.js';
-import { UserWithoutInternals } from '../users/userSchemas.js';
+import { PersonalProfile } from '../users/userSchemas.js';
 import { UnauthorizedResponse, RateLimitedResponse } from '../../types/typebox/responses.js';
 
 const credentials = Type.Object({
@@ -15,7 +15,7 @@ export const CreateSessionSchema = {
   tags: ['Sessions'],
   body: credentials,
   response: {
-    200: UserWithoutInternals,
+    200: PersonalProfile,
     401: UnauthorizedResponse,
     429: RateLimitedResponse,
   },

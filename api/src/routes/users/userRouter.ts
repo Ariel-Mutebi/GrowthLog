@@ -9,8 +9,9 @@ import {
   CreateUserSchema,
   UpdateUserSchema,
   DeleteUserSchema,
-  PublicProfileSchema,
-  ReadUserSchema,
+  GetUserSchema,
+  GetSelfSchema,
+  UserSearchSchema,
 } from './userSchemas.js';
 import { rejectWeakPassword } from '../../utils/password.js';
 
@@ -52,10 +53,10 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
 
   app.get('/', {
     preHandler: isLoggedIn,
-    schema: ReadUserSchema,
+    schema: GetSelfSchema,
   }, async (req, res) => {
     try {
-      const user = await app.prisma.user.findUniqueOrThrow({
+      const { followers, following, ...user } = await app.prisma.user.findUniqueOrThrow({
         where: {
           id: req.user!.id,
           deletedAt: null,
@@ -64,9 +65,17 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
           password: true,
           deletedAt: true,
         },
+        include: {
+          followers: { select: { followerId: true } },
+          following: { select: { followingId: true } },
+        },
       });
 
-      return res.send(user);
+      return res.code(200).send({
+        ...user,
+        followers: followers.map(f => f.followerId),
+        following: following.map(f => f.followingId),
+      });
     } catch (error) {
       return handleDBError(error, res);
     }
@@ -74,9 +83,9 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
 
   app.get('/:userId', {
     preHandler: isLoggedIn,
-    schema: PublicProfileSchema,
+    schema: GetUserSchema,
   }, async (req, res) => {
-    const otherUser = await app.prisma.user.findUnique({
+    const foundUser = await app.prisma.user.findUnique({
       where: {
         id: req.params.userId,
         deletedAt: null,
@@ -88,15 +97,51 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
       },
     });
 
-    if (!otherUser) {
+    if (!foundUser) {
       return res.code(404).send({
         error: 'NotFound',
         message: `User with the id ${req.params.userId} not found`,
       } satisfies Static<typeof NotFoundResponse>);
     }
 
-    return res.send(otherUser);
+    return res.send(foundUser);
   });
+
+  app.get('/', {
+    preHandler: isLoggedIn,
+    schema: UserSearchSchema,
+  }, async (req, res) => {
+      const { name, role } = req.query;
+      const terms = name.trim().split(/\s+/);
+
+      const users = await app.prisma.user.findMany({
+        where: {
+          deletedAt: null,
+          ...(role && { role }),
+          AND: terms.map(term => ({
+            OR: [
+              { forename: { contains: term, mode: 'insensitive' } },
+              { surname: { contains: term, mode: 'insensitive' } },
+              { username: { contains: term, mode: 'insensitive' } },
+            ],
+          })),
+        },
+        omit: {
+          email: true,
+          password: true,
+          deletedAt: true,
+        },
+      });
+
+      if (!users.length) {
+        return res.code(404).send({
+          error: 'NotFound',
+          message: `No users found matching '${name}'`,
+        } satisfies Static<typeof NotFoundResponse>);
+      }
+
+      return res.send(users);
+    });
 
   app.patch('/', {
     preHandler: isLoggedIn,

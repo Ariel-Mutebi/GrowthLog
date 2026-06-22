@@ -11,7 +11,7 @@ import {
   UserRole,
 } from '../../types/typebox/inputs.js';
 import { BadRequest, ConflictResponse, NotFoundResponse, RateLimitedResponse, UnauthorizedResponse } from '../../types/typebox/responses.js';
-import { Date } from '../../types/typebox/compatability.js';
+import { InternalUser, PersonalProfile, PublicProfile } from '../../types/typebox/profiles.js';
 
 type UserFields = Partial<AllUnknown<User>>;
 
@@ -36,35 +36,25 @@ const revalidateIdentity = Type.Object({
   currentPassword: Password,
 });
 
-// Hashed password and internal deletedAt flag omitted
-export const UserWithoutInternals = Type.Object({
-  forename: LettersOnlyString,
-  surname: LettersOnlyString,
-  username: Username,
-  email: Email,
-  role: UserRole,
-  createdAt: Date,
-} satisfies Omit<UserFields, 'password' | 'deletedAt'>);
-
 export const CreateUserSchema = {
   summary: 'Register a new user',
   description: 'Creates a user account and opens a session. Rate limited to one registration per IP per day.',
   tags: ['Users'],
   body: CreateUser,
   response: {
-    201: UserWithoutInternals,
+    201: InternalUser,
     400: BadRequest,
     409: ConflictResponse,
     429: RateLimitedResponse,
   },
 } satisfies FastifySchema;
 
-export const ReadUserSchema = {
-  summary: 'Get current user',
+export const GetSelfSchema = {
+  summary: 'Get current user\'s profile',
   tags: ['Users'],
   security: [{ session: [] }],
   response: {
-    200: UserWithoutInternals,
+    200: PersonalProfile,
     404: NotFoundResponse,
     429: RateLimitedResponse,
   },
@@ -77,7 +67,7 @@ export const UpdateUserSchema = {
   security: [{ session: [] }],
   body: Type.Intersect([Type.Partial(revalidateIdentity), UpdateUser]),
   response: {
-    200: UserWithoutInternals,
+    200: InternalUser,
     400: BadRequest,
     401: UnauthorizedResponse,
     409: ConflictResponse,
@@ -92,20 +82,12 @@ export const DeleteUserSchema = {
   security: [{ session: [] }],
   body: revalidateIdentity,
   response: {
-    201: UserWithoutInternals,
+    200: InternalUser,
     401: UnauthorizedResponse,
   },
 } satisfies FastifySchema;
 
-const PublicProfile = Type.Object({
-  forename: LettersOnlyString,
-  surname: LettersOnlyString,
-  username: Username,
-  role: UserRole,
-  createdAt: Date,
-});
-
-export const PublicProfileSchema = {
+export const GetUserSchema = {
   summary: 'Get a user\'s public profile',
   tags: ['Users'],
   security: [{ session: [] }],
@@ -114,6 +96,22 @@ export const PublicProfileSchema = {
   }),
   response: {
     200: PublicProfile,
+    404: NotFoundResponse,
+    429: RateLimitedResponse,
+  },
+} satisfies FastifySchema;
+
+export const UserSearchSchema = {
+  summary: 'User discovery endpoint',
+  description: 'Search for a user by name and role',
+  tags: ['Users', 'Discovery'],
+  security: [{ session: [] }],
+  querystring: Type.Object({
+    name: Type.String({ minLength: 1 }),
+    role: UserRole,
+  }),
+  response: {
+    200: Type.Array(PublicProfile),
     404: NotFoundResponse,
     429: RateLimitedResponse,
   },
