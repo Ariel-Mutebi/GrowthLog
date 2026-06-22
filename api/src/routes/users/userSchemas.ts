@@ -10,7 +10,7 @@ import {
   Password,
   UserRole,
 } from '../../types/typebox/inputs.js';
-import { errorResponses } from '../../types/typebox/responses.js';
+import { BadRequest, ConflictResponse, NotFoundResponse, RateLimitedResponse, UnauthorizedResponse } from '../../types/typebox/responses.js';
 import { Date } from '../../types/typebox/compatability.js';
 
 type UserFields = Partial<AllUnknown<User>>;
@@ -46,11 +46,6 @@ export const UserWithoutInternals = Type.Object({
   createdAt: Date,
 } satisfies Omit<UserFields, 'password' | 'deletedAt'>);
 
-const response = {
-  200: UserWithoutInternals,
-  ...errorResponses,
-};
-
 export const CreateUserSchema = {
   summary: 'Register a new user',
   description: 'Creates a user account and opens a session. Rate limited to one registration per IP per day.',
@@ -58,7 +53,9 @@ export const CreateUserSchema = {
   body: CreateUser,
   response: {
     201: UserWithoutInternals,
-    ...errorResponses,
+    400: BadRequest,
+    409: ConflictResponse,
+    429: RateLimitedResponse,
   },
 } satisfies FastifySchema;
 
@@ -66,7 +63,11 @@ export const ReadUserSchema = {
   summary: 'Get current user',
   tags: ['Users'],
   security: [{ session: [] }],
-  response,
+  response: {
+    200: UserWithoutInternals,
+    404: NotFoundResponse,
+    429: RateLimitedResponse,
+  },
 } satisfies FastifySchema;
 
 export const UpdateUserSchema = {
@@ -75,7 +76,13 @@ export const UpdateUserSchema = {
   tags: ['Users'],
   security: [{ session: [] }],
   body: Type.Intersect([Type.Partial(revalidateIdentity), UpdateUser]),
-  response,
+  response: {
+    200: UserWithoutInternals,
+    400: BadRequest,
+    401: UnauthorizedResponse,
+    409: ConflictResponse,
+    429: RateLimitedResponse,
+  },
 } satisfies FastifySchema;
 
 export const DeleteUserSchema = {
@@ -84,7 +91,10 @@ export const DeleteUserSchema = {
   tags: ['Users'],
   security: [{ session: [] }],
   body: revalidateIdentity,
-  response,
+  response: {
+    201: UserWithoutInternals,
+    401: UnauthorizedResponse,
+  },
 } satisfies FastifySchema;
 
 const PublicProfile = Type.Object({
@@ -104,6 +114,7 @@ export const PublicProfileSchema = {
   }),
   response: {
     200: PublicProfile,
-    ...errorResponses,
+    404: NotFoundResponse,
+    429: RateLimitedResponse,
   },
 } satisfies FastifySchema;

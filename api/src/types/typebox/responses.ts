@@ -1,5 +1,4 @@
 import { Type } from '@sinclair/typebox';
-import type { FastifySchema } from 'fastify';
 
 export const ConflictResponse = Type.Object({
   error: Type.Literal('Conflict'),
@@ -33,12 +32,3 @@ export const RateLimitedResponse = Type.Object({
   error: Type.String(),
   message: Type.String(),
 });
-
-export const errorResponses = {
-  400: BadRequest,
-  401: UnauthorizedResponse,
-  404: NotFoundResponse,
-  409: ConflictResponse,
-  423: LockedResponse,
-  429: RateLimitedResponse,
-} satisfies FastifySchema['response'];
