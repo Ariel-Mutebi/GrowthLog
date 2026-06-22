@@ -25,7 +25,7 @@ const sessionRouter: FastifyPluginAsync = async (app) => {
   }, async (req, res) => {
     await req.session.destroy();
     res.clearCookie('sessionId');
-    return res.code(204).send();
+    return res.code(204).send(null);
   });
 };
 

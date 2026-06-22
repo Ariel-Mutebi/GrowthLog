@@ -1,9 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 
-export const FollowSomeone = {
-  summary: 'Follow',
-  description: 'The caller followers the user with the given userId; done idempotently',
+const BaseFollowSchema = {
   tags: ['Users', 'Followers'],
   security: [{ session: [] }],
   params: Type.Object({
@@ -12,4 +10,16 @@ export const FollowSomeone = {
   response: {
     204: Type.Null(),
   },
+} satisfies FastifySchema;
+
+export const FollowSomeone = {
+  summary: 'Follow',
+  description: 'The caller followers the user with the given userId; done idempotently',
+  ...BaseFollowSchema,
+} satisfies FastifySchema;
+
+export const UnfollowSomeone = {
+  summary: 'Unfollow',
+  description: 'The caller unfollows the user with the given userId; no-op if not following to begin with',
+  ...BaseFollowSchema,
 } satisfies FastifySchema;
