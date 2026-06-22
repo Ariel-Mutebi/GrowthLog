@@ -109,9 +109,14 @@ export const UserSearchSchema = {
   querystring: Type.Object({
     name: Type.String({ minLength: 1 }),
     role: UserRole,
+    cursor: Type.Optional(Type.String()),
+    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 20 })),
   }),
   response: {
-    200: Type.Array(PublicProfile),
+    200: Type.Object({
+      users: Type.Array(PublicProfile),
+      nextCursor: Type.Union([Type.String(), Type.Null()]),
+    }),
     404: NotFoundResponse,
     429: RateLimitedResponse,
   },

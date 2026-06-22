@@ -1,7 +1,7 @@
 import { compare, hash } from 'bcrypt';
 import type { Static } from '@sinclair/typebox';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-
+import type { UserWhereInput, UserFindManyArgs } from '../../db/models.js';
 import { isLoggedIn } from '../../auth/preHandler.js';
 import { handleDBError } from '../../utils/database.js';
 import type { NotFoundResponse, UnauthorizedResponse } from '../../types/typebox/responses.js';
@@ -111,27 +111,43 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
     preHandler: isLoggedIn,
     schema: UserSearchSchema,
   }, async (req, res) => {
-      const { name, role } = req.query;
+      const { name, role, cursor, limit = 20 } = req.query;
       const terms = name.trim().split(/\s+/);
 
-      const users = await app.prisma.user.findMany({
-        where: {
-          deletedAt: null,
-          ...(role && { role }),
-          AND: terms.map(term => ({
-            OR: [
-              { forename: { contains: term, mode: 'insensitive' } },
-              { surname: { contains: term, mode: 'insensitive' } },
-              { username: { contains: term, mode: 'insensitive' } },
-            ],
-          })),
-        },
+      const where: UserWhereInput = {
+        deletedAt: null,
+        AND: terms.map(term => ({
+          OR: [
+            { forename: { contains: term, mode: 'insensitive' } },
+            { surname: { contains: term, mode: 'insensitive' } },
+            { username: { contains: term, mode: 'insensitive' } },
+          ],
+        })),
+      };
+
+      if (role) {
+        where.role = role;
+      }
+
+      const findManyArgs: UserFindManyArgs = {
+        where,
+        orderBy: { createdAt: 'asc' },
+        take: limit + 1,
         omit: {
           email: true,
           password: true,
           deletedAt: true,
         },
-      });
+      };
+
+      if (cursor) {
+        findManyArgs.cursor = { id: cursor };
+        findManyArgs.skip = 1;
+      }
+
+      const rows = await app.prisma.user.findMany(findManyArgs);
+      const hasMore = rows.length > limit;
+      const users = hasMore ? rows.slice(0, limit) : rows;
 
       if (!users.length) {
         return res.code(404).send({
@@ -140,7 +156,10 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
         } satisfies Static<typeof NotFoundResponse>);
       }
 
-      return res.send(users);
+      return res.send({
+        users,
+        nextCursor: hasMore ? users[users.length - 1].id : null,
+      });
     });
 
   app.patch('/', {
