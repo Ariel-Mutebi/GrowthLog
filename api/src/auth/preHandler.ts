@@ -1,7 +1,7 @@
 import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
 import type { User } from '../db/client.js';
 import type { Static } from '@sinclair/typebox';
-import type { LockedResponse, UnauthorizedResponse } from '../types/typebox/responses.js';
+import type { LockedResponse, UnauthorizedResponse } from '../typebox/responses.js';
 
 export const isLoggedIn: preHandlerHookHandler = async (req, reply) => {
   if (!req.user) {

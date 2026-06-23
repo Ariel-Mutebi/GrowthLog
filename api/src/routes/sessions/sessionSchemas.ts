@@ -1,8 +1,8 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { Email } from '../../types/typebox/inputs.js';
-import { InternalUser } from '../../types/typebox/profiles.js';
-import { UnauthorizedResponse, RateLimitedResponse } from '../../types/typebox/responses.js';
+import { Email } from '../../typebox/inputs.js';
+import { InternalUser } from '../../typebox/profiles.js';
+import { UnauthorizedResponse, RateLimitedResponse } from '../../typebox/responses.js';
 
 const credentials = Type.Object({
   email: Email,

@@ -1,7 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import type { User } from '../../db/client.js';
-import type { AllUnknown } from '../../types/mapped.js';
 import {
   Username,
   Email,
@@ -9,11 +8,15 @@ import {
   NonModeratorRole,
   Password,
   UserRole,
-} from '../../types/typebox/inputs.js';
-import { BadRequest, ConflictResponse, NotFoundResponse, RateLimitedResponse, UnauthorizedResponse } from '../../types/typebox/responses.js';
-import { InternalUser, PersonalProfile, PublicProfile } from '../../types/typebox/profiles.js';
+} from '../../typebox/inputs.js';
+import { BadRequest, ConflictResponse, NotFoundResponse, RateLimitedResponse, UnauthorizedResponse } from '../../typebox/responses.js';
+import { InternalUser, PersonalProfile, PublicProfile } from '../../typebox/profiles.js';
 
-type UserFields = Partial<AllUnknown<User>>;
+type Schematize<T> = {
+  [K in keyof T]: unknown;
+};
+
+type UserFields = Partial<Schematize<User>>;
 
 const CreateUser = Type.Object({
   forename: LettersOnlyString,

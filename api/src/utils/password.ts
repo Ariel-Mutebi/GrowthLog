@@ -1,6 +1,6 @@
 import type { FastifyReply } from 'fastify';
 import type { Static } from '@sinclair/typebox';
-import type { BadRequest } from '../types/typebox/responses.js';
+import type { BadRequest } from '../typebox/responses.js';
 
 /**
  * Workaround for zxcvbn's broken ESM build as I wait for

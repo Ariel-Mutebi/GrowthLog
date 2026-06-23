@@ -1,7 +1,7 @@
 import type { FastifyReply } from 'fastify';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import type { Static } from '@sinclair/typebox';
-import type { ConflictResponse, NotFoundResponse } from '../types/typebox/responses.js';
+import type { ConflictResponse, NotFoundResponse } from '../typebox/responses.js';
 
 const listFormatter = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
 
