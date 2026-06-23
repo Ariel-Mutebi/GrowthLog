@@ -108,7 +108,7 @@ export const UserSearchSchema = {
   security: [{ session: [] }],
   querystring: Type.Object({
     name: Type.String({ minLength: 1 }),
-    role: UserRole,
+    role: Type.Optional(UserRole),
     cursor: Type.Optional(Type.String()),
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 20 })),
   }),

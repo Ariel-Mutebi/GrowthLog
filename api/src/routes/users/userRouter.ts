@@ -81,33 +81,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.get('/:userId', {
-    preHandler: isLoggedIn,
-    schema: GetUserSchema,
-  }, async (req, res) => {
-    const foundUser = await app.prisma.user.findUnique({
-      where: {
-        id: req.params.userId,
-        deletedAt: null,
-      },
-      omit: {
-        email: true,
-        password: true,
-        deletedAt: true,
-      },
-    });
-
-    if (!foundUser) {
-      return res.code(404).send({
-        error: 'NotFound',
-        message: `User with the id ${req.params.userId} not found`,
-      } satisfies Static<typeof NotFoundResponse>);
-    }
-
-    return res.send(foundUser);
-  });
-
-  app.get('/', {
+  app.get('/search', {
     preHandler: isLoggedIn,
     schema: UserSearchSchema,
   }, async (req, res) => {
@@ -160,7 +134,33 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
         users,
         nextCursor: hasMore ? users[users.length - 1].id : null,
       });
+  });
+
+  app.get('/:userId', {
+    preHandler: isLoggedIn,
+    schema: GetUserSchema,
+  }, async (req, res) => {
+    const foundUser = await app.prisma.user.findUnique({
+      where: {
+        id: req.params.userId,
+        deletedAt: null,
+      },
+      omit: {
+        email: true,
+        password: true,
+        deletedAt: true,
+      },
     });
+
+    if (!foundUser) {
+      return res.code(404).send({
+        error: 'NotFound',
+        message: `User with the id ${req.params.userId} not found`,
+      } satisfies Static<typeof NotFoundResponse>);
+    }
+
+    return res.send(foundUser);
+  });
 
   app.patch('/', {
     preHandler: isLoggedIn,

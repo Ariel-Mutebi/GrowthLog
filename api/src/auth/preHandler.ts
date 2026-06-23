@@ -58,5 +58,5 @@ export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>
 
     await req.session.regenerate();
     await req.logIn(user);
-    return reply.code(200).send({ forename, surname, username, email, role, createdAt });
+    return reply.code(200).send({ id, forename, surname, username, email, role, createdAt });
   });

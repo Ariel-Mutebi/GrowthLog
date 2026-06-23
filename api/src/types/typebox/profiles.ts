@@ -3,6 +3,7 @@ import { SerializedDate } from './compatability.js';
 import { LettersOnlyString, Username, Email, UserRole } from './inputs.js';
 
 export const InternalUser = Type.Object({
+  id: Type.String(),
   forename: LettersOnlyString,
   surname: LettersOnlyString,
   username: Username,
@@ -12,6 +13,7 @@ export const InternalUser = Type.Object({
 });
 
 export const PersonalProfile = Type.Object({
+  id: Type.String(),
   forename: LettersOnlyString,
   surname: LettersOnlyString,
   username: Username,
@@ -23,6 +25,7 @@ export const PersonalProfile = Type.Object({
 });
 
 export const PublicProfile = Type.Object({
+  id: Type.String(),
   forename: LettersOnlyString,
   surname: LettersOnlyString,
   username: Username,
