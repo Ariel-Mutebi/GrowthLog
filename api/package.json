@@ -1,8 +1,6 @@
 {
-  "name": "growth-log-api",
-  "version": "1.0.0",
-  "description": "REST API for a blogging platform about self-improvement",
-  "private": "true",
+  "name": "api",
+  "private": true,
   "scripts": {
     "build": "tsc",
     "lint": "eslint src",
