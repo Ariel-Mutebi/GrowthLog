@@ -2,7 +2,7 @@ import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 
 const BaseFollowSchema = {
-  tags: ['Users', 'Followers'],
+  tags: ['Followers'],
   security: [{ session: [] }],
   params: Type.Object({
     userId: Type.String(),

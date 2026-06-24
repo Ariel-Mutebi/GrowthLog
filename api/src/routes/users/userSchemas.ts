@@ -93,7 +93,6 @@ export const DeleteUserSchema = {
 export const GetUserSchema = {
   summary: 'Get a user\'s public profile',
   tags: ['Users'],
-  security: [{ session: [] }],
   params: Type.Object({
     userId: Type.String(),
   }),
@@ -107,8 +106,7 @@ export const GetUserSchema = {
 export const UserSearchSchema = {
   summary: 'User discovery endpoint',
   description: 'Search for a user by name and role',
-  tags: ['Users', 'Discovery'],
-  security: [{ session: [] }],
+  tags: ['Users'],
   querystring: Type.Object({
     name: Type.String({ minLength: 1 }),
     role: Type.Optional(UserRole),
