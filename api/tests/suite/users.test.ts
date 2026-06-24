@@ -76,7 +76,6 @@ describe('GET /v1/users (self)', () => {
 
 describe('GET /v1/users/:userId', () => {
   test('returns the target user without email or password', async () => {
-    const { cookie } = await authenticatedSession(env);
     const { id: graceId } = await register(
       env,
       { email: 'grace@example.com', username: 'grace-hopper' },
@@ -86,28 +85,26 @@ describe('GET /v1/users/:userId', () => {
     const res = await env.app.inject({
       method: 'GET',
       url: `/v1/users/${graceId}`,
-      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
+      headers: { 'x-forwarded-for': '10.0.0.1' },
     });
 
     assert.equal(res.statusCode, 200);
     const body = res.json();
     assert.equal(body.id, graceId);
-    assert.equal(body.email, undefined, 'email must not be exposed on public profile');
+    assert.equal(body.email, undefined);
     assert.equal(body.password, undefined);
   });
 
   test('returns 404 for an unknown userId', async () => {
-    const { cookie } = await authenticatedSession(env);
     const res = await env.app.inject({
       method: 'GET',
       url: '/v1/users/00000000-0000-0000-0000-000000000000',
-      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
+      headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(res.statusCode, 404);
   });
 
   test('returns 404 for a soft-deleted user', async () => {
-    const { cookie } = await authenticatedSession(env);
     const { id: graceId } = await register(
       env,
       { email: 'grace@example.com', username: 'grace-hopper' },
@@ -129,30 +126,20 @@ describe('GET /v1/users/:userId', () => {
     const res = await env.app.inject({
       method: 'GET',
       url: `/v1/users/${graceId}`,
-      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
-    });
-    assert.equal(res.statusCode, 404, 'soft-deleted user should not be found');
-  });
-
-  test('returns 401 when not logged in', async () => {
-    const res = await env.app.inject({
-      method: 'GET',
-      url: '/v1/users/00000000-0000-0000-0000-000000000000',
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
-    assert.equal(res.statusCode, 401);
+    assert.equal(res.statusCode, 404, 'soft-deleted user should not be found');
   });
 });
 
 describe('GET /v1/users/search', () => {
   test('finds users matching a single name term', async () => {
-    const { cookie } = await authenticatedSession(env);
     await register(env, { email: 'grace@example.com', username: 'grace-hopper' }, '10.0.0.2');
 
     const res = await env.app.inject({
       method: 'GET',
       url: '/v1/users/search?name=grace',
-      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
+      headers: { 'x-forwarded-for': '10.0.0.1' },
     });
 
     assert.equal(res.statusCode, 200);
@@ -162,7 +149,6 @@ describe('GET /v1/users/search', () => {
   });
 
   test('multi-word search ANDs terms across name fields', async () => {
-    const { cookie } = await authenticatedSession(env);
     await register(
       env,
       { forename: 'Grace', surname: 'Hopper', email: 'grace@example.com', username: 'grace-hopper' },
@@ -177,7 +163,7 @@ describe('GET /v1/users/search', () => {
     const res = await env.app.inject({
       method: 'GET',
       url: '/v1/users/search?name=Grace+Hopper',
-      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
+      headers: { 'x-forwarded-for': '10.0.0.1' },
     });
 
     assert.equal(res.statusCode, 200);
@@ -187,38 +173,36 @@ describe('GET /v1/users/search', () => {
   });
 
   test('role filter narrows results', async () => {
-    const { cookie } = await authenticatedSession(env);
     await register(
       env,
-      { email: 'grace@example.com', username: 'grace-hopper', role: 'READER' },
+      { email: 'grace@example.com', username: 'grace-hopper', role: 'BIOGRAPHER' },
       '10.0.0.2',
     );
 
     const res = await env.app.inject({
       method: 'GET',
       url: '/v1/users/search?name=grace&role=AUTOBIOGRAPHER',
-      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
+      headers: { 'x-forwarded-for': '10.0.0.1' },
     });
 
     assert.equal(res.statusCode, 404);
   });
 
   test('returns 404 when no users match', async () => {
-    const { cookie } = await authenticatedSession(env);
     const res = await env.app.inject({
       method: 'GET',
       url: '/v1/users/search?name=doesnotexist',
-      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
+      headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(res.statusCode, 404);
   });
 
   test('nextCursor is null on the last page', async () => {
-    const { cookie } = await authenticatedSession(env);
+    await register(env);
     const res = await env.app.inject({
       method: 'GET',
       url: '/v1/users/search?name=Ada&limit=20',
-      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
+      headers: { 'x-forwarded-for': '10.0.0.1' },
     });
 
     assert.equal(res.statusCode, 200);
@@ -226,14 +210,14 @@ describe('GET /v1/users/search', () => {
   });
 
   test('nextCursor advances the window without overlap', async () => {
-    const { cookie } = await authenticatedSession(env);
+    await register(env);
     await register(env, { forename: 'Ada', email: 'ada2@example.com', username: 'ada-second' }, '10.0.0.2');
     await register(env, { forename: 'Ada', email: 'ada3@example.com', username: 'ada-third' }, '10.0.0.3');
 
     const page1 = await env.app.inject({
       method: 'GET',
       url: '/v1/users/search?name=Ada&limit=2',
-      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
+      headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(page1.statusCode, 200);
     const { users: firstPage, nextCursor } = page1.json();
@@ -243,7 +227,7 @@ describe('GET /v1/users/search', () => {
     const page2 = await env.app.inject({
       method: 'GET',
       url: `/v1/users/search?name=Ada&limit=2&cursor=${nextCursor}`,
-      headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
+      headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(page2.statusCode, 200);
     const { users: secondPage, nextCursor: noMore } = page2.json();
@@ -255,15 +239,6 @@ describe('GET /v1/users/search', () => {
       secondPage.every((u: { id: string }) => !firstIds.has(u.id)),
       'pages must not overlap',
     );
-  });
-
-  test('returns 401 when not logged in', async () => {
-    const res = await env.app.inject({
-      method: 'GET',
-      url: '/v1/users/search?name=Ada',
-      headers: { 'x-forwarded-for': '10.0.0.1' },
-    });
-    assert.equal(res.statusCode, 401);
   });
 });
 

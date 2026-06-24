@@ -12,11 +12,11 @@ import {
 import { BadRequest, ConflictResponse, NotFoundResponse, RateLimitedResponse, UnauthorizedResponse } from '../../typebox/responses.js';
 import { InternalUser, PersonalProfile, PublicProfile } from '../../typebox/profiles.js';
 
-type Schematize<T> = {
+type ValuesUnknown<T> = {
   [K in keyof T]: unknown;
 };
 
-type UserFields = Partial<Schematize<User>>;
+type UserKeys = Partial<ValuesUnknown<User>>;
 
 const CreateUser = Type.Object({
   forename: LettersOnlyString,
@@ -25,7 +25,7 @@ const CreateUser = Type.Object({
   email: Email,
   password: Password,
   role: NonModeratorRole,
-} satisfies UserFields);
+} satisfies UserKeys);
 
 const UpdateUser = Type.Partial(Type.Object({
   forename: LettersOnlyString,
@@ -33,7 +33,7 @@ const UpdateUser = Type.Partial(Type.Object({
   username: Username,
   email: Email,
   password: Password,
-} satisfies UserFields));
+} satisfies UserKeys));
 
 const revalidateIdentity = Type.Object({
   currentPassword: Password,

@@ -82,7 +82,6 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   });
 
   app.get('/search', {
-    preHandler: isLoggedIn,
     schema: UserSearchSchema,
   }, async (req, res) => {
       const { name, role, cursor, limit = 20 } = req.query;
@@ -137,7 +136,6 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   });
 
   app.get('/:userId', {
-    preHandler: isLoggedIn,
     schema: GetUserSchema,
   }, async (req, res) => {
     const foundUser = await app.prisma.user.findUnique({
