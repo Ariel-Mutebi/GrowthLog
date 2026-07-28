@@ -1,12 +1,24 @@
 ---
+import "../styles/global.css";
+import { getImage, Font } from "astro:assets";
+import welcomingStingray from "../assets/welcoming-stingray.jpg";
+
+const background = await getImage({ src: welcomingStingray, format: "webp" });
 ---
+
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GrowthLog</title>
+    <title>GrowthLog | Sign-up</title>
+    <Font cssVariable="--fraunces" />
   </head>
   <body>
-    <h1>GrowthLog</h1>
+    <main
+      style=`background-image: url(${background.src});`
+      class="h-screen bg-center bg-cover font-serif"
+    >
+      <h1>GrowthLog</h1>
+    </main>
   </body>
 </html>
