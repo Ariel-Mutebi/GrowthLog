@@ -14,6 +14,7 @@ import {
   UserSearchSchema,
 } from './userSchemas.js';
 import { rejectWeakPassword } from '../../utils/password.js';
+import type { User } from '../../db/client.js';
 
 const ROUNDS = 10;
 
@@ -22,7 +23,7 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
     schema: CreateUserSchema,
     /**
      * spam protection: one IP address can only create one user per day.
-     * also protects against enumeration attacks where an attacker could
+     * Also protects against enumeration attacks where an attacker could
      * try to see which credentials cause database conflicts.
      */
     config: {
@@ -35,10 +36,32 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   }, async (req, res) => {
     if (rejectWeakPassword(req.body.password, res)) return;
     req.body.password = await hash(req.body.password, ROUNDS);
+
+    // Give the user a default username to reduce sign-up friction
+    if (!req.body.username) {
+      const base = `${req.body.forename}-${req.body.surname}`;
+      let index = 1;
+
+      do {
+        req.body.username = `${base}-${index}`;
+        index++;
+      } while (await app.prisma.user.findFirst({
+        select: { username: true },
+        where: { username: req.body.username },
+      }));
+    }
+
+    /**
+     * A user is probably an autobiographer, if the posts they make
+     * suggest otherwise, they can be nudged them to update their role.
+     */
+    if (!req.body.role) {
+      req.body.role = 'AUTOBIOGRAPHER';
+    }
     
     try {
       const user = await app.prisma.user.create({
-        data: req.body,
+        data: req.body as User,
         omit: {
           password: true,
           deletedAt: true,

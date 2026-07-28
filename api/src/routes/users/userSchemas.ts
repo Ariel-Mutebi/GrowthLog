@@ -21,10 +21,10 @@ type UserKeys = Partial<ValuesUnknown<User>>;
 const CreateUser = Type.Object({
   forename: LettersOnlyString,
   surname: LettersOnlyString,
-  username: Username,
   email: Email,
   password: Password,
-  role: NonModeratorRole,
+  username: Type.Optional(Username),
+  role: Type.Optional(NonModeratorRole),
 } satisfies UserKeys);
 
 const UpdateUser = Type.Partial(Type.Object({
@@ -33,6 +33,7 @@ const UpdateUser = Type.Partial(Type.Object({
   username: Username,
   email: Email,
   password: Password,
+  role: NonModeratorRole,
 } satisfies UserKeys));
 
 const revalidateIdentity = Type.Object({
