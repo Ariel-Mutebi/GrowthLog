@@ -16,7 +16,7 @@ export const rateLimitPlugin = fp(async (app) => {
     private timeWindow: number;
 
     constructor(opts: { timeWindow?: number }) {
-      this.timeWindow = Number(opts.timeWindow);
+      this.timeWindow = opts.timeWindow ?? 0;
     }
 
     incr(

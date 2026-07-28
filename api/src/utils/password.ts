@@ -1,16 +1,7 @@
 import type { FastifyReply } from 'fastify';
 import type { Static } from '@sinclair/typebox';
 import type { BadRequest } from '../typebox/responses.js';
-
-/**
- * Workaround for zxcvbn's broken ESM build as I wait for
- * my PR: https://github.com/KunalTanwar/zxcvbn-ts/pull/1
- */
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-const { zxcvbn } = require('zxcvbn-ts') as typeof import('zxcvbn-ts');
+import { zxcvbn } from 'zxcvbn-ts';
 
 /**
  * Sends a 400 if the password is weak and returns `true`; returns `false`when

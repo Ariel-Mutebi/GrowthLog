@@ -1,5 +1,5 @@
 import type { PrismaClient } from '../db/client.js';
-import type { createClient } from 'redis';
+import type { RedisClientType } from 'redis';
 import { Strategy } from 'passport-local';
 import { compare, hashSync } from 'bcrypt';
 import { redisKey } from '../utils/redis.js';
@@ -13,7 +13,7 @@ const DUMMY_HASH = hashSync('invalid', ROUNDS);
 
 export function buildLocalStrategy(
   prisma: PrismaClient,
-  redis: ReturnType<typeof createClient>,
+  redis: RedisClientType,
 ) {
   return new Strategy({ usernameField: 'email' }, async (email, password, done) => {
     try {
