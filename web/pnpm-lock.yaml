@@ -14,12 +14,18 @@ importers:
       '@astrojs/svelte':
         specifier: ^9.0.0
         version: 9.0.0(astro@7.0.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(jiti@2.7.0))(esbuild@0.28.1)(jiti@2.7.0)(svelte@5.56.4)(typescript@6.0.3)
+      '@felte/validator-zod':
+        specifier: ^1.0.18
+        version: 1.0.18(zod@4.4.3)
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.1.0(esbuild@0.28.1)(jiti@2.7.0))
       astro:
         specifier: ^7.0.2
         version: 7.0.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(jiti@2.7.0)
+      felte:
+        specifier: ^1.3.0
+        version: 1.3.0(svelte@5.56.4)
       svelte:
         specifier: ^5.56.4
         version: 5.56.4
@@ -29,6 +35,12 @@ importers:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+      zxcvbn-ts:
+        specifier: ^2.3.4
+        version: 2.3.4
 
 packages:
 
@@ -365,6 +377,20 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@felte/common@1.1.9':
+    resolution: {integrity: sha512-d9e9M5FWc7AyaX/fb2I78AvwIAAA6S8ncKoTd3vYdPGQfgryl18oMU+ScM1WgFnbOBSoItdt61oaZAuRqfE4AA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
+  '@felte/core@1.4.4':
+    resolution: {integrity: sha512-qXEofmfc0tKvd1MOP9T1ixoI4+u0ZcUtC7JpBfb2A/lr/mhc8HrkvVWGatrGBnNovTc4lgIKWOySVVFswa4BYg==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
+  '@felte/validator-zod@1.0.18':
+    resolution: {integrity: sha512-nLhy3qhCrL14iMxIHXtIH0MckZr/dmpqRd/KcqQ6HJoT2tjvv8gPpgOGJdOR15Wfzd25n/UUr3tyX7ydgXA5xQ==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    peerDependencies:
+      zod: ^3.2.0
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -1056,6 +1082,12 @@ packages:
       picomatch:
         optional: true
 
+  felte@1.3.0:
+    resolution: {integrity: sha512-J09vuOC2Hw/d+ajhT4ueVEcSU0af+tlnfwF9QWVTuOWQf286pSGS48cFYhjmS7K7hUNMRUIwXwCnHWpyasadmA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    peerDependencies:
+      svelte: ^3.31.0 || ^4.0.0 || ^5.0.0
+
   flattie@1.1.1:
     resolution: {integrity: sha512-9UbaD6XdAL97+k/n+N7JwX46K/M6Zc6KcFYskrYL8wbBV/Uyk0CTAMY0VT+qiK5PM7AIc9aTWYtq65U7T+aCNQ==}
     engines: {node: '>=8'}
@@ -1709,6 +1741,9 @@ packages:
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
+  zxcvbn-ts@2.3.4:
+    resolution: {integrity: sha512-K98gEkpvRyqWh2GUjNABrSMQ8OW+k9KycIfSufa82CjkZbhK1fl85c75WNUk0mhNEvo59774jLK1dACnXbr0wg==}
+
 snapshots:
 
   '@astrojs/compiler-binding-darwin-arm64@0.2.2':
@@ -1980,6 +2015,17 @@ snapshots:
 
   '@esbuild/win32-x64@0.28.1':
     optional: true
+
+  '@felte/common@1.1.9': {}
+
+  '@felte/core@1.4.4':
+    dependencies:
+      '@felte/common': 1.1.9
+
+  '@felte/validator-zod@1.0.18(zod@4.4.3)':
+    dependencies:
+      '@felte/common': 1.1.9
+      zod: 4.4.3
 
   '@img/colour@1.1.0':
     optional: true
@@ -2604,6 +2650,11 @@ snapshots:
   fdir@6.5.0(picomatch@4.0.4):
     optionalDependencies:
       picomatch: 4.0.4
+
+  felte@1.3.0(svelte@5.56.4):
+    dependencies:
+      '@felte/core': 1.4.4
+      svelte: 5.56.4
 
   flattie@1.1.1: {}
 
@@ -3248,3 +3299,5 @@ snapshots:
   zod@4.4.3: {}
 
   zwitch@2.0.4: {}
+
+  zxcvbn-ts@2.3.4: {}

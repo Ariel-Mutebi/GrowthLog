@@ -1,79 +1,24 @@
 ---
-import "../styles/global.css";
-import { getImage, Font } from "astro:assets";
+import Shell from "../layouts/Shell.astro";
+import SignUpForm from "../components/SignUpForm.svelte";
+import { getImage } from "astro:assets";
 import welcomingStingray from "../assets/welcoming-stingray.jpg";
 
 const background = await getImage({ src: welcomingStingray, format: "webp" });
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="/logo-32.png" type="image/png" />
-    <title>GrowthLog | Sign-up</title>
-    <Font cssVariable="--fraunces" />
-  </head>
-  <body class="font-serif">
-    <main
-      style=`background-image: url(${background.src});`
-      class="flex flex-col h-screen bg-center bg-cover p-3"
-    >
-      <header class="flex gap-3.5 items-center">
-        <img src="/logo-64.svg" alt="The GrowthLog logo" />
-        <h1 class="text-4xl font-bold text-[#E5D0D9] h-max">
-          Join the community
-        </h1>
-      </header>
-      <form class="flex justify-center items-center grow">
-        <div class="flex flex-col w-xl px-6 gap-5 h-max">
-          <div class="flex gap-4 w-full">
-            <div class="gap-1 w-full">
-              <label for="first-name" class="text-white text-xl block">
-                First name
-              </label>
-              <input
-                type="text"
-                name="first-name"
-                id="first-name"
-                class="bg-[#E3D2EF99] px-2 py-1 rounded-sm backdrop-blur-xs w-full"
-              />
-            </div>
-            <div class="gap-1 w-full">
-              <label for="last-name" class="text-white text-xl block">
-                Last name
-              </label>
-              <input
-                type="text"
-                name="last-name"
-                id="last-name"
-                class="bg-[#E3D2EF99] px-2 py-1 rounded-sm backdrop-blur-xs w-full"
-              />
-            </div>
-          </div>
-          <div class="gap-1 w-full">
-            <label for="email" class="text-white text-xl block">Email</label>
-            <input
-              type="email"
-              name="email"
-              id="email"
-              class="bg-[#E3D2EF99] px-2 py-1 rounded-sm backdrop-blur-xs w-full"
-            />
-          </div>
-          <div class="gap-1 w-full">
-            <label for="password" class="text-white text-xl block">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              class="bg-[#E3D2EF99] px-2 py-1 rounded-sm backdrop-blur-xs w-full"
-            />
-          </div>
-          <button type="submit" class="p-2 rounded-lg text-white text-xl bg-linear-to-r from-black/60 to-black">Sign up</button>
-        </div>
-      </form>
-    </main>
-  </body>
-</html>
+<Shell>
+  <main
+    style=`background-image: url(${background.src});`
+    class="flex flex-col h-screen bg-center bg-cover p-3"
+  >
+    <header class="flex gap-3.5 items-center">
+      <img src="/logo-64.svg" class="w-16 h-16" alt="logo" />
+      <h1 class="text-4xl font-bold text-[#E5D0D9] h-max">
+        Join the community
+      </h1>
+    </header>
+
+    <SignUpForm client:load />
+  </main>
+</Shell>
