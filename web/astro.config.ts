@@ -27,6 +27,7 @@ export default defineConfig({
       name: 'DM Mono',
       cssVariable: '--dm-mono',
       fallbacks: ['monospace'],
+      weights: ['400'],
       styles: ['normal'],
     }
   ]
