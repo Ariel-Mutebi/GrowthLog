@@ -2,4 +2,5 @@
 
 @theme inline {
   --font-serif: var(--fraunces);
+  --font-mono: var(--dm-mono);
 }

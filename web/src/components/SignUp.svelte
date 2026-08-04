@@ -3,11 +3,13 @@
   import { validator } from '@felte/validator-zod';
   import Field from './sign-up/Field.svelte';
   import { schema } from './sign-up/schema.ts';
+  import { setValidationErrors } from './sign-up/context.ts';
 
   const { form, errors } = createForm({
     extend: validator({ schema }),
   });
 
+  setValidationErrors(errors);
 </script>
 
 <form use:form class="flex justify-center items-center grow">
@@ -22,7 +24,7 @@
     
     <button
       type="submit"
-      class="p-2 rounded-lg text-white text-xl bg-linear-to-r from-black/60 to-black"
+      class="p-2 rounded-lg text-white text-xl bg-linear-to-r from-[#e3d2ef80] to-[#484848]"
     >
       Sign up
     </button>

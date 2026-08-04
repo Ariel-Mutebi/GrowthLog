@@ -7,6 +7,8 @@ export const schema = z.object({
   email: z.email('Please enter a valid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 }).superRefine(({ firstName, lastName, email, password }, context) => {
+  if (!password) return;
+
   const test = zxcvbn(password, [firstName, lastName, email].filter(Boolean));
 
   if (test.score < 3) {
@@ -18,4 +20,4 @@ export const schema = z.object({
   }
 });
 
-export type Field = keyof z.infer<typeof schema>;
+export type SignUpField = keyof z.infer<typeof schema>;

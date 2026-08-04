@@ -1,10 +1,10 @@
 ---
 import Shell from "../layouts/Shell.astro";
-import SignUpForm from "../components/SignUpForm.svelte";
+import SignUp from "../components/SignUp.svelte";
 import { getImage } from "astro:assets";
-import welcomingStingray from "../assets/welcoming-stingray.jpg";
+import welcome from "../assets/welcome.jpg";
 
-const background = await getImage({ src: welcomingStingray, format: "webp" });
+const background = await getImage({ src: welcome, format: "webp" });
 ---
 
 <Shell>
@@ -19,6 +19,6 @@ const background = await getImage({ src: welcomingStingray, format: "webp" });
       </h1>
     </header>
 
-    <SignUpForm client:load />
+    <SignUp client:load />
   </main>
 </Shell>

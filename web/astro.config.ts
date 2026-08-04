@@ -13,12 +13,21 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
 
-  fonts: [{
-    provider: fontProviders.google(),
-    name: 'Fraunces',
-    cssVariable: '--fraunces',
-    fallbacks: ['serif'],
-    weights: ['100 900'], 
-    styles: ['normal', 'italic'],
-  }]
+  fonts: [
+    {
+      provider: fontProviders.google(),
+      name: 'Fraunces',
+      cssVariable: '--fraunces',
+      fallbacks: ['serif'],
+      weights: ['100 900'], 
+      styles: ['normal', 'italic'],
+    },
+    {
+      provider: fontProviders.google(),
+      name: 'DM Mono',
+      cssVariable: '--dm-mono',
+      fallbacks: ['monospace'],
+      styles: ['normal'],
+    }
+  ]
 });
