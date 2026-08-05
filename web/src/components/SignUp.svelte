@@ -4,6 +4,7 @@
   import Field from './sign-up/Field.svelte';
   import { schema } from './sign-up/schema.ts';
   import { setValidationErrors } from './sign-up/context.ts';
+    import Password from './sign-up/Password.svelte';
 
   const { form, errors } = createForm({
     extend: validator({ schema }),
@@ -20,7 +21,7 @@
     </div>
 
     <Field label="Email" name="email" type="email" />
-    <Field label="Password" name="password" type="password" />
+    <Password />
     
     <button
       type="submit"
