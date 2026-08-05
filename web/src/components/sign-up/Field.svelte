@@ -11,7 +11,14 @@
     underInput?: Snippet;
   }
 
-  let { label, name, type = "text", rightIcon }: Props = $props();
+  let {
+    label,
+    name,
+    type = "text",
+    rightIcon,
+    underInput,
+  }: Props = $props();
+
   const errors = getValidationErrors();
 </script>
 
@@ -34,5 +41,9 @@
 
   {#if $errors[name]?.length}
     <p class="text-red-200 bg-neutral-800 text-xs px-2 py-1 font-mono">{$errors[name]![0]}</p>
+  {/if}
+
+  {#if underInput}
+    {@render underInput()}
   {/if}
 </div>

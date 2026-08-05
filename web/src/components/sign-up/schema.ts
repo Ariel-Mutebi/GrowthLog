@@ -15,9 +15,10 @@ export const schema = z.object({
     context.addIssue({
       code: 'custom',
       path: ['password'],
-      message: test.feedback.warning || 'This password is too weak',
+      message: test.feedback.warning,
     });
   }
 });
 
-export type SignUpField = keyof z.infer<typeof schema>;
+export type SignUpData = z.infer<typeof schema>;
+export type SignUpField = keyof SignUpData;

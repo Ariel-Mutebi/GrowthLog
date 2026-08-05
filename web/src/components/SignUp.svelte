@@ -2,11 +2,11 @@
   import { createForm } from 'felte';
   import { validator } from '@felte/validator-zod';
   import Field from './sign-up/Field.svelte';
-  import { schema } from './sign-up/schema.ts';
+  import { schema, type SignUpData } from './sign-up/schema.ts';
   import { setValidationErrors } from './sign-up/context.ts';
     import Password from './sign-up/Password.svelte';
 
-  const { form, errors } = createForm({
+  const { form, data, errors } = createForm<SignUpData>({
     extend: validator({ schema }),
   });
 
@@ -21,7 +21,7 @@
     </div>
 
     <Field label="Email" name="email" type="email" />
-    <Password />
+    <Password { data } />
     
     <button
       type="submit"
