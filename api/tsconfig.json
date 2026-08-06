@@ -14,7 +14,7 @@
   },
   "include": [
     "src"
-  ],
+, "tests/suite"  ],
   "exclude": [
     "node_modules",
     "dist"

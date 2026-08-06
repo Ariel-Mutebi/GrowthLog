@@ -1,6 +1,7 @@
 {
   "name": "api",
   "private": true,
+  "packageManager": "pnpm@11.19.0",
   "scripts": {
     "build": "tsc",
     "generate": "node ./dist/doc.js",
