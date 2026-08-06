@@ -5,11 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file:
-      - .env
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
-      REDIS_URL: redis://redis:6379
-      NODE_ENV: prod
+      - .env.prod
     depends_on:
       postgres:
         condition: service_started
@@ -35,7 +31,7 @@ services:
     container_name: GrowthLogPostgres
     image: postgres:18
     env_file:
-      - .env
+      - .env.prod
     volumes:
       - ./.local/postgres-data:/var/lib/postgresql
     logging:

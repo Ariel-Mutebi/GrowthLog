@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { env } from 'prisma/config';
 import type { PrismaConfig } from 'prisma';
 
-dotenv.config({ path: '.env.local' });
+dotenv.config({ path: '.env.dev' });
 
 export default {
   schema: 'prisma/schema.prisma',

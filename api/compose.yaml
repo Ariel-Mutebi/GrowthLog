@@ -5,9 +5,9 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - .env
+      - .env.dev
     volumes:
-      - ./.local/postgres-data:/var/lib/postgresql/data
+      - ./.local/postgres-data:/var/lib/postgresql
 
   redis:
     container_name: GrowthLogRedis

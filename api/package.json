@@ -4,10 +4,8 @@
   "packageManager": "pnpm@11.19.0",
   "scripts": {
     "build": "tsc",
-    "generate": "node ./dist/doc.js",
-    "dev": "docker compose up",
-    "prod": "docker compose -f compose.prod.yaml up --build",
-    "down": "docker compose down",
+    "watch": "tsc --watch",
+    "dev": "tsc && node ./dist/server.js --env-file ./.env.dev && docker compose up -d",
     "test": "tsx tests/setup.ts",
     "test:watch": "tsx tests/setup.ts --watch",
     "typecheck": "tsc --noEmit",
