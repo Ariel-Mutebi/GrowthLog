@@ -33,7 +33,7 @@
       class="bg-[#E3D2EF99] px-2 py-1 rounded-sm backdrop-blur-xs w-full text-sm"
     >
     {#if rightIcon}
-      <span class="absolute inset-y-0 right-0 flex items-center pr-2 text-neutral-800">
+      <span class="absolute inset-y-0 right-0 flex items-center pr-2 text-neutral-800 hover:text-neutral-950">
         {@render rightIcon()}
       </span>
     {/if}

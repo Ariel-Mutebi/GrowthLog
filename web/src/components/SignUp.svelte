@@ -2,9 +2,10 @@
   import { createForm } from 'felte';
   import { validator } from '@felte/validator-zod';
   import Field from './sign-up/Field.svelte';
+  import Submit from './sign-up/Submit.svelte';
+  import Password from './sign-up/Password.svelte';
   import { schema, type SignUpData } from './sign-up/schema.ts';
   import { setValidationErrors } from './sign-up/context.ts';
-    import Password from './sign-up/Password.svelte';
 
   const { form, data, errors } = createForm<SignUpData>({
     extend: validator({ schema }),
@@ -23,11 +24,6 @@
     <Field label="Email" name="email" type="email" />
     <Password { data } />
     
-    <button
-      type="submit"
-      class="p-2 rounded-lg text-white text-xl bg-linear-to-r from-[#e3d2ef80] to-[#484848]"
-    >
-      Sign up
-    </button>
+    <Submit />
   </div>
 </form>

@@ -58,7 +58,7 @@
               viewBox="-10 0 20 20"
               preserveAspectRatio="none"
               style="opacity: {Math.min(fill.current * 10, 1)}"
-              class="absolute inset-y-0 left-full w-4 translate-x-[-51%] text-cyan-600"
+              class="absolute inset-y-0 left-full w-4 translate-x-[-55%] text-cyan-600"
             >
               <path d="M0,0 C8,2 8,8 0,10 C-8,12 -8,18 0,20 Z" fill="currentColor" />
             </svg>
