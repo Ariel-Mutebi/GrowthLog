@@ -1,9 +1,9 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { FollowSomeone, UnfollowSomeone } from './followerSchemas.js';
+import { FollowSomeone, UnfollowSomeone } from './schema.js';
 import { isLoggedIn } from '../../auth/preHandler.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
-const followerRouter: FastifyPluginAsyncTypebox = async (app) => {
+const router: FastifyPluginAsyncTypebox = async (app) => {
   app.put('/:userId', {
     schema: FollowSomeone,
     preHandler: isLoggedIn,
@@ -49,4 +49,4 @@ const followerRouter: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default followerRouter;
+export default router;

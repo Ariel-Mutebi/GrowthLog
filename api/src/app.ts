@@ -37,8 +37,8 @@ export function buildApp() {
   app.register(swaggerPlugin);
 
   /**
-   * Auto-register all default-exported routers from files ending in `Router.(ts|js)` within
-   * the `routes` directory tree under the `/v1` namespace, using directory names as route prefixes.
+   * Auto-register all default-exported routers within the `routes` directory
+   * tree under the `/v1` namespace, using directory names as route prefixes.
    */
   app.register(autoload, {
     dir: path.join(__dirname, 'routes'),
@@ -46,7 +46,6 @@ export function buildApp() {
     options: {
       prefix: 'v1/',
     },
-    matchFilter: (path) => /Router\.(ts|js)$/.test(path),
   });
 
   if (process.env.NODE_ENV === 'dev') {

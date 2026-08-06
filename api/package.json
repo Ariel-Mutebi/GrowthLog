@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "generate": "build && node ./dist/doc.ts",
+    "generate": "node ./dist/doc.js",
     "dev": "docker compose up",
     "prod": "docker compose -f compose.prod.yaml up --build",
     "down": "docker compose down",

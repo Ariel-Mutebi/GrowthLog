@@ -4,7 +4,7 @@ import { createClient } from 'redis';
 export const redisPlugin = fp(async (app) => {
   const redis = createClient({
     url: process.env.REDIS_URL!,
-    RESP: 2, // for easy compatibility with the RedisClientType
+    RESP: 3,
   });
 
   redis.on('error', (err) => app.log.error('Redis error:', err));

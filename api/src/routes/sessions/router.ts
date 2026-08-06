@@ -1,12 +1,12 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { isLoggedIn, localStrategy } from '../../auth/preHandler.js';
-import { CreateSessionSchema, DeleteSessionSchema } from './sessionSchemas.js';
+import { CreateSessionSchema, DeleteSessionSchema } from './schema.js';
 
 /*
   * Stricter rate limiting on POST session/ to prevent single machine targeting multiple accounts,
   * and prevent this endpoint being used as a resource exhaustion vector (bcrypt compare is expensive).
 */
-const sessionRouter: FastifyPluginAsync = async (app) => {
+const router: FastifyPluginAsync = async (app) => {
   app.post('/', {
     schema: CreateSessionSchema,
     preHandler: localStrategy(app),
@@ -29,4 +29,4 @@ const sessionRouter: FastifyPluginAsync = async (app) => {
   });
 };
 
-export default sessionRouter;
+export default router;

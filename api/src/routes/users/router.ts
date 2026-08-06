@@ -12,13 +12,13 @@ import {
   GetUserSchema,
   GetSelfSchema,
   UserSearchSchema,
-} from './userSchemas.js';
+} from './schema.js';
 import { rejectWeakPassword } from '../../utils/password.js';
 import type { User } from '../../db/client.js';
 
 const ROUNDS = 10;
 
-const userRouter: FastifyPluginAsyncTypebox = async (app) => {
+const router: FastifyPluginAsyncTypebox = async (app) => {
   app.post('/', {
     schema: CreateUserSchema,
     /**
@@ -275,4 +275,4 @@ const userRouter: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default userRouter;
+export default router;
