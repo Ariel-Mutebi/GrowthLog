@@ -23,6 +23,6 @@ export default [
         },
       ],
     },
-    ignores: ['src/db/'],
+    ignores: ['api/src/db/'],
   },
 ] satisfies ConfigArray;

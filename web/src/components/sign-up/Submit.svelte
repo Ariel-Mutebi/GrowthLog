@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { Tween } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
 
@@ -7,7 +7,7 @@
     { duration: 300, easing: cubicOut }
   );
 
-  function updatePosition(e) {
+  function updatePosition(e: PointerEvent & { currentTarget: HTMLButtonElement }) {
     const rect = e.currentTarget.getBoundingClientRect();
     pos.set({
       x: ((e.clientX - rect.left) / rect.width) * 100,
