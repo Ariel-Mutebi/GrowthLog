@@ -1,3 +1,4 @@
+import { zxcvbn } from 'zxcvbn-ts';
 import { compare, hash } from 'bcrypt';
 import type { Static } from '@sinclair/typebox';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
@@ -13,8 +14,24 @@ import {
   GetSelfSchema,
   UserSearchSchema,
 } from './schema.js';
-import { rejectWeakPassword } from '../../utils/password.js';
 import type { User } from '../../db/client.js';
+import type { FastifyReply } from 'fastify';
+import type { BadRequest } from '../../typebox/responses.js';
+
+function rejectWeakPassword(password: string, res: FastifyReply): boolean {
+  const { score, feedback } = zxcvbn(password);
+
+  if (score < 3) {
+    res.code(400).send({
+      error: 'BadRequest',
+      message: 'Password too weak',
+      suggestions: feedback.suggestions as string[],
+    } satisfies Static<typeof BadRequest>);
+    return true;
+  }
+
+  return false;
+}
 
 const ROUNDS = 10;
 

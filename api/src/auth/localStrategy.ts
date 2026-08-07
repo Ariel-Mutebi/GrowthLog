@@ -2,7 +2,6 @@ import type { PrismaClient } from '../db/client.js';
 import type { RedisClientType } from 'redis';
 import { Strategy } from 'passport-local';
 import { compare, hashSync } from 'bcrypt';
-import { redisKey } from '../utils/redis.js';
 
 /**
  * Timing attack hardening: always run compare — even when no user is found — so
@@ -14,11 +13,12 @@ const DUMMY_HASH = hashSync('invalid', ROUNDS);
 export function buildLocalStrategy(
   prisma: PrismaClient,
   redis: RedisClientType,
+  prefix?: string,
 ) {
   return new Strategy({ usernameField: 'email' }, async (email, password, done) => {
     try {
       // Distributed brute force hardening: maximum of 5 login attempts per email in 15 minutes.
-      const key = redisKey(`failed_login:${email}`);
+      const key = `${prefix}failed_login:${email}`;
       const attempts = Number(await redis.get(key));
 
       if (attempts >= 5) {

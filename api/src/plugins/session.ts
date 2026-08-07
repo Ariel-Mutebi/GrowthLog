@@ -4,18 +4,18 @@ import { RedisStore } from 'connect-redis';
 
 export const sessionPlugin = fp(async (app) => {
   app.register(fastifySession, {
-    secret: process.env.SESSION_SECRET!,
+    secret: app.config.SESSION_SECRET,
     saveUninitialized: false,
     store: new RedisStore({
       client: app.redis,
-      prefix: `${process.env.REDIS_KEY_PREFIX ?? ''}session:`, // see ../utils/redis.ts
+      prefix: app.config.REDIS_KEY_PREFIX,
     }),
     cookie: {
-      secure: process.env.NODE_ENV !== 'test',
+      secure: app.config.NODE_ENV === 'production',
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
-      maxAge: 30 * 24 * 3600 * 1000, // 1 month
+      maxAge: 30 * 24 * 3600 * 1000,
     },
   });
 });

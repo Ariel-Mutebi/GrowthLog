@@ -8,7 +8,7 @@ import fastifyCookie from '@fastify/cookie';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import addFormats from 'ajv-formats';
-import { EnvSchema } from './types/env.js';
+import { EnvSchema } from './typebox/env.js';
 import { authPlugin } from './plugins/auth.js';
 import { prismaPlugin } from './plugins/prisma.js';
 import { redisPlugin } from './plugins/redis.js';

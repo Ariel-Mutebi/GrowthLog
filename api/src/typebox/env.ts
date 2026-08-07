@@ -21,8 +21,9 @@ export const EnvSchema = Type.Object({
     pattern: '^redis(s)?://',
   }),
 
+  // random 64 character hex code from openssl
   SESSION_SECRET: Type.String({
-    minLength: 64, // random 64 character hex code from openssl
+    minLength: 64,
     maxLength: 64,
     pattern: '^[0-9a-f]{64}$',
   }),
@@ -31,6 +32,9 @@ export const EnvSchema = Type.Object({
     format: 'uri',
     pattern: '^postgres(ql)?://',
   }),
+
+  // for isolation between test files
+  REDIS_KEY_PREFIX: Type.String({ default: '' }),
 });
 
 export type Env = Static<typeof EnvSchema>;

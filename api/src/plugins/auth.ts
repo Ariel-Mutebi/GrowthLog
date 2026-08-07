@@ -10,7 +10,7 @@ export const authPlugin = fp(async (app) => {
   app.register(auth.initialize());
   app.register(auth.secureSession());
 
-  auth.use(buildLocalStrategy(app.prisma, app.redis));
+  auth.use(buildLocalStrategy(app.prisma, app.redis, app.config.REDIS_KEY_PREFIX));
 
   auth.registerUserSerializer(serializeUser);
   auth.registerUserDeserializer(buildDeserializeUser(app.prisma));

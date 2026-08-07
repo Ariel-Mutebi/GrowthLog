@@ -3,11 +3,11 @@
   "private": true,
   "packageManager": "pnpm@11.19.0",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf ./dist",
+    "build": "pnpm clean && tsc -p tsconfig.build.json",
     "predev": "docker compose up -d",
     "dev": "tsx watch src/server.ts",
     "test": "tsx tests/setup.ts",
-    "test:watch": "tsx tests/setup.ts --watch",
     "pretest": "prisma generate"
   },
   "author": "Ariel Robert Mutebi",
