@@ -1,11 +1,14 @@
-import Fastify from 'fastify';
-import path from 'node:path';
+import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import Fastify from 'fastify';
+import fastifyEnv from '@fastify/env';
 import autoload from '@fastify/autoload';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
+import addFormats from 'ajv-formats';
+import { EnvSchema } from './types/env.js';
 import { authPlugin } from './plugins/auth.js';
 import { prismaPlugin } from './plugins/prisma.js';
 import { redisPlugin } from './plugins/redis.js';
@@ -13,8 +16,7 @@ import { sessionPlugin } from './plugins/session.js';
 import { swaggerPlugin } from './plugins/swagger.js';
 import { rateLimitPlugin } from './plugins/rate.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export function buildApp() {
   const app = Fastify({
@@ -26,6 +28,20 @@ export function buildApp() {
       ignoreTrailingSlash: true,
     },
   }).withTypeProvider<TypeBoxTypeProvider>();
+
+  app.register(fastifyEnv, {
+    schema: EnvSchema,
+    dotenv: {
+      path: join(__dirname, '../.env'),
+    },
+    ajv: {
+      customOptions: (ajv) => {
+        // @ts-expect-error mismatch between index.js but not index.d.ts
+        addFormats(ajv);
+        return ajv;
+      },
+    },
+  });
 
   app.register(fastifyHelmet);
   app.register(fastifyCookie);
@@ -41,18 +57,16 @@ export function buildApp() {
    * tree under the `/v1` namespace, using directory names as route prefixes.
    */
   app.register(autoload, {
-    dir: path.join(__dirname, 'routes'),
+    dir: join(__dirname, './routes'),
     dirNameRoutePrefix: true,
-    options: {
-      prefix: 'v1/',
-    },
+    options: { prefix: 'v1/' },
   });
 
-  if (process.env.NODE_ENV === 'dev') {
-    app.ready(() => {
-      console.log(app.printRoutes());
-    });
-  }
+  app.ready(() => {    
+    if (app.config.NODE_ENV === 'development') {
+      app.log.info(app.printRoutes());
+    }
+  });
 
   return app;
 }

@@ -154,7 +154,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
 
       return res.send({
         users,
-        nextCursor: hasMore ? users[users.length - 1].id : null,
+        nextCursor: hasMore ? users.at(-1)!.id : null,
       });
   });
 

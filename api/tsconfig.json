@@ -1,22 +1,7 @@
 {
-  "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-    "target": "es2024",
-    "strict": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "rootDir": "src",
-    "outDir": "dist",
-    "esModuleInterop": true,
-    "incremental": true,
-    "tsBuildInfoFile": ".tsbuildinfo",
-  },
+  "extends": "../tsconfig.json",
   "include": [
-    "src"
-, "tests/suite"  ],
-  "exclude": [
-    "node_modules",
-    "dist"
+    "src",
+    "tests"
   ]
 }
