@@ -3,8 +3,8 @@
   "private": true,
   "packageManager": "pnpm@11.19.0",
   "scripts": {
-    "clean": "rm -rf ./dist",
-    "build": "pnpm clean && tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json",
+    "preview": "node ./dist/server.js",
     "predev": "docker compose up -d",
     "dev": "tsx watch src/server.ts",
     "test": "tsx tests/setup.ts",

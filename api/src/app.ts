@@ -21,7 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export function buildApp() {
   const app = Fastify({
     logger: {
-      level: 'warn',
+      level: 'info',
     },
     trustProxy: true,
     routerOptions: {
@@ -64,7 +64,7 @@ export function buildApp() {
 
   app.ready(() => {    
     if (app.config.NODE_ENV === 'development') {
-      app.log.info(app.printRoutes());
+      console.log(app.printRoutes());
     }
   });
 
