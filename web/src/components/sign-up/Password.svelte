@@ -15,7 +15,7 @@
 
   let score = $derived(
     $data.password ?
-      zxcvbn($data.password, [$data.firstName, $data.lastName, $data.email].filter(Boolean)).score : 0
+      zxcvbn($data.password, [$data.forename, $data.surname, $data.email].filter(Boolean)).score : 0
   );
   
   const fills = Array.from({ length: 4 }, () =>

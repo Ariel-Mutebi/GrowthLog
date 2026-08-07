@@ -1,6 +1,8 @@
 <script lang="ts">
   import { createForm } from 'felte';
   import { validator } from '@felte/validator-zod';
+
+  import { client } from '../api/client.ts';
   import Field from './sign-up/Field.svelte';
   import Submit from './sign-up/Submit.svelte';
   import Password from './sign-up/Password.svelte';
@@ -9,6 +11,9 @@
 
   const { form, data, errors } = createForm<SignUpData>({
     extend: validator({ schema }),
+    onSubmit: async (values) => {
+      const { data, error } = await client.POST('/v1/users', { body: values });
+    },
   });
 
   setValidationErrors(errors);
@@ -17,8 +22,8 @@
 <form use:form class="flex justify-center items-center grow">
   <div class="flex flex-col w-xl px-6 gap-5 h-max">
     <div class="flex gap-4 w-full">
-      <Field label="First name" name="firstName" />
-      <Field label="Last name" name="lastName" />
+      <Field label="First name" name="forename" />
+      <Field label="Last name" name="surname" />
     </div>
 
     <Field label="Email" name="email" type="email" />

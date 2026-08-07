@@ -16,9 +16,7 @@
     "typescript-eslint": "^8.66.0"
   },
   "lint-staged": {
-    "src/**/*.ts": [
-      "eslint --fix",
-      "git add"
-    ]
+    "api/src/**/*.ts": ["eslint --fix"],
+    "web/src/**/*.ts": ["eslint --fix"]
   }
 }

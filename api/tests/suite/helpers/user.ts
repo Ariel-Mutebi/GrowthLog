@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { TestEnv } from '../../harness.ts';
-import { extractSessionCookie } from '../../cookies.ts';
+import { extractSessionCookie } from '../../cookies.js';
 
 export const STRONG_PASSWORD = 'correct-horse-battery-staple-92';
 

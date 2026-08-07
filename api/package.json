@@ -4,11 +4,15 @@
   "packageManager": "pnpm@11.19.0",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "preview": "node ./dist/server.js",
-    "predev": "docker compose up -d",
+    "start": "docker compose up -d",
+    "stop": "docker compose down",
+    "predev": "pnpm start",
     "dev": "tsx watch src/server.ts",
+    "pretest": "pnpm start",
     "test": "tsx tests/setup.ts",
-    "pretest": "prisma generate"
+    "posttest": "pnpm stop",
+    "migrate:dev": "pnpm exec prisma migrate dev",
+    "migrate:prod": "pnpm exec prisma migrate deploy"
   },
   "author": "Ariel Robert Mutebi",
   "license": "BUSL-1.1",

@@ -1,7 +1,7 @@
 import { test, before, after, beforeEach, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { TestEnv } from '../harness.ts';
-import { register, authenticatedSession } from './helpers/user.ts';
+import { TestEnv } from '../harness.js';
+import { register, authenticatedSession } from './helpers/user.js';
 
 const env = new TestEnv();
 

@@ -2,14 +2,14 @@ import z from 'zod';
 import zxcvbn from 'zxcvbn-ts';
 
 export const schema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
+  forename: z.string().min(1, 'First name is required'),
+  surname: z.string().min(1, 'Last name is required'),
   email: z.email('Please enter a valid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-}).superRefine(({ firstName, lastName, email, password }, context) => {
+}).superRefine(({ forename, surname, email, password }, context) => {
   if (!password) return;
 
-  const test = zxcvbn(password, [firstName, lastName, email].filter(Boolean));
+  const test = zxcvbn(password, [forename, surname, email].filter(Boolean));
 
   if (test.score < 3) {
     context.addIssue({

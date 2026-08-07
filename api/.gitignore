@@ -4,3 +4,4 @@ dist
 src/db
 .tsbuildinfo
 .local
+openapi.json

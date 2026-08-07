@@ -1,8 +1,8 @@
 import { test, before, after, beforeEach, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { TestEnv } from '../harness.ts';
-import { extractSessionCookie, clearedSessionCookie } from '../cookies.ts';
-import { STRONG_PASSWORD, register, login, authenticatedSession } from './helpers/user.ts';
+import { TestEnv } from '../harness.js';
+import { extractSessionCookie, clearedSessionCookie } from '../cookies.js';
+import { STRONG_PASSWORD, register, login, authenticatedSession } from './helpers/user.js';
 
 const env = new TestEnv();
 

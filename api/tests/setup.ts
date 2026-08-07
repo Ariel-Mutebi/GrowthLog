@@ -1,6 +1,11 @@
 import { globSync } from 'node:fs';
 import { spawn } from 'node:child_process';
-import { Harness } from './harness.ts';
+import { Harness } from './harness.js';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+process.loadEnvFile(join(__dirname, '../.env'));
 
 /**
  * Bootstrap script: starts shared containers, migrates the structure once into
@@ -9,13 +14,16 @@ import { Harness } from './harness.ts';
 const harness = new Harness();
 await harness.setup();
 
-const testFiles = globSync('tests/**/*.test.ts');
+const testFiles = globSync('./suite/*.test.ts');
 const runner = spawn(
   process.execPath,
   ['--import', 'tsx', '--test', ...testFiles],
   {
     env: {
-      ...process.env,
+      PORT: process.env.PORT,
+      REDIS_URL: process.env.REDIS_URL,
+      DATABASE_URL: process.env.DATABASE_URL,
+      SESSION_SECRET: process.env.SESSION_SECRET,
       NODE_ENV: 'test',
       TEST_ADMIN_URL: harness.adminUrl,
       TEST_REDIS_URL: harness.redisUrl,
@@ -24,13 +32,11 @@ const runner = spawn(
   },
 );
 
-const shutdown = async (code: number) => {
+const shutdown = async (code: number | null | undefined = 1) => {
   await harness.teardown();
   process.exit(code);
 };
 
-runner.on('close', (code) => shutdown(code ?? 1));
-
-// Clean up containers if the process is interrupted mid-run.
-process.on('SIGINT', () => shutdown(1));
-process.on('SIGTERM', () => shutdown(1));
+runner.on('close', (code) => shutdown(code));
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
