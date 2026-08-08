@@ -11,8 +11,9 @@
 
   const { form, data, errors } = createForm<SignUpData>({
     extend: validator({ schema }),
-    onSubmit: async (values) => {
-      const { data, error } = await client.POST('/v1/users', { body: values });
+    onSubmit: async (body) => {
+      const { data, error } = await client.POST('/v1/users', { body });
+      console.log(error ? error : data);
     },
   });
 
