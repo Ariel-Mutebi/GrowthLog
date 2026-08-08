@@ -1,5 +1,7 @@
 import { buildApp } from './app.js';
+import { loadEnv } from './config.js';
 
+loadEnv();
 const app = buildApp();
 
 const shutdown = async () => {

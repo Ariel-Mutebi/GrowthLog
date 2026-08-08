@@ -1,27 +1,25 @@
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
-import fastifyEnv from '@fastify/env';
 import autoload from '@fastify/autoload';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
-import addFormats from 'ajv-formats';
-import { EnvSchema } from './typebox/env.js';
 import { authPlugin } from './plugins/auth.js';
 import { prismaPlugin } from './plugins/prisma.js';
 import { redisPlugin } from './plugins/redis.js';
 import { sessionPlugin } from './plugins/session.js';
 import { swaggerPlugin } from './plugins/swagger.js';
 import { rateLimitPlugin } from './plugins/rate.js';
+import { loadConfig, type EnvOverrides } from './config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function buildApp() {
+export function buildApp(overrides?: EnvOverrides) {
   const app = Fastify({
     logger: {
-      level: 'info',
+      level: 'warn',
     },
     trustProxy: true,
     routerOptions: {
@@ -29,20 +27,7 @@ export function buildApp() {
     },
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  app.register(fastifyEnv, {
-    schema: EnvSchema,
-    dotenv: {
-      path: join(__dirname, '../.env'),
-    },
-    ajv: {
-      customOptions: (ajv) => {
-        // @ts-expect-error mismatch between index.js but not index.d.ts
-        addFormats(ajv);
-        return ajv;
-      },
-    },
-  });
-
+  app.decorate('config', loadConfig(overrides));
   app.register(fastifyHelmet);
   app.register(fastifyCookie);
   app.register(redisPlugin);

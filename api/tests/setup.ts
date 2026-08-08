@@ -1,11 +1,7 @@
 import { globSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { Harness } from './harness.js';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-process.loadEnvFile(join(__dirname, '../.env'));
 
 /**
  * Bootstrap script: starts shared containers, migrates the structure once into
@@ -20,10 +16,7 @@ const runner = spawn(
   ['--import', 'tsx', '--test', ...testFiles],
   {
     env: {
-      PORT: process.env.PORT,
-      REDIS_URL: process.env.REDIS_URL,
-      DATABASE_URL: process.env.DATABASE_URL,
-      SESSION_SECRET: process.env.SESSION_SECRET,
+      PORT: '3000',
       NODE_ENV: 'test',
       TEST_ADMIN_URL: harness.adminUrl,
       TEST_REDIS_URL: harness.redisUrl,

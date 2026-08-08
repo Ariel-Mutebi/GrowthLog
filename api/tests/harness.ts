@@ -2,9 +2,10 @@ import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testconta
 import { RedisContainer, type StartedRedisContainer } from '@testcontainers/redis';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { randomUUID } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { Client } from 'pg';
+import { buildApp } from '../src/app.js';
 
 const exec = promisify(execFile);
 
@@ -57,7 +58,7 @@ export class Harness {
     // Migrate the canonical structure once into a dedicated template database.
     const templateUrl = withDatabase(this.adminUrl, TEMPLATE_DB);
     await runSql(this.adminUrl, `CREATE DATABASE "${TEMPLATE_DB}";`);
-    await exec('npx', ['prisma', 'db', 'push', '--url', templateUrl]);
+    await exec('pnpm', ['exec', 'prisma', 'db', 'push', '--url', templateUrl]);
   }
 
   async teardown(): Promise<void> {
@@ -79,51 +80,35 @@ export class TestEnv {
     if (!adminUrl) throw new Error('TEST_ADMIN_URL not set — Harness.setup() did not run.');
     if (!redisUrl) throw new Error('TEST_REDIS_URL not set — Harness.setup() did not run.');
 
-    this.database = `test_${randomUUID().replace(/-/g, '')}`;
+    this.database = `test_${randomBytes(8).toString('hex')}`;
     this.redisPrefix = `${this.database}:`;
-    const databaseUrl = `${withDatabase(adminUrl, this.database)}?connection_limit=2`;
-
-    // Clone the migrated structure at the filesystem level
     await runSql(adminUrl, `CREATE DATABASE "${this.database}" TEMPLATE "${TEMPLATE_DB}";`);
 
-    // Env must be set before the app is imported, since plugins read it at load.
-    process.env.DATABASE_URL = databaseUrl;
-    process.env.REDIS_URL = redisUrl;
-    process.env.REDIS_KEY_PREFIX = this.redisPrefix;
-    process.env.SESSION_SECRET = 'DoNotTryAndBendTheSpoonThatIsImpossible';
-
-    const { buildApp } = await import('../src/app.js');
-    this.app = buildApp();
+    this.app = buildApp({
+      NODE_ENV: 'test',
+      REDIS_URL: redisUrl,
+      REDIS_KEY_PREFIX: this.redisPrefix,
+      SESSION_SECRET: randomBytes(32).toString('hex'),
+      DATABASE_URL: `${withDatabase(adminUrl, this.database)}?connection_limit=2`,
+    });
     await this.app.ready();
   }
 
   /** Empties every table in this file's database and clears its Redis keys. */
   async reset(): Promise<void> {
-    await this.app.prisma.$executeRawUnsafe(`
-      DO $$
-      DECLARE
-        stmt text;
-      BEGIN
-        SELECT 'TRUNCATE TABLE '
-          || string_agg(format('%I.%I', schemaname, tablename), ', ')
-          || ' RESTART IDENTITY CASCADE'
-        INTO stmt
-        FROM pg_tables
-        WHERE schemaname = 'public';
+    const tables: { tablename: string }[] = await this.app.prisma.$queryRaw`
+      SELECT tablename FROM pg_tables WHERE schemaname = 'public';
+    `;
 
-        IF stmt IS NOT NULL THEN
-          EXECUTE stmt;
-        END IF;
-      END $$;
-    `);
-
-    const keys: string[] = [];
-    for await (const batch of this.app.redis.scanIterator({ MATCH: `${this.redisPrefix}*`, COUNT: 100 })) {
-      keys.push(...batch);
+    if (tables.length) {
+      const names = tables.map((t) => `"public"."${t.tablename}"`).join(', ');
+      await this.app.prisma.$executeRawUnsafe(`TRUNCATE TABLE ${names} RESTART IDENTITY CASCADE;`);
     }
-    if (keys.length > 0) await this.app.redis.del(keys);
-  }
 
+    const keys = await this.app.redis.keys(`${this.redisPrefix}*`);
+    if (keys.length) await this.app.redis.del(keys);
+  }
+  
   async stop(): Promise<void> {
     try {
       await this.app?.close();
