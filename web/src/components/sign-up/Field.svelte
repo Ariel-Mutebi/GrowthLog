@@ -30,7 +30,9 @@
       type={type}
       name={name}
       id={name}
-      class="bg-[#E3D2EF99] px-2 py-1 rounded-sm backdrop-blur-xs w-full text-sm"
+      class="
+        bg-[#E3D2EF99] px-2 py-1 rounded-sm backdrop-blur-xs w-full text-sm border border-transparent
+        focus:border-neutral-600 focus:outline-none focus:ring-4 focus:ring-neutral-600/20"
     >
     {#if rightIcon}
       <span class="absolute inset-y-0 right-0 flex items-center pr-2 text-neutral-800 hover:text-neutral-950">
