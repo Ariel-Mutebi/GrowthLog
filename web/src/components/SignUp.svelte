@@ -21,7 +21,7 @@
 </script>
 
 <form use:form class="flex justify-center items-center grow">
-  <div class="flex flex-col w-xl px-6 gap-5 h-max">
+  <div class="flex flex-col w-xl p-6 gap-5 h-max">
     <div class="flex gap-4 w-full">
       <Field label="First name" name="forename" />
       <Field label="Last name" name="surname" />

@@ -1,6 +1,15 @@
 ---
 import "../styles/global.css";
 import { Font } from "astro:assets";
+
+interface Props {
+  title: string;
+  header: string;
+  headerColor: string;
+  backgroundSrc: string;
+}
+
+const { title, header, headerColor, backgroundSrc } = Astro.props;
 ---
 
 <html lang="en">
@@ -8,11 +17,21 @@ import { Font } from "astro:assets";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/logo-32.png" type="image/png" />
-    <title>GrowthLog | Sign-up</title>
+    <title>{title}</title>
     <Font cssVariable="--fraunces" />
     <Font cssVariable="--dm-mono" />
   </head>
-  <body class="font-serif">
+  <body
+    class="font-serif h-screen bg-center bg-cover"
+    style=`background-image: url(${backgroundSrc})`
+  >
+    <header class="flex p-3 gap-3 items-center pb-12">
+      <img src="/logo-64.svg" class="w-16 h-16" alt="logo" />
+      <h1 class="text-4xl font-bold" style=`color: ${headerColor}`>
+        {header}
+      </h1>
+    </header>
+
     <slot />
   </body>
 </html>
