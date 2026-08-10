@@ -1,6 +1,7 @@
 ---
-import "../styles/global.css";
-import { Font } from "astro:assets";
+import '../styles/global.css';
+import { Font } from 'astro:assets';
+import Theme from '../components/Theme.svelte';
 
 interface Props {
   title: string;
@@ -14,10 +15,20 @@ const { title, header, headerColor, backgroundSrc } = Astro.props;
 
 <html lang="en">
   <head>
+    <script is:inline>
+      (function () {
+        const choseDark = localStorage.getItem('theme') === 'dark';
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        const isDark = choseDark || prefersDark.matches;
+        document.documentElement.classList.toggle('dark', isDark);
+      })();
+    </script>
+
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/logo-32.png" type="image/png" />
     <title>{title}</title>
+
     <Font cssVariable="--fraunces" />
     <Font cssVariable="--dm-mono" />
   </head>
@@ -30,6 +41,8 @@ const { title, header, headerColor, backgroundSrc } = Astro.props;
       <h1 class="text-4xl font-bold" style=`color: ${headerColor}`>
         {header}
       </h1>
+
+      <Theme client:load />
     </header>
 
     <slot />

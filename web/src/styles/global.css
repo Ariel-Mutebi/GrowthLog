@@ -4,3 +4,5 @@
   --font-serif: var(--fraunces);
   --font-mono: var(--dm-mono);
 }
+
+@custom-variant dark (&:where(.dark, .dark *));
