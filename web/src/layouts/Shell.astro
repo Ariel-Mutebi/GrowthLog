@@ -26,13 +26,21 @@ const {
   <head>
     <script is:inline>
       (function () {
-        const sitePreference = localStorage.getItem('theme');
+        const sitePreference = localStorage.getItem("theme");
 
         if (sitePreference) {
-          document.documentElement.classList.toggle('dark', sitePreference == 'dark');
+          document.documentElement.classList.toggle(
+            "dark",
+            sitePreference == "dark",
+          );
         } else {
-          const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-          document.documentElement.classList.toggle('dark', systemPrefersDark.matches);
+          const systemPrefersDark = window.matchMedia(
+            "(prefers-color-scheme: dark)",
+          );
+          document.documentElement.classList.toggle(
+            "dark",
+            systemPrefersDark.matches,
+          );
         }
       })();
     </script>
@@ -50,13 +58,16 @@ const {
     <Font cssVariable="--dm-mono" />
   </head>
   <body class="font-serif h-screen bg-center bg-cover">
-    <header class="flex p-3 gap-3 items-center pb-12">
+    <header class="flex p-3 pr-12 pb-12 gap-3 items-center">
       <img src="/logo-64.svg" class="w-16 h-16" alt="logo" />
+
       <h1 class="site-header text-4xl font-bold">
         {header}
       </h1>
 
-      <Theme client:load />
+      <div class="ml-auto">
+        <Theme client:load />
+      </div>
     </header>
 
     <slot />
