@@ -29,5 +29,5 @@
   aria-label="Toggle dark mode"
   aria-pressed={isDark}
 >
-  {isDark ? 'Light mode' : 'Dark mode'}
+  {isDark ? 'Dark mode' : 'Light mode'}
 </button>

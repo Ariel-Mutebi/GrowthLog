@@ -1,26 +1,39 @@
 ---
-import '../styles/global.css';
-import { Font } from 'astro:assets';
-import Theme from '../components/Theme.svelte';
+import "../styles/global.css";
+import { Font } from "astro:assets";
+import Theme from "../components/Theme.svelte";
 
 interface Props {
   title: string;
   header: string;
-  headerColor: string;
-  backgroundSrc: string;
+  headerColorLight: string;
+  headerColorDark: string;
+  backgroundLight: string;
+  backgroundDark: string;
 }
 
-const { title, header, headerColor, backgroundSrc } = Astro.props;
+const {
+  title,
+  header,
+  headerColorLight,
+  headerColorDark,
+  backgroundLight,
+  backgroundDark,
+} = Astro.props;
 ---
 
 <html lang="en">
   <head>
     <script is:inline>
       (function () {
-        const choseDark = localStorage.getItem('theme') === 'dark';
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-        const isDark = choseDark || prefersDark.matches;
-        document.documentElement.classList.toggle('dark', isDark);
+        const sitePreference = localStorage.getItem('theme');
+
+        if (sitePreference) {
+          document.documentElement.classList.toggle('dark', sitePreference == 'dark');
+        } else {
+          const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+          document.documentElement.classList.toggle('dark', systemPrefersDark.matches);
+        }
       })();
     </script>
 
@@ -32,13 +45,10 @@ const { title, header, headerColor, backgroundSrc } = Astro.props;
     <Font cssVariable="--fraunces" />
     <Font cssVariable="--dm-mono" />
   </head>
-  <body
-    class="font-serif h-screen bg-center bg-cover"
-    style=`background-image: url(${backgroundSrc})`
-  >
+  <body class="font-serif h-screen bg-center bg-cover">
     <header class="flex p-3 gap-3 items-center pb-12">
       <img src="/logo-64.svg" class="w-16 h-16" alt="logo" />
-      <h1 class="text-4xl font-bold" style=`color: ${headerColor}`>
+      <h1 class="site-header text-4xl font-bold">
         {header}
       </h1>
 
@@ -48,3 +58,28 @@ const { title, header, headerColor, backgroundSrc } = Astro.props;
     <slot />
   </body>
 </html>
+
+<style
+  define:vars={{
+    backgroundLightUrl: `url(${backgroundLight})`,
+    backgroundDarkUrl: `url(${backgroundDark})`,
+    headerColorLight,
+    headerColorDark,
+  }}
+>
+  body {
+    background-image: var(--backgroundLightUrl);
+  }
+
+  :global(html.dark) body {
+    background-image: var(--backgroundDarkUrl);
+  }
+
+  .site-header {
+    color: var(--headerColorLight);
+  }
+
+  :global(html.dark) .site-header {
+    color: var(--headerColorDark);
+  }
+</style>

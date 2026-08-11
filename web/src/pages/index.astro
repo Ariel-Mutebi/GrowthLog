@@ -1,17 +1,21 @@
 ---
+import { getImage } from "astro:assets";
 import Shell from "../layouts/Shell.astro";
 import SignUp from "../components/SignUp.svelte";
-import { getImage } from "astro:assets";
-import welcome from "../assets/welcome.jpg";
+import welcomeDark from "../assets/welcomeDark.jpg";
+import welcomeLight from "../assets/welcomeLight.jpg";
 
-const background = await getImage({ src: welcome, format: "webp" });
+const backgroundDark = await getImage({ src: welcomeDark, format: "webp" });
+const backgroundLight = await getImage({ src: welcomeLight, format: "webp" });
 ---
 
 <Shell
   title="GrowthLog | Sign-up"
   header="Join the community"
-  headerColor="#E5D0D9"
-  backgroundSrc={background.src}
+  headerColorDark="#E5D0D9"
+  headerColorLight="#E7E9DD"
+  backgroundDark={backgroundDark.src}
+  backgroundLight={backgroundLight.src}
 >
   <SignUp client:load />
 </Shell>
