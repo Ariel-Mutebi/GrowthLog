@@ -1,10 +1,25 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { Tween } from 'svelte/motion';
+  import { cubicOut } from 'svelte/easing';
   import { fade } from 'svelte/transition';
   import { Sun, Moon } from '@lucide/svelte';
 
   let isDark = $state(false);
   let hasMounted = $state(false);
+  let dotEl: HTMLDivElement | undefined = $state();
+  let fieldsetEl: HTMLFieldSetElement | undefined = $state();
+
+  const dotX = new Tween(0, { duration: 250, easing: cubicOut });
+
+  function moveDot() {
+    if (dotEl && fieldsetEl) {
+      const darkTarget = fieldsetEl.clientWidth - dotEl.offsetWidth - dotEl.offsetLeft;
+      dotX.set(isDark ? darkTarget : 0);
+    }
+  }
+
+  $effect(moveDot);
 
   onMount(() => {
     isDark = document.documentElement.classList.contains('dark');
@@ -18,7 +33,12 @@
     };
 
     window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    window.addEventListener('resize', moveDot);
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('resize', moveDot);
+    };
   });
 
   function handleChange(event: Event) {
@@ -34,8 +54,18 @@
     class="p-1 flex items-center gap-2 pr-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800
     text-zinc-800 dark:text-zinc-100 inset-shadow-[inset_0_0_4px_var(--color-zinc-200)]"
   >
-    <fieldset class="flex p-1 gap-2 border-2 border-zinc-200 dark:border-zinc-500 rounded-2xl" aria-label="Color scheme">
-      <label>
+    <fieldset
+      bind:this={fieldsetEl}
+      class="relative flex p-1 gap-2 border-2 border-zinc-200 dark:border-zinc-500 rounded-2xl"
+      aria-label="Color scheme"
+    >
+      <div
+        bind:this={dotEl}
+        style:transform="translateX({dotX.current}px)"
+        class="absolute top-0 left-0 bg-zinc-200 dark:bg-zinc-500 h-6 w-6 rounded-2xl"
+      ></div>
+
+      <label class="z-10">
         <input
           type="radio"
           name="color-scheme"
@@ -48,7 +78,7 @@
         <Sun aria-hidden="true" size={16} />
       </label>
 
-      <label>
+      <label class="z-10">
         <input
           type="radio"
           name="color-scheme"
