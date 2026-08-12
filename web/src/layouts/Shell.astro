@@ -1,7 +1,7 @@
 ---
-import "../styles/global.css";
-import { Font } from "astro:assets";
-import Theme from "../components/Theme.svelte";
+import '../styles/global.css';
+import { Font } from 'astro:assets';
+import Theme from '../components/Theme.svelte';
 
 interface Props {
   title: string;
@@ -26,21 +26,13 @@ const {
   <head>
     <script is:inline>
       (function () {
-        const sitePreference = localStorage.getItem("theme");
+        const sitePreference = localStorage.getItem('theme');
 
         if (sitePreference) {
-          document.documentElement.classList.toggle(
-            "dark",
-            sitePreference == "dark",
-          );
+          document.documentElement.classList.toggle('dark', sitePreference == 'dark');
         } else {
-          const systemPrefersDark = window.matchMedia(
-            "(prefers-color-scheme: dark)",
-          );
-          document.documentElement.classList.toggle(
-            "dark",
-            systemPrefersDark.matches,
-          );
+          const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+          document.documentElement.classList.toggle('dark', systemPrefersDark.matches);
         }
       })();
     </script>
@@ -57,11 +49,23 @@ const {
     <Font cssVariable="--fraunces" />
     <Font cssVariable="--dm-mono" />
   </head>
-  <body class="font-serif h-screen bg-center bg-cover">
-    <header class="flex p-3 pr-12 pb-12 gap-3 items-center">
+  <body class="font-serif h-screen">
+    <div
+      class="fixed inset-0 -z-10 bg-cover bg-center transition-opacity duration-500 ease-in-out opacity-100"
+      style={`background-image: url(${backgroundLight})`}
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="fixed inset-0 -z-10 bg-cover bg-center transition-opacity duration-500 ease-in-out opacity-0 dark:opacity-100"
+      style={`background-image: url(${backgroundDark})`}
+      aria-hidden="true"
+    ></div>
+
+    <header class="relative flex p-3 pr-12 pb-12 gap-3 items-center">
       <img src="/logo-64.svg" class="w-16 h-16" alt="logo" />
 
-      <h1 class="site-header text-4xl font-bold">
+      <h1 class="text-4xl font-bold">
         {header}
       </h1>
 
@@ -70,31 +74,18 @@ const {
       </div>
     </header>
 
-    <slot />
+    <div class="relative">
+      <slot />
+    </div>
   </body>
 </html>
 
-<style
-  define:vars={{
-    backgroundLightUrl: `url(${backgroundLight})`,
-    backgroundDarkUrl: `url(${backgroundDark})`,
-    headerColorLight,
-    headerColorDark,
-  }}
->
-  body {
-    background-image: var(--backgroundLightUrl);
-  }
-
-  :global(html.dark) body {
-    background-image: var(--backgroundDarkUrl);
-  }
-
-  .site-header {
+<style define:vars={{ headerColorLight, headerColorDark }}>
+  h1 {
     color: var(--headerColorLight);
   }
 
-  :global(html.dark) .site-header {
+  :global(html.dark) h1 {
     color: var(--headerColorDark);
   }
 </style>
