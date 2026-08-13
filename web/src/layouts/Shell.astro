@@ -62,14 +62,14 @@ const {
       aria-hidden="true"
     ></div>
 
-    <header class="relative flex p-3 pr-12 pb-12 gap-3 items-center">
+    <header class="relative flex p-3 md:pr-12 pb-12 gap-3 items-center">
       <img src="/logo-64.svg" class="w-16 h-16" alt="logo" />
 
       <h1 class="text-4xl font-bold">
         {header}
       </h1>
 
-      <div class="hidden md:block ml-auto">
+      <div class="ml-auto">
         <Theme client:load />
       </div>
     </header>

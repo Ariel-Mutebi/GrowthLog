@@ -10,13 +10,23 @@
   let dotEl: HTMLDivElement | undefined = $state();
   let fieldsetEl: HTMLFieldSetElement | undefined = $state();
 
-  const dotX = new Tween(0, { duration: 250, easing: cubicOut });
+  const dotPos = new Tween({ x: 0, y: 0 }, { duration: 250, easing: cubicOut });
 
   function moveDot() {
-    if (dotEl && fieldsetEl) {
-      const darkTarget = fieldsetEl.clientWidth - dotEl.offsetWidth - dotEl.offsetLeft;
-      dotX.set(isDark ? darkTarget : 0);
-    }
+    if (!dotEl || !fieldsetEl) return;
+
+    const isHorizontal = window.innerWidth >= 640;
+
+    const end = isHorizontal
+      ? fieldsetEl.clientWidth - dotEl.offsetWidth - dotEl.offsetLeft
+      : fieldsetEl.clientHeight - dotEl.offsetHeight - dotEl.offsetTop;
+
+    const target = isDark ? end : 0;
+
+    dotPos.set({
+      x: isHorizontal ? target : 0,
+      y: isHorizontal ? 0 : target,
+    });
   }
 
   $effect(moveDot);
@@ -51,17 +61,18 @@
 {#if hasMounted}
   <div
     transition:fade={{ duration: 300 }}
-    class="p-1 flex items-center gap-2 pr-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800
-    text-zinc-800 dark:text-zinc-100 inset-shadow-[inset_0_0_4px_var(--color-zinc-200)]"
+    class="p-1 flex items-center gap-2 md:pr-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800
+    text-zinc-800 dark:text-zinc-100 inset-shadow-[0_0_8px_var(--color-zinc-300)]
+    dark:inset-shadow-[0_0_8px_var(--color-zinc-500)]"
   >
     <fieldset
       bind:this={fieldsetEl}
-      class="relative flex p-1 gap-2 border-2 border-zinc-200 dark:border-zinc-500 rounded-2xl"
+      class="flex-col sm:flex-row relative flex p-1 gap-2 border-2 border-zinc-200 dark:border-zinc-500 rounded-2xl"
       aria-label="Color scheme"
     >
       <div
         bind:this={dotEl}
-        style:transform="translateX({dotX.current}px)"
+        style:transform="translate({dotPos.current.x}px, {dotPos.current.y}px)"
         class="absolute top-0 left-0 bg-zinc-200 dark:bg-zinc-500 h-6 w-6 rounded-2xl"
       ></div>
 
@@ -92,6 +103,6 @@
       </label>
     </fieldset>
 
-    <span>{isDark ? 'Dark mode' : 'Light mode'}</span>
+    <span class="hidden md:inline">{isDark ? 'Dark mode' : 'Light mode'}</span>
   </div>
 {/if}
