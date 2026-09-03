@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { FollowSomeone, UnfollowSomeone } from './schema.js';
-import { isLoggedIn } from '../../auth/preHandler.js';
+import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
@@ -8,10 +8,12 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: FollowSomeone,
     preHandler: isLoggedIn,
   }, async (req, res) => {
+    assertIsLoggedIn(req);
+
     try {
       await app.prisma.followUser.create({
         data: {
-          followerId: req.user!.id,
+          followerId: req.user.id,
           followingId: req.params.userId,
         },
       });
@@ -29,11 +31,13 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: UnfollowSomeone,
     preHandler: isLoggedIn,
   }, async (req, res) => {
+    assertIsLoggedIn(req);
+
     try {
       await app.prisma.followUser.delete({
         where: {
           followerId_followingId: {
-            followerId: req.user!.id,
+            followerId: req.user.id,
             followingId: req.params.userId,
           },
         },

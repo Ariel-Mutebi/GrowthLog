@@ -1,4 +1,4 @@
-import type { FastifyInstance, preHandlerHookHandler } from 'fastify';
+import type { FastifyInstance, FastifyRequest, PassportUser, preHandlerHookHandler } from 'fastify';
 import type { User } from '../db/client.js';
 import type { Static } from '@sinclair/typebox';
 import type { LockedResponse, UnauthorizedResponse } from '../typebox/responses.js';
@@ -9,9 +9,15 @@ export const isLoggedIn: preHandlerHookHandler = async (req, reply) => {
   }
 };
 
-// logic here instead of in ../routes/sessions/sessionRouter to access info from local strategy
+// For Typescript, intended to be called in the handler
+export function assertIsLoggedIn(req: FastifyRequest): asserts req is FastifyRequest & { user: PassportUser } {
+  if (!req.user) {
+    throw new Error('User is not logged in');
+  }
+}
+
 export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>
-  app.auth.authenticate('local', async (req, reply, err, user, info) => {
+  app.auth.authenticate('local', async (req, res, err, user, info) => {
     if (err) throw err;
 
     if (!user) {
@@ -19,12 +25,12 @@ export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>
       const locked = message.toLowerCase().includes('locked');
 
       if (locked) {
-        return reply.code(423).send({
+        return res.code(423).send({
           error: 'Locked',
           message,
         } satisfies Static<typeof LockedResponse>);
       } else {
-        return reply.code(401).send({
+        return res.code(401).send({
           error: 'Unauthorized',
           message,
         } satisfies Static<typeof UnauthorizedResponse>);
@@ -47,7 +53,7 @@ export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   
       if (deletedAt < sevenDaysAgo) {
-        return reply.code(401).send({
+        return res.code(401).send({
           error: 'Unauthorized',
           message: 'Account permanently deleted',
         } satisfies Static<typeof UnauthorizedResponse>);
@@ -58,5 +64,5 @@ export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>
 
     await req.session.regenerate();
     await req.logIn(user);
-    return reply.code(200).send({ id, forename, surname, username, email, role, createdAt });
+    return res.code(200).send({ id, forename, surname, username, email, role, createdAt });
   });

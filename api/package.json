@@ -40,6 +40,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.22.0",
     "redis": "^6.1.0",
+    "slugify": "^1.6.9",
     "zxcvbn-ts": "^2.3.3"
   },
   "devDependencies": {

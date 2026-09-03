@@ -51,17 +51,28 @@ model FollowTag {
 }
 
 model Post {
-  id         String       @id @default(cuid())
-  authorId   String
-  author     User         @relation(fields: [authorId], references: [id])
-  tags       Tags[]
-  title      String
-  content    Json
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  published  Boolean      @default(false)
-  impression Impressions?
-  deletedAt  DateTime?
+  id           String        @id @default(cuid())
+  authorId     String
+  author       User          @relation(fields: [authorId], references: [id])
+  tags         Tags[]
+  title        String
+  slug         String        @unique
+  content      Json?
+  draftContent Json?
+  published    Boolean       @default(false)
+  versions     PostVersion[]
+  impression   Impressions?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+}
+
+model PostVersion {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  content   Json
+  createdAt DateTime @default(now())
 }
 
 model Tags {

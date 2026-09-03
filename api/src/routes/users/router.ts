@@ -2,9 +2,10 @@ import { zxcvbn } from 'zxcvbn-ts';
 import { compare, hash } from 'bcrypt';
 import type { Static } from '@sinclair/typebox';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import type { UserWhereInput, UserFindManyArgs } from '../../db/models.js';
-import { isLoggedIn } from '../../auth/preHandler.js';
-import { handleDBError } from '../../error/database.js';
+import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
+import { extractConflictColumns, handleDBConflict } from '../../error/database.js';
 import type { NotFoundResponse, UnauthorizedResponse } from '../../typebox/responses.js';
 import {
   CreateUserSchema,
@@ -14,7 +15,6 @@ import {
   GetSelfSchema,
   UserSearchSchema,
 } from './schema.js';
-import type { User } from '../../db/client.js';
 import type { FastifyReply } from 'fastify';
 import type { BadRequest } from '../../typebox/responses.js';
 
@@ -34,6 +34,7 @@ function rejectWeakPassword(password: string, res: FastifyReply): boolean {
 }
 
 const ROUNDS = 10;
+const MAX_USERNAME_RETRIES = 100;
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   app.post('/', {
@@ -54,40 +55,46 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     if (rejectWeakPassword(req.body.password, res)) return;
     req.body.password = await hash(req.body.password, ROUNDS);
 
-    // Give the user a default username to reduce sign-up friction
-    if (!req.body.username) {
-      const base = `${req.body.forename}-${req.body.surname}`;
-      let index = 1;
-
-      do {
-        req.body.username = `${base}-${index}`;
-        index++;
-      } while (await app.prisma.user.findFirst({
-        select: { username: true },
-        where: { username: req.body.username },
-      }));
-    }
-
-    /**
-     * A user is probably an autobiographer, if the posts they make
-     * suggest otherwise, they can be nudged them to update their role.
-     */
     if (!req.body.role) {
       req.body.role = 'AUTOBIOGRAPHER';
     }
-    
-    try {
-      const user = await app.prisma.user.create({
-        data: req.body as User,
-        omit: {
-          password: true,
-          deletedAt: true,
-        },
-      });
-      await req.logIn(user);
-      return res.status(201).send(user);
-    } catch (error) {
-      return handleDBError(error, res);
+
+    /**
+     * Attempt to create a user with a forename-surname username to minimize
+     * sign-up friction. If another username already exists with that username,
+     * retry with an incrementing suffix. Retry-on-conflict rather than pre-check
+     * availability to defend against TOCTOU race conditions.
+     */
+    const baseUsername = `${req.body.forename}-${req.body.surname}`;
+
+    for (let attempt = 0; attempt < MAX_USERNAME_RETRIES; attempt++) {
+      const username = attempt === 0 ? baseUsername : `${baseUsername}-${attempt}`;
+
+      try {
+        const user = await app.prisma.user.create({
+          data: { ...req.body, username },
+          omit: {
+            password: true,
+            deletedAt: true,
+          },
+        });
+
+        await req.logIn(user);
+        return res.status(201).send(user);
+      } catch (error) {
+        const isConflict = error instanceof PrismaClientKnownRequestError && error.code === 'P2002';
+        if (!isConflict) throw error;
+
+        /**
+         * Throw if still getting username conflicts when almost at limit;
+         * Conflicts on other unique fields (i.e. email) are also handled.
+         */
+        if (extractConflictColumns(error.meta).includes('username')) {
+          if (attempt === MAX_USERNAME_RETRIES - 1) throw error;
+        } else {
+          return handleDBConflict(error, res);
+        }
+      }
     }
   });
 
@@ -96,9 +103,11 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: GetSelfSchema,
   }, async (req, res) => {
     try {
+      assertIsLoggedIn(req);
+  
       const { followers, following, ...user } = await app.prisma.user.findUniqueOrThrow({
         where: {
-          id: req.user!.id,
+          id: req.user.id,
           deletedAt: null,
         },
         omit: {
@@ -117,7 +126,14 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         following: following.map(f => f.followingId),
       });
     } catch (error) {
-      return handleDBError(error, res);
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+        return res.code(404).send({
+          error: 'NotFound',
+          message: 'The requested user was not found',
+        });
+      }
+
+      throw error;
     }
   });
 
@@ -204,13 +220,15 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     preHandler: isLoggedIn,
     schema: UpdateUserSchema,
   }, async (req, res) => {
+    assertIsLoggedIn(req);
+
     try {
       const { currentPassword, ...updateData } = req.body;
 
       if (updateData.email || updateData.password) {
         const { password } = await app.prisma.user.findUniqueOrThrow({
           where: {
-            id: req.user!.id,
+            id: req.user.id,
           },
           select: {
             password: true,
@@ -232,7 +250,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
 
       const updatedUser = await app.prisma.user.update({
         where: {
-          id: req.user!.id,
+          id: req.user.id,
           deletedAt: null,
         },
         data: updateData,
@@ -244,7 +262,11 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
 
       return res.send(updatedUser);
     } catch (error) {
-      return handleDBError(error, res); 
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+        handleDBConflict(error, res);
+      }
+
+      throw error;
     }
   });
 
@@ -252,43 +274,41 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     preHandler: isLoggedIn,
     schema: DeleteUserSchema,
   }, async (req, res) => {
-    try {
-      const { password } = await app.prisma.user.findUniqueOrThrow({
-        where: {
-          id: req.user!.id,
-        },
-        select: {
-          password: true,
-        },
-      });
+    assertIsLoggedIn(req);
 
-      if (!(await compare(req.body.currentPassword, password))) {
-        return res.code(401).send({
-          error: 'Unauthorized',
-          message: 'Provide the correct password to delete your account',
-        } satisfies Static<typeof UnauthorizedResponse>);
-      }
+    const { password } = await app.prisma.user.findUniqueOrThrow({
+      where: {
+        id: req.user.id,
+      },
+      select: {
+        password: true,
+      },
+    });
 
-      const softDeletedUser = await app.prisma.user.update({
-        where: {
-          id: req.user!.id,
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-        omit: {
-          password: true,
-          deletedAt: true,
-        },
-      });
-
-      await req.logOut();
-      await req.session.destroy();
-      res.clearCookie('sessionId');
-      return res.send(softDeletedUser);
-    } catch (error) {
-      return handleDBError(error, res);
+    if (!(await compare(req.body.currentPassword, password))) {
+      return res.code(401).send({
+        error: 'Unauthorized',
+        message: 'Provide the correct password to delete your account',
+      } satisfies Static<typeof UnauthorizedResponse>);
     }
+
+    const softDeletedUser = await app.prisma.user.update({
+      where: {
+        id: req.user.id,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+      omit: {
+        password: true,
+        deletedAt: true,
+      },
+    });
+
+    await req.logOut();
+    await req.session.destroy();
+    res.clearCookie('sessionId');
+    return res.send(softDeletedUser);
   });
 };
 
