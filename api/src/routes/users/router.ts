@@ -52,18 +52,39 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       },
     },
   }, async (req, res) => {
+    if (!req.body.role) req.body.role = 'AUTOBIOGRAPHER';
     if (rejectWeakPassword(req.body.password, res)) return;
     req.body.password = await hash(req.body.password, ROUNDS);
 
-    if (!req.body.role) {
-      req.body.role = 'AUTOBIOGRAPHER';
+    const createUser = async (username: string) => {
+      const user = await app.prisma.user.create({
+        data: { ...req.body, username },
+        omit: {
+          password: true,
+          deletedAt: true,
+        },
+      });
+
+      await req.logIn(user);
+      return res.status(201).send(user);
+    };
+
+    if (req.body.username) {
+      try {
+        return await createUser(req.body.username);
+      } catch (error) {
+        if (error instanceof PrismaClientKnownRequestError) {
+          return handleDBConflict(error, res);
+        }
+        throw error;
+      }
     }
 
     /**
      * Attempt to create a user with a forename-surname username to minimize
      * sign-up friction. If another username already exists with that username,
      * retry with an incrementing suffix. Retry-on-conflict rather than pre-check
-     * availability to defend against TOCTOU race conditions.
+     * availability to defend against TOCTOU race conditions with async requests.
      */
     const baseUsername = `${req.body.forename}-${req.body.surname}`;
 
@@ -71,29 +92,21 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       const username = attempt === 0 ? baseUsername : `${baseUsername}-${attempt}`;
 
       try {
-        const user = await app.prisma.user.create({
-          data: { ...req.body, username },
-          omit: {
-            password: true,
-            deletedAt: true,
-          },
-        });
-
-        await req.logIn(user);
-        return res.status(201).send(user);
+        return await createUser(username);
       } catch (error) {
-        const isConflict = error instanceof PrismaClientKnownRequestError && error.code === 'P2002';
-        if (!isConflict) throw error;
-
-        /**
-         * Throw if still getting username conflicts when almost at limit;
-         * Conflicts on other unique fields (i.e. email) are also handled.
-         */
-        if (extractConflictColumns(error.meta).includes('username')) {
-          if (attempt === MAX_USERNAME_RETRIES - 1) throw error;
-        } else {
-          return handleDBConflict(error, res);
+        if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+          if (extractConflictColumns(error.meta).includes('username')) {
+            if (attempt < MAX_USERNAME_RETRIES - 1) {
+              continue;
+            } else {
+              throw error;
+            };
+          } else {
+            return handleDBConflict(error, res);
+          }
         }
+
+        throw error;
       }
     }
   });
