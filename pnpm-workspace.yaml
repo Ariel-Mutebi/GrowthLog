@@ -1,7 +1,6 @@
 packages:
   - api
   - web
-  - mobile
 allowBuilds:
   '@prisma/engines': true
   bcrypt: true

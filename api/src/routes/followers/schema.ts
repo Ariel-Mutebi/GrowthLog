@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
+import { RateLimitedResponse } from '../../typebox/responses.js';
 
 const BaseFollowSchema = {
   tags: ['Followers'],
@@ -9,6 +10,7 @@ const BaseFollowSchema = {
   }),
   response: {
     204: Type.Null(),
+    429: RateLimitedResponse,
   },
 } satisfies FastifySchema;
 

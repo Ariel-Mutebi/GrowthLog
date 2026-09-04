@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { ConflictResponse, NotFoundResponse } from '../../typebox/responses.js';
+import { ConflictResponse, NotFoundResponse, RateLimitedResponse } from '../../typebox/responses.js';
 
 const Post = Type.Object({
   title: Type.String(),
@@ -25,6 +25,7 @@ export const CreatePostSchema = {
   }),
   response: {
     201: Post,
+    429: RateLimitedResponse,
   },
 } satisfies FastifySchema;
 
@@ -43,5 +44,6 @@ export const UpdatePostMetadata = {
     200: Post,
     404: NotFoundResponse,
     409: ConflictResponse,
+    429: RateLimitedResponse,
   },
 };

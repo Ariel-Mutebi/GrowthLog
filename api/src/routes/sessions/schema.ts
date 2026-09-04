@@ -28,5 +28,6 @@ export const DeleteSessionSchema = {
   security: [{ session: [] }],
   response: {
     204: Type.Null(),
+    429: RateLimitedResponse,
   },
 } satisfies FastifySchema;

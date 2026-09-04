@@ -74,6 +74,7 @@ export const UpdateUserSchema = {
     200: InternalUser,
     400: BadRequest,
     401: UnauthorizedResponse,
+    404: NotFoundResponse,
     409: ConflictResponse,
     429: RateLimitedResponse,
   },
@@ -88,6 +89,7 @@ export const DeleteUserSchema = {
   response: {
     200: InternalUser,
     401: UnauthorizedResponse,
+    429: RateLimitedResponse,
   },
 } satisfies FastifySchema;
 

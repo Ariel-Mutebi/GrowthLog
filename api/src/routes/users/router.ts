@@ -5,7 +5,7 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import type { UserWhereInput, UserFindManyArgs } from '../../db/models.js';
 import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
-import { extractConflictColumns, handleDBConflict } from '../../error/database.js';
+import { doOrHandleDBConflict, attemptWithConflictRetry } from '../../error/database.js';
 import type { NotFoundResponse, UnauthorizedResponse } from '../../typebox/responses.js';
 import {
   CreateUserSchema,
@@ -34,7 +34,6 @@ function rejectWeakPassword(password: string, res: FastifyReply): boolean {
 }
 
 const ROUNDS = 10;
-const MAX_USERNAME_RETRIES = 100;
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   app.post('/', {
@@ -69,46 +68,17 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       return res.status(201).send(user);
     };
 
-    if (req.body.username) {
-      try {
-        return await createUser(req.body.username);
-      } catch (error) {
-        if (error instanceof PrismaClientKnownRequestError) {
-          return handleDBConflict(error, res);
-        }
-        throw error;
-      }
+    const { username } = req.body;
+    if (username) {
+      doOrHandleDBConflict(() => createUser(username), res);
     }
 
-    /**
-     * Attempt to create a user with a forename-surname username to minimize
-     * sign-up friction. If another username already exists with that username,
-     * retry with an incrementing suffix. Retry-on-conflict rather than pre-check
-     * availability to defend against TOCTOU race conditions with async requests.
-     */
-    const baseUsername = `${req.body.forename}-${req.body.surname}`;
-
-    for (let attempt = 0; attempt < MAX_USERNAME_RETRIES; attempt++) {
-      const username = attempt === 0 ? baseUsername : `${baseUsername}-${attempt}`;
-
-      try {
-        return await createUser(username);
-      } catch (error) {
-        if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-          if (extractConflictColumns(error.meta).includes('username')) {
-            if (attempt < MAX_USERNAME_RETRIES - 1) {
-              continue;
-            } else {
-              throw error;
-            };
-          } else {
-            return handleDBConflict(error, res);
-          }
-        }
-
-        throw error;
-      }
-    }
+    attemptWithConflictRetry({
+      res,
+      attempt: createUser,
+      conflictColumn: 'username',
+      base: `${req.body.forename}-${req.body.surname}`,
+    });
   });
 
   app.get('/', {
@@ -235,7 +205,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   }, async (req, res) => {
     assertIsLoggedIn(req);
 
-    try {
+    const updateUser = async () => {
       const { currentPassword, ...updateData } = req.body;
 
       if (updateData.email || updateData.password) {
@@ -251,7 +221,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         if (!currentPassword || !(await compare(currentPassword, password))) {
           return res.code(401).send({
             error: 'Unauthorized',
-            message: 'Provide your password to update these credentials',
+            message: 'Provide the correct password to update these credentials',
           } satisfies Static<typeof UnauthorizedResponse>);
         }
       }
@@ -274,9 +244,16 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       });
 
       return res.send(updatedUser);
+    };
+
+    try {
+      return await doOrHandleDBConflict(updateUser, res);
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-        handleDBConflict(error, res);
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+        return res.code(404).send({
+          error: 'NotFound',
+          message: 'This user cannot be found. The account may have been deleted',
+        });
       }
 
       throw error;
