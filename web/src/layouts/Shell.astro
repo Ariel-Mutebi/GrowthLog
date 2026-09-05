@@ -1,38 +1,34 @@
 ---
-import '../styles/global.css';
-import { Font } from 'astro:assets';
-import Theme from '../components/Theme.svelte';
+import "../styles/global.css";
+import { Font } from "astro:assets";
+import { ClientRouter } from "astro:transitions";
 
 interface Props {
   title: string;
-  header: string;
-  headerColorLight: string;
-  headerColorDark: string;
-  backgroundLight: string;
-  backgroundDark: string;
 }
 
-const {
-  title,
-  header,
-  headerColorLight,
-  headerColorDark,
-  backgroundLight,
-  backgroundDark,
-} = Astro.props;
+const { title } = Astro.props;
 ---
 
 <html lang="en">
   <head>
     <script is:inline>
       (function () {
-        const sitePreference = localStorage.getItem('theme');
+        const sitePreference = localStorage.getItem("theme");
 
         if (sitePreference) {
-          document.documentElement.classList.toggle('dark', sitePreference == 'dark');
+          document.documentElement.classList.toggle(
+            "dark",
+            sitePreference == "dark",
+          );
         } else {
-          const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-          document.documentElement.classList.toggle('dark', systemPrefersDark.matches);
+          const systemPrefersDark = window.matchMedia(
+            "(prefers-color-scheme: dark)",
+          );
+          document.documentElement.classList.toggle(
+            "dark",
+            systemPrefersDark.matches,
+          );
         }
       })();
     </script>
@@ -40,52 +36,14 @@ const {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="preload" as="image" href={backgroundLight} />
-    <link rel="preload" as="image" href={backgroundDark} />
-
     <link rel="icon" href="/logo-32.png" type="image/png" />
     <title>{title}</title>
 
+    <ClientRouter />
     <Font cssVariable="--fraunces" />
     <Font cssVariable="--dm-mono" />
   </head>
   <body class="font-serif h-screen">
-    <div
-      class="fixed inset-0 -z-10 bg-cover bg-center transition-opacity duration-500 ease-in-out opacity-100"
-      style={`background-image: url(${backgroundLight})`}
-      aria-hidden="true"
-    ></div>
-
-    <div
-      class="fixed inset-0 -z-10 bg-cover bg-center transition-opacity duration-500 ease-in-out opacity-0 dark:opacity-100"
-      style={`background-image: url(${backgroundDark})`}
-      aria-hidden="true"
-    ></div>
-
-    <header class="relative flex p-3 md:pr-12 pb-12 gap-3 items-center">
-      <img src="/logo-64.svg" class="w-16 h-16" alt="logo" />
-
-      <h1 class="text-4xl font-bold">
-        {header}
-      </h1>
-
-      <div class="ml-auto">
-        <Theme client:load />
-      </div>
-    </header>
-
-    <div class="relative">
-      <slot />
-    </div>
+    <slot />
   </body>
 </html>
-
-<style define:vars={{ headerColorLight, headerColorDark }}>
-  h1 {
-    color: var(--headerColorLight);
-  }
-
-  :global(html.dark) h1 {
-    color: var(--headerColorDark);
-  }
-</style>

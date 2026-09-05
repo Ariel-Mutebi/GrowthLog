@@ -1,19 +1,29 @@
 <script lang="ts">
   import { createForm } from 'felte';
   import { validator } from '@felte/validator-zod';
-
-  import { client } from '../api/client.ts';
-  import Field from './sign-up/Field.svelte';
-  import Submit from './sign-up/Submit.svelte';
-  import Password from './sign-up/Password.svelte';
-  import { schema, type SignUpData } from './sign-up/schema.ts';
-  import { setValidationErrors } from './sign-up/context.ts';
+  import { toast } from 'svelte-sonner';
+  import { client } from '../../api/client.ts';
+  import Field from './Field.svelte';
+  import Submit from './Submit.svelte';
+  import Password from './Password.svelte';
+  import { schema, type SignUpData } from './schema.ts';
+  import { setValidationErrors } from './context.ts';
+  import { navigate } from "astro:transitions/client";
 
   const { form, data, errors } = createForm<SignUpData>({
     extend: validator({ schema }),
     onSubmit: async (body) => {
       const { data, error } = await client.POST('/v1/users', { body });
-      console.log(error ? error : data);
+
+      if (error) {
+        return toast.error(error.error, {
+          description: error.message,
+        });
+      }
+
+      if (data) {
+        return navigate('/');
+      }
     },
   });
 
