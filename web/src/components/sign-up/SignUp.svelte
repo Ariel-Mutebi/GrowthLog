@@ -2,6 +2,7 @@
   import { createForm } from 'felte';
   import { validator } from '@felte/validator-zod';
   import { toast } from 'svelte-sonner';
+  import Toaster from '../common/Toaster.svelte';
   import { client } from '../../api/client.ts';
   import Field from './Field.svelte';
   import Submit from './Submit.svelte';
@@ -13,16 +14,18 @@
   const { form, data, errors } = createForm<SignUpData>({
     extend: validator({ schema }),
     onSubmit: async (body) => {
-      const { data, error } = await client.POST('/v1/users', { body });
+      try {
+        const { data, error } = await client.POST('/v1/users', { body });
 
-      if (error) {
-        return toast.error(error.error, {
-          description: error.message,
-        });
-      }
+        if (error) {
+          return toast.error(error.error, { description: error.message });
+        }
 
-      if (data) {
-        return navigate('/');
+        if (data) {
+          return navigate('/');
+        }
+      } catch (error) {
+        toast.error(String(error));
       }
     },
   });
@@ -43,3 +46,5 @@
     <Submit />
   </div>
 </form>
+
+<Toaster />

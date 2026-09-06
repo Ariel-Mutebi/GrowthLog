@@ -2,8 +2,8 @@ import z from 'zod';
 import zxcvbn from 'zxcvbn-ts';
 
 export const schema = z.object({
-  forename: z.string().min(1, 'First name is required'),
-  surname: z.string().min(1, 'Last name is required'),
+  forename: z.string().trim().min(1, 'First name is required'),
+  surname: z.string().trim().min(1, 'Last name is required'),
   email: z.email('Please enter a valid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 }).superRefine(({ forename, surname, email, password }, context) => {

@@ -1,10 +1,9 @@
 ---
 import { getImage } from "astro:assets";
-import { Toaster } from "svelte-sonner";
-import { Shell } from "../layouts/Shell.astro";
-import { Banner } from "../components/Banner.astro";
-import { Background } from "../components/Background.astro";
-import { SignUp } from "../components/sign-up/SignUp.svelte";
+import Shell from "../layouts/Shell.astro";
+import Banner from "../components/common/Banner.astro";
+import Background from "../components/common/Background.astro";
+import SignUp from "../components/sign-up/SignUp.svelte";
 import welcomeDark from "../assets/welcomeDark.jpg";
 import welcomeLight from "../assets/welcomeLight.jpg";
 
@@ -25,5 +24,4 @@ const background = {
     headerColorLight="#E7E9DD"
   />
   <SignUp client:load />
-  <Toaster client:only="svelte" />
 </Shell>
