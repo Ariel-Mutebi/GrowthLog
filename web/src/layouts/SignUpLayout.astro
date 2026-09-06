@@ -6,19 +6,26 @@ import Background from "../components/common/Background.astro";
 import welcomeDark from "../assets/welcomeDark.jpg";
 import welcomeLight from "../assets/welcomeLight.jpg";
 
+interface Props {
+  title: string;
+  header: string;
+}
+
+const { title, header } = Astro.props;
+
 const background = {
   dark: await getImage({ src: welcomeDark, format: "webp" }),
   light: await getImage({ src: welcomeLight, format: "webp" }),
 };
 ---
 
-<BaseLayout title="GrowthLog | Sign-up">
+<BaseLayout {title}>
   <Background
     light={background.light.src}
     dark={background.dark.src}
   />
   <Banner
-    header="Join the community"
+    {header}
     headerColorDark="#E5D0D9"
     headerColorLight="#E7E9DD"
   />

@@ -2,6 +2,12 @@
   import { Tween } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
 
+  interface Props {
+    text: string;
+  }
+
+  const { text }: Props = $props();
+
   const pos = new Tween({ x: 90, y: 50 }, { duration: 300, easing: cubicOut });
 
   function updatePosition(e: PointerEvent & { currentTarget: HTMLButtonElement }) {
@@ -29,5 +35,5 @@
   onpointermove={updatePosition}
   onpointerleave={resetPosition}
 >
-  Sign up
+  {text}
 </button>

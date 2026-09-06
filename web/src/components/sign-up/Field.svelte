@@ -43,7 +43,7 @@
     {/if}
   </div>
 
-  {#if $errors[name]?.length}
+  {#if $errors?.[name]?.length}
     <p class="text-red-800 bg-teal-50 dark:text-red-200 dark:bg-neutral-800 text-xs px-2 py-1 font-mono">{$errors[name]![0]}</p>
   {/if}
 

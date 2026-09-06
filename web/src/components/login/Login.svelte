@@ -6,6 +6,7 @@
   import Field from '../sign-up/Field.svelte';
   import Password from '../sign-up/Password.svelte';
   import Submit from '../sign-up/Submit.svelte';
+  import { setSignUpData, setValidationErrors } from '../sign-up/context.ts';
 
   interface Data {
     email: string;
@@ -29,13 +30,16 @@
       }
     },
   });
+
+  setSignUpData(null);
+  setValidationErrors(null);
 </script>
 
 <form use:form class="flex justify-center items-center grow">
   <div class="flex flex-col w-xl p-6 gap-5 h-max">
     <Field label="Email" name="email" type="email" />
     <Password />
-    <Submit />
+    <Submit text="Log in" />
   </div>
 </form>
 

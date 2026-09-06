@@ -5,7 +5,7 @@
 
   const data = getSignUpData();
   let { score } = $derived(
-    $data.password ?
+    $data?.password ?
       zxcvbn($data.password, [$data.forename, $data.surname, $data.email].filter(Boolean))
       : { score: 0 }
   );

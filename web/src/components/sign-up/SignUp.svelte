@@ -44,7 +44,7 @@
     <Field label="Email" name="email" type="email" />
     <Password showStrength={true} />
     
-    <Submit />
+    <Submit text="Sign up" />
   </div>
 </form>
 
