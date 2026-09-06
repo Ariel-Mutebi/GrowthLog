@@ -89,7 +89,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     try {
       assertIsLoggedIn(req);
   
-      const { followers, following, ...user } = await app.prisma.user.findUniqueOrThrow({
+      const user = await app.prisma.user.findUniqueOrThrow({
         where: {
           id: req.user.id,
           deletedAt: null,
@@ -98,17 +98,9 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
           password: true,
           deletedAt: true,
         },
-        include: {
-          followers: { select: { followerId: true } },
-          following: { select: { followingId: true } },
-        },
       });
 
-      return res.code(200).send({
-        ...user,
-        followers: followers.map(f => f.followerId),
-        following: following.map(f => f.followingId),
-      });
+      return res.code(200).send(user);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
         return res.code(404).send({

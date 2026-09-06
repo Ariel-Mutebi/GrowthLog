@@ -9,8 +9,14 @@ import {
   Password,
   UserRole,
 } from '../../typebox/inputs.js';
-import { BadRequest, ConflictResponse, NotFoundResponse, RateLimitedResponse, UnauthorizedResponse } from '../../typebox/responses.js';
-import { InternalUser, PersonalProfile, PublicProfile } from '../../typebox/profiles.js';
+import {
+  BadRequest,
+  ConflictResponse,
+  NotFoundResponse,
+  RateLimitedResponse,
+  UnauthorizedResponse,
+} from '../../typebox/responses.js';
+import { InternalUser, PublicProfile } from '../../typebox/profiles.js';
 
 type ValuesUnknown<T> = {
   [K in keyof T]: unknown;
@@ -54,11 +60,11 @@ export const CreateUserSchema = {
 } satisfies FastifySchema;
 
 export const GetSelfSchema = {
-  summary: 'Get current user\'s profile',
+  summary: 'Get current user\'s account details',
   tags: ['Users'],
   security: [{ session: [] }],
   response: {
-    200: PersonalProfile,
+    200: InternalUser,
     404: NotFoundResponse,
     429: RateLimitedResponse,
   },
