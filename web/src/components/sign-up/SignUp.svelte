@@ -8,7 +8,7 @@
   import Submit from './Submit.svelte';
   import Password from './Password.svelte';
   import { schema, type SignUpData } from './schema.ts';
-  import { setValidationErrors } from './context.ts';
+  import { setSignUpData, setValidationErrors } from './context.ts';
   import { navigate } from "astro:transitions/client";
 
   const { form, data, errors } = createForm<SignUpData>({
@@ -30,6 +30,7 @@
     },
   });
 
+  setSignUpData(data);
   setValidationErrors(errors);
 </script>
 
@@ -41,7 +42,7 @@
     </div>
 
     <Field label="Email" name="email" type="email" />
-    <Password { data } />
+    <Password showStrength={true} />
     
     <Submit />
   </div>
