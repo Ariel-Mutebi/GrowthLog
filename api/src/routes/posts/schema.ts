@@ -1,6 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import { ConflictResponse, NotFoundResponse, RateLimitedResponse } from '../../typebox/responses.js';
+import { SerializedDate } from '../../typebox/compatability.js';
 
 const Post = Type.Object({
   title: Type.String(),
@@ -10,9 +11,9 @@ const Post = Type.Object({
   content: Type.Unknown(),
   draftContent: Type.Union([Type.Unknown(), Type.Null()]),
   published: Type.Boolean(),
-  createdAt: Type.Date(),
-  updatedAt: Type.Date(),
-  deletedAt: Type.Union([Type.Date(), Type.Null()]),
+  createdAt: SerializedDate,
+  updatedAt: SerializedDate,
+  deletedAt: Type.Union([SerializedDate, Type.Null()]),
 });
 
 export const CreatePostSchema = {

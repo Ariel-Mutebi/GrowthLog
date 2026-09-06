@@ -10,12 +10,13 @@ export const schema = z.object({
   if (!password) return;
 
   const test = zxcvbn(password, [forename, surname, email].filter(Boolean));
+  const message = test.feedback.warning !== 'Invalid input' ? test.feedback.warning : '';
 
   if (test.score < 3) {
     context.addIssue({
       code: 'custom',
       path: ['password'],
-      message: test.feedback.warning,
+      message,
     });
   }
 });

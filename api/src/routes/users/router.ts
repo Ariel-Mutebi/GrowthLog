@@ -69,11 +69,12 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     };
 
     const { username } = req.body;
+
     if (username) {
-      doOrHandleDBConflict(() => createUser(username), res);
+      return doOrHandleDBConflict(() => createUser(username), res);
     }
 
-    attemptWithConflictRetry({
+    return attemptWithConflictRetry({
       res,
       attempt: createUser,
       conflictColumn: 'username',

@@ -4,7 +4,7 @@
   import PasswordStrengthMeter from "./PasswordStrengthMeter.svelte";
 
   interface Props {
-    showStrength: boolean;
+    showStrength?: boolean;
   }
 
   let visible = $state(false);

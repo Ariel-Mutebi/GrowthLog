@@ -1,0 +1,26 @@
+---
+import { getImage } from "astro:assets";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Banner from "../components/common/Banner.astro";
+import Background from "../components/common/Background.astro";
+import welcomeDark from "../assets/welcomeDark.jpg";
+import welcomeLight from "../assets/welcomeLight.jpg";
+
+const background = {
+  dark: await getImage({ src: welcomeDark, format: "webp" }),
+  light: await getImage({ src: welcomeLight, format: "webp" }),
+};
+---
+
+<BaseLayout title="GrowthLog | Sign-up">
+  <Background
+    light={background.light.src}
+    dark={background.dark.src}
+  />
+  <Banner
+    header="Join the community"
+    headerColorDark="#E5D0D9"
+    headerColorLight="#E7E9DD"
+  />
+  <slot />
+</BaseLayout>
