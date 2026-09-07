@@ -1,3 +1,0 @@
-api.growthlog.com {
-  reverse_proxy api:3000
-}

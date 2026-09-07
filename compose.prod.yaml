@@ -3,14 +3,30 @@ services:
     container_name: GrowthLogApi
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: api/Dockerfile
     env_file:
-      - ../.env
+      - .env
     depends_on:
       postgres:
         condition: service_started
       redis:
         condition: service_started
+    networks: [back-tier]
+    tty: true
+
+  collab:
+    container_name: GrowthLogCollab
+    build:
+      context: .
+      dockerfile: collab/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+    networks: [back-tier]
     tty: true
 
   caddy:
@@ -26,16 +42,19 @@ services:
       - caddy-config:/config
     depends_on:
       - api
+      - collab
+    networks: [back-tier]
 
   postgres:
     container_name: GrowthLogPostgres
     image: postgres:18
     env_file:
-      - ../.env
+      - .env
     volumes:
       - ./.local/postgres-data:/var/lib/postgresql
     logging:
       driver: none
+    networks: [back-tier]
 
   redis:
     container_name: GrowthLogRedis
@@ -45,6 +64,10 @@ services:
       - redis-data:/data
     logging:
       driver: none
+    networks: [back-tier]
+
+networks:
+  back-tier:
 
 volumes:
   postgres-data:

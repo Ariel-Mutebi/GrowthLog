@@ -1,24 +1,19 @@
 {
   "name": "@growthlog/api",
   "private": true,
-  "packageManager": "pnpm@11.19.0",
+  "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "start": "docker compose up -d",
-    "stop": "docker compose down",
-    "predev": "pnpm start",
-    "dev": "tsx watch src/server.ts",
-    "pretest": "pnpm start",
+    "predev": "pnpm -w run docker:up",
+    "dev": "tsx watch src/server.js",
+    "pretest": "pnpm -w run docker:up",
     "test": "tsx tests/setup.ts",
-    "posttest": "pnpm stop",
-    "gen:schema": "tsx openapi/generate.ts"
+    "posttest": "pnpm -w run docker:down"
   },
   "exports": {
-    ".": "./openapi/schema.d.ts"
+    ".": {
+      "types": "./openapi/schema.d.ts"
+    }
   },
-  "author": "Ariel Robert Mutebi",
-  "license": "BUSL-1.1",
-  "type": "module",
   "dependencies": {
     "@fastify/autoload": "^6.5.0",
     "@fastify/cookie": "^11.1.2",

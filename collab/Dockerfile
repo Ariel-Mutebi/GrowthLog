@@ -7,11 +7,11 @@ FROM base AS builder
 COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @growthlog/db generate
-RUN pnpm --filter @growthlog/api build
-RUN pnpm deploy --filter @growthlog/api --prod /out/api
+RUN pnpm --filter @growthlog/collab build
+RUN pnpm deploy --filter @growthlog/collab --prod /out/collab
 
 FROM node:25-alpine AS runtime
 WORKDIR /app
-COPY --from=builder /out/api .
-EXPOSE 3000
+COPY --from=builder /out/collab .
+EXPOSE 1234
 CMD ["node", "dist/server.js"]
