@@ -12,7 +12,7 @@ import { redisPlugin } from './plugins/redis.js';
 import { sessionPlugin } from './plugins/session.js';
 import { swaggerPlugin } from './plugins/swagger.js';
 import { rateLimitPlugin } from './plugins/rate.js';
-import { loadConfig, type EnvOverrides } from './config.js';
+import { loadConfig, type EnvOverrides } from './utils/config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

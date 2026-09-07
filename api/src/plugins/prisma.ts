@@ -1,10 +1,8 @@
 import fp from 'fastify-plugin';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../db/client.js';
+import { createPrismaClient } from '@growthlog/db';
 
 export const prismaPlugin = fp(async (app) => {
-  const adapter = new PrismaPg({ connectionString: app.config.DATABASE_URL });
-  const prisma = new PrismaClient({ adapter });
+  const prisma = createPrismaClient(app.config.DATABASE_URL);
 
   app.decorate('prisma', prisma);
 

@@ -21,8 +21,13 @@ export const EnvSchema = Type.Object({
     pattern: '^redis(s)?://',
   }),
 
-  // random 64 character hex code from openssl
   SESSION_SECRET: Type.String({
+    minLength: 64,
+    maxLength: 64,
+    pattern: '^[0-9a-f]{64}$',
+  }),
+
+  JWT_SECRET: Type.String({
     minLength: 64,
     maxLength: 64,
     pattern: '^[0-9a-f]{64}$',

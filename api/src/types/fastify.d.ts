@@ -4,7 +4,7 @@ import type { Authenticator } from '@fastify/passport';
 
 import type { Env } from '../typebox/env.ts';
 import type { Role } from '../db/enums.ts';
-import type { PrismaClient } from '../db/client.ts';
+import type { PrismaClient } from '@growthlog/db';
 
 declare module 'fastify' {
   interface FastifyInstance {
