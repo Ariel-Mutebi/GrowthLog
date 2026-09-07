@@ -56,6 +56,9 @@ importers:
       '@growthlog/db':
         specifier: workspace:*
         version: link:../db
+      '@prisma/client':
+        specifier: ^7.9.1
+        version: 7.9.1(prisma@7.9.1(@types/react@19.2.17)(magicast@0.5.3)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(typescript@6.0.3)
       '@sinclair/typebox':
         specifier: ^0.34.52
         version: 0.34.52
@@ -123,6 +126,9 @@ importers:
       '@types/pg':
         specifier: ^8.20.0
         version: 8.20.0
+      openapi-typescript:
+        specifier: ^7.13.0
+        version: 7.13.0(typescript@6.0.3)
       tsx:
         specifier: ^4.23.1
         version: 4.23.8
@@ -157,6 +163,9 @@ importers:
       '@felte/validator-zod':
         specifier: ^1.0.18
         version: 1.0.18(zod@4.4.3)
+      '@growthlog/api':
+        specifier: workspace:*
+        version: link:../api
       '@hocuspocus/provider':
         specifier: ^4.6.0
         version: 4.6.0(y-protocols@1.0.7(yjs@13.6.32))(yjs@13.6.32)
@@ -208,10 +217,6 @@ importers:
       zxcvbn-ts:
         specifier: ^2.3.4
         version: 2.3.4
-    devDependencies:
-      openapi-typescript:
-        specifier: ^7.13.0
-        version: 7.13.0(typescript@6.0.3)
 
 packages:
 

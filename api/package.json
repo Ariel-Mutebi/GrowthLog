@@ -1,5 +1,5 @@
 {
-  "name": "api",
+  "name": "@growthlog/api",
   "private": true,
   "packageManager": "pnpm@11.19.0",
   "scripts": {
@@ -11,14 +11,15 @@
     "pretest": "pnpm start",
     "test": "tsx tests/setup.ts",
     "posttest": "pnpm stop",
-    "migrate:dev": "pnpm exec prisma migrate dev",
-    "migrate:prod": "pnpm exec prisma migrate deploy"
+    "gen:schema": "tsx openapi/generate.ts"
+  },
+  "exports": {
+    ".": "./openapi/schema.d.ts"
   },
   "author": "Ariel Robert Mutebi",
   "license": "BUSL-1.1",
   "type": "module",
   "dependencies": {
-    "@growthlog/db": "workspace:*",
     "@fastify/autoload": "^6.5.0",
     "@fastify/cookie": "^11.1.2",
     "@fastify/helmet": "^13.1.0",
@@ -27,6 +28,8 @@
     "@fastify/session": "^11.1.2",
     "@fastify/swagger": "^9.8.1",
     "@fastify/type-provider-typebox": "^6.1.0",
+    "@growthlog/db": "workspace:*",
+    "@prisma/client": "^7.9.1",
     "@sinclair/typebox": "^0.34.52",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
@@ -51,6 +54,7 @@
     "@types/node": "^25.9.5",
     "@types/passport-local": "^1.0.38",
     "@types/pg": "^8.20.0",
+    "openapi-typescript": "^7.13.0",
     "tsx": "^4.23.1",
     "typescript": "^6.0.3"
   }

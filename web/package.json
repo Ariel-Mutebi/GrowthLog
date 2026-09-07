@@ -17,6 +17,7 @@
     "@astrojs/node": "^11.0.0",
     "@astrojs/svelte": "^9.0.0",
     "@felte/validator-zod": "^1.0.18",
+    "@growthlog/api": "workspace:*",
     "@hocuspocus/provider": "^4.6.0",
     "@lucide/svelte": "^1.28.0",
     "@tailwindcss/vite": "^4.3.3",
@@ -34,8 +35,5 @@
     "yjs": "^13.6.32",
     "zod": "^4.4.3",
     "zxcvbn-ts": "^2.3.4"
-  },
-  "devDependencies": {
-    "openapi-typescript": "^7.13.0"
   }
 }

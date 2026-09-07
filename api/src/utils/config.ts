@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs';
 
 import { Ajv } from 'ajv';
 import addFormats from 'ajv-formats';
-import { EnvSchema, type Env } from './typebox/env.js';
+import { EnvSchema, type Env } from '../typebox/env.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -23,7 +23,7 @@ const validate = ajv.compile(EnvSchema);
  * Loads .env into process.env for local dev. In prod, real env vars are
  * expected to already be set by the deploy environment, so this is a no-op.
  */
-export function loadEnv(path = join(__dirname, '../.env')): void {
+export function loadEnv(path = join(__dirname, '../../../.env')): void {
   if (existsSync(path)) process.loadEnvFile(path);
 }
 

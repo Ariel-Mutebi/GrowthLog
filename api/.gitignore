@@ -2,4 +2,4 @@ node_modules
 dist
 .tsbuildinfo
 .local
-openapi.json
+openapi/schema.d.ts
