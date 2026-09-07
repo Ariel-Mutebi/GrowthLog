@@ -1,0 +1,24 @@
+{
+  "name": "@growthlog/collab",
+  "private": true,
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "predev": "pnpm -w run docker:up",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@growthlog/db": "workspace:*",
+    "@hocuspocus/server": "^4.6.0",
+    "jsonwebtoken": "^9.0.3",
+    "yjs": "^13.6.32"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.9.5",
+    "tsx": "^4.23.8",
+    "typescript": "^6.0.3"
+  }
+}

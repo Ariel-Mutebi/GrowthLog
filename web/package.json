@@ -1,17 +1,14 @@
 {
-  "name": "web",
+  "name": "@growthlog/web",
   "private": true,
   "type": "module",
-  "version": "0.0.1",
   "engines": {
     "node": ">=22.12.0"
   },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro",
-    "gen:api-types": "openapi-typescript ../api/openapi.json -o ./src/api/schema.d.ts"
+    "preview": "astro preview"
   },
   "dependencies": {
     "@astrojs/node": "^11.0.0",
