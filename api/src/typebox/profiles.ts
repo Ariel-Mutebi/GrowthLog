@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { SerializedDate } from './compatability.js';
+import { SerializedDate } from './date.js';
 import { LettersOnlyString, Username, Email, UserRole } from './inputs.js';
 
 const StaticMinimalUser = {

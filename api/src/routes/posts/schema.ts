@@ -1,31 +1,41 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import { ConflictResponse, NotFoundResponse, RateLimitedResponse } from '../../typebox/responses.js';
-import { SerializedDate } from '../../typebox/compatability.js';
+import { OptionalDate, SerializedDate } from '../../typebox/date.js';
 
-const Post = Type.Object({
+const DraftMeta = Type.Object({
   title: Type.String(),
   slug: Type.String(),
   id: Type.String(),
   authorId: Type.String(),
-  content: Type.Unknown(),
-  draftContent: Type.Union([Type.Unknown(), Type.Null()]),
-  published: Type.Boolean(),
+  publishedAt: OptionalDate,
   createdAt: SerializedDate,
   updatedAt: SerializedDate,
-  deletedAt: Type.Union([SerializedDate, Type.Null()]),
+  deletedAt: OptionalDate,
 });
 
-export const CreatePostSchema = {
-  summary: 'Create a new blog post',
-  description: 'Create an empty blog post with a title and slug (slug is derived from title if absent)',
+export const GetMyPostsSchema = {
+  summary: 'Get all your posts',
+  description: 'Get the metadata for all of your posts (content excluded)',
+  security: [{ session: [] }],
+  tags: ['Posts'],
+  response: {
+    200: Type.Array(DraftMeta),
+    429: RateLimitedResponse,
+  },
+} satisfies FastifySchema;
+
+export const CreateDraftSchema = {
+  summary: 'Create a new blog post draft',
+  description: 'Create an empty blog post draft with a title and slug (slug is derived from title if absent)',
+  security: [{ session: [] }],
   tags: ['Posts'],
   body: Type.Object({
     title: Type.String(),
     slug: Type.String(),
   }),
   response: {
-    201: Post,
+    201: DraftMeta,
     429: RateLimitedResponse,
   },
 } satisfies FastifySchema;
@@ -33,6 +43,7 @@ export const CreatePostSchema = {
 export const UpdatePostMetadata = {
   summary: 'Update a post\'s metadata',
   description: 'Update the title and slug of a post',
+  security: [{ session: [] }],
   tags: ['Posts'],
   params: Type.Object({
     postId: Type.String(),
@@ -42,7 +53,7 @@ export const UpdatePostMetadata = {
     slug: Type.String(),
   })),
   response: {
-    200: Post,
+    200: DraftMeta,
     404: NotFoundResponse,
     409: ConflictResponse,
     429: RateLimitedResponse,

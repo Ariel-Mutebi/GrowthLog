@@ -1,15 +1,34 @@
-import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
-
 import slugify from 'slugify';
-import { CreatePostSchema, UpdatePostMetadata } from './schema.js';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+
 import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
+import { CreateDraftSchema, GetMyPostsSchema, UpdatePostMetadata } from './schema.js';
 import { attemptWithConflictRetry, doOrHandleDBConflict } from '../../error/database.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
+  app.get('/mine', {
+    preHandler: isLoggedIn,
+    schema: GetMyPostsSchema,
+  }, async (req, res) => {
+    assertIsLoggedIn(req);
+
+    const posts = await app.prisma.post.findMany({
+      where: {
+        authorId: req.user.id,
+      },
+      omit: {
+        content: true,
+        publishedHtml: true,
+      },
+    });
+
+    return res.code(200).send(posts);
+  });
+
   app.post('/', {
     preHandler: isLoggedIn,
-    schema: CreatePostSchema,
+    schema: CreateDraftSchema,
   }, async (req, res) => {
     assertIsLoggedIn(req);
     const { title, slug } = req.body;

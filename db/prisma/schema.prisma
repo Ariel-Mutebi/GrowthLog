@@ -57,7 +57,7 @@ model Post {
   tags          Tags[]
   title         String
   slug          String       @unique
-  content       Bytes
+  content       Bytes?
   publishedHtml String?
   publishedAt   DateTime?
   impression    Impressions?
