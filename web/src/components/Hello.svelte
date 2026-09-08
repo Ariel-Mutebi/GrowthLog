@@ -1,12 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { client } from '../api/client.ts';
+  import { getCurrentUser } from './helpers/getCurrentUser.ts';
 
-  let data: { forename: string; surname: string } | undefined;
+  let data: { forename: string; surname: string } | null;
 
   onMount(async () => {
-    const response = await client.GET('/v1/users');
-    data = response.data;
+    data = await getCurrentUser();
   });
 </script>
 

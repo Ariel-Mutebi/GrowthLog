@@ -7,7 +7,8 @@
     "dev": "tsx watch src/server.js",
     "pretest": "pnpm -w run docker:up",
     "test": "tsx tests/setup.ts",
-    "posttest": "pnpm -w run docker:down"
+    "posttest": "pnpm -w run docker:down",
+    "gen:types": "tsx openapi/generate.ts"
   },
   "exports": {
     ".": {

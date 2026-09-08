@@ -1,0 +1,9 @@
+growthlog.com {
+	handle /collab/* {
+		reverse_proxy collab:1234
+	}
+
+	handle {
+		reverse_proxy api:3000
+	}
+}
