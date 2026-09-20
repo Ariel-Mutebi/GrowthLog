@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { SerializedDate } from './date.js';
-import { LettersOnlyString, Username, Email, UserRole } from './inputs.js';
+import { LettersOnlyString, Username, Email } from './inputs.js';
 
 const StaticMinimalUser = {
   id: Type.String(),
@@ -13,7 +13,6 @@ const StaticPublicProfile = {
   ...StaticMinimalUser,
   forename: LettersOnlyString,
   surname: LettersOnlyString,
-  role: UserRole,
   createdAt: SerializedDate,
 };
 

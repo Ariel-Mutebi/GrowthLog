@@ -7,89 +7,106 @@ generator client {
   output   = "../src/generated/"
 }
 
-enum Role {
-  AUTOBIOGRAPHER
-  ADVERTISER
-  BIOGRAPHER
-  MODERATOR
-}
-
 model User {
-  id            String       @id @default(cuid())
-  forename      String
-  surname       String
-  username      String       @unique
-  email         String       @unique
-  password      String
-  createdAt     DateTime     @default(now())
-  deletedAt     DateTime?
-  role          Role         @default(AUTOBIOGRAPHER)
-  following     FollowUser[] @relation("following")
-  followers     FollowUser[] @relation("follower")
-  tagsFollowing FollowTag[]
-  posts         Post[]
-  comments      Comment[]
+  id        String    @id @default(cuid())
+  forename  String
+  surname   String
+  username  String    @unique
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+  bio       String?
+
+  following           Follow[]             @relation("following")
+  followers           Follow[]             @relation("follower")
+  posts               Post[]
+  views               View[]
+  likes               Like[]
+  comments            Comment[]
+  onboardingInterests OnboardingInterest[]
 }
 
-// Join table representing a many-to-many self-referencing relationship on the User model.
-model FollowUser {
+model Follow {
   followerId  String
   followingId String
-  follower    User   @relation("following", fields: [followerId], references: [id])
-  following   User   @relation("follower", fields: [followingId], references: [id])
+  follower    User   @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User   @relation("follower", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@id([followerId, followingId])
 }
 
-model FollowTag {
-  userId String
-  tagId  String
-  user   User   @relation(fields: [userId], references: [id])
-  tag    Tags   @relation(fields: [tagId], references: [id])
-
-  @@id([userId, tagId])
-}
-
 model Post {
-  id            String       @id @default(cuid())
+  id            String    @id @default(cuid())
   authorId      String
-  author        User         @relation(fields: [authorId], references: [id])
-  tags          Tags[]
   title         String
-  slug          String       @unique
-  content       Bytes?
+  slug          String    @unique
+  draftContent  Bytes?
   publishedHtml String?
   publishedAt   DateTime?
-  impression    Impressions?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
-}
 
-model Tags {
-  id        String      @id @default(cuid())
-  name      String
-  posts     Post[]
-  followers FollowTag[]
-}
-
-model Impressions {
-  postId String @id
-  post   Post   @relation(fields: [postId], references: [id])
-
-  views    Int @default(0)
-  likes    Int @default(0)
-  dislikes Int @default(0)
-
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  tags     Tag[]
+  views    View[]
+  likes    Like[]
   comments Comment[]
 }
 
+model Tag {
+  id              String               @id @default(cuid())
+  name            String               @unique
+  posts           Post[]
+  onboardingUsers OnboardingInterest[]
+}
+
+model Like {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+}
+
 model Comment {
-  id        String      @id @default(cuid())
+  id        String   @id @default(cuid())
   postId    String
   authorId  String
-  post      Impressions @relation(fields: [postId], references: [postId])
-  author    User        @relation(fields: [authorId], references: [id])
   text      String
-  createdAt DateTime    @default(now())
+  createdAt DateTime @default(now())
+
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+enum ViewType {
+  GLANCE
+  COMPLETE_READ
+}
+
+model View {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  type      ViewType
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model OnboardingInterest {
+  userId    String
+  tagId     String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([userId, tagId])
 }

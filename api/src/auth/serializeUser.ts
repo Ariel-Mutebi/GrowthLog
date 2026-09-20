@@ -1,9 +1,9 @@
 import type { PassportUser } from 'fastify';
-import type { User } from '../db/client.js';
+import type { User } from '@growthlog/db';
 
 export async function serializeUser(user: User) {
   return {
     id: user.id,
-    role: user.role,
+    username: user.username,
   } satisfies PassportUser;
 };

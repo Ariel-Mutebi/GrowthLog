@@ -9,21 +9,10 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: GetCollabToken,
   }, async (req, res) => {
     assertIsLoggedIn(req);
-
-    const { forename, surname } = await app.prisma.user.findFirstOrThrow({
-      where: {
-        id: req.user.id,
-      },
-      select: {
-        forename: true,
-        surname: true,
-      },
-    });
-
     const token = jwt.sign(
       {
         sub: req.user.id,
-        name: `${forename} ${surname}`,
+        name: req.user.username,
       },
       app.config.JWT_SECRET,
       { expiresIn: '5m' },

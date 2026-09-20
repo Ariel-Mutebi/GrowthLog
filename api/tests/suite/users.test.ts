@@ -172,22 +172,6 @@ describe('GET /v1/users/search', () => {
     assert.equal(users[0].username, 'grace-hopper');
   });
 
-  test('role filter narrows results', async () => {
-    await register(
-      env,
-      { email: 'grace@example.com', username: 'grace-hopper', role: 'BIOGRAPHER' },
-      '10.0.0.2',
-    );
-
-    const res = await env.app.inject({
-      method: 'GET',
-      url: '/v1/users/search?name=grace&role=AUTOBIOGRAPHER',
-      headers: { 'x-forwarded-for': '10.0.0.1' },
-    });
-
-    assert.equal(res.statusCode, 404);
-  });
-
   test('returns 404 when no users match', async () => {
     const res = await env.app.inject({
       method: 'GET',

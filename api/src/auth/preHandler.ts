@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest, PassportUser, preHandlerHookHandler } from 'fastify';
-import type { User } from '../db/client.js';
+import type { User } from '@growthlog/db';
 import type { Static } from '@sinclair/typebox';
 import type { LockedResponse, UnauthorizedResponse } from '../typebox/responses.js';
 
@@ -43,7 +43,6 @@ export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>
       surname,
       username,
       email,
-      role,
       createdAt,
       deletedAt,
     } = user as User;
@@ -64,5 +63,5 @@ export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>
 
     await req.session.regenerate();
     await req.logIn(user);
-    return res.code(200).send({ id, forename, surname, username, email, role, createdAt });
+    return res.code(200).send({ id, forename, surname, username, email, createdAt });
   });

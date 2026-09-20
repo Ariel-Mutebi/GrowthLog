@@ -10,7 +10,6 @@ export const newUser = (over: Partial<Record<string, string>> = {}) => ({
   username: 'ada-lovelace',
   email: 'ada@example.com',
   password: STRONG_PASSWORD,
-  role: 'AUTOBIOGRAPHER',
   ...over,
 });
 

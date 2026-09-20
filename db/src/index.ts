@@ -6,4 +6,5 @@ export function createPrismaClient(connectionString: string) {
   return new PrismaClient({ adapter });
 }
 
-export type { PrismaClient };
+export type * from './generated/client.js';
+export type * from './generated/models.js';

@@ -1,13 +1,11 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import type { User } from '../../db/client.js';
+import type { User } from '@growthlog/db';
 import {
   Username,
   Email,
   LettersOnlyString,
-  NonModeratorRole,
   Password,
-  UserRole,
 } from '../../typebox/inputs.js';
 import {
   BadRequest,
@@ -30,7 +28,6 @@ const CreateUser = Type.Object({
   email: Email,
   password: Password,
   username: Type.Optional(Username),
-  role: Type.Optional(NonModeratorRole),
 } satisfies UserKeys);
 
 const UpdateUser = Type.Partial(Type.Object({
@@ -39,7 +36,6 @@ const UpdateUser = Type.Partial(Type.Object({
   username: Username,
   email: Email,
   password: Password,
-  role: NonModeratorRole,
 } satisfies UserKeys));
 
 const revalidateIdentity = Type.Object({
@@ -114,14 +110,18 @@ export const GetUserSchema = {
 
 export const UserSearchSchema = {
   summary: 'User discovery endpoint',
-  description: 'Search for a user by name and role',
+  description: 'Search for users by name, by interest (a tag on their published posts), or both',
   tags: ['Users'],
-  querystring: Type.Object({
-    name: Type.String({ minLength: 1 }),
-    role: Type.Optional(UserRole),
-    cursor: Type.Optional(Type.String()),
-    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 20 })),
-  }),
+  querystring: Type.Object(
+    {
+      name: Type.Optional(Type.String({ minLength: 1, maxLength: 100, pattern: '\\S' })),
+      interest: Type.Optional(Type.String({ minLength: 1, maxLength: 50, pattern: '\\S' })),
+      cursor: Type.Optional(Type.String()),
+      limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 20 })),
+    },
+    // at least one of name / interest must be present
+    { anyOf: [{ required: ['name'] }, { required: ['interest'] }] },
+  ),
   response: {
     200: Type.Object({
       users: Type.Array(PublicProfile),

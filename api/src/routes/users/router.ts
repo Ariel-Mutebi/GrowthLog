@@ -3,7 +3,7 @@ import { compare, hash } from 'bcrypt';
 import type { Static } from '@sinclair/typebox';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
-import type { UserWhereInput, UserFindManyArgs } from '../../db/models.js';
+import type { UserWhereInput, UserFindManyArgs } from '@growthlog/db';
 import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
 import { doOrHandleDBConflict, attemptWithConflictRetry } from '../../error/database.js';
 import type { NotFoundResponse, UnauthorizedResponse } from '../../typebox/responses.js';
@@ -51,7 +51,6 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       },
     },
   }, async (req, res) => {
-    if (!req.body.role) req.body.role = 'AUTOBIOGRAPHER';
     if (rejectWeakPassword(req.body.password, res)) return;
     req.body.password = await hash(req.body.password, ROUNDS);
 
@@ -116,55 +115,74 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   app.get('/search', {
     schema: UserSearchSchema,
   }, async (req, res) => {
-      const { name, role, cursor, limit = 20 } = req.query;
-      const terms = name.trim().split(/\s+/);
+    const { name, interest, cursor, limit = 20 } = req.query;
 
-      const where: UserWhereInput = {
-        deletedAt: null,
-        AND: terms.map(term => ({
+    const filters: UserWhereInput[] = [];
+
+    if (name) {
+      const terms = name.trim().split(/\s+/);
+      filters.push(
+        ...terms.map((term) => ({
           OR: [
-            { forename: { contains: term, mode: 'insensitive' } },
-            { surname: { contains: term, mode: 'insensitive' } },
-            { username: { contains: term, mode: 'insensitive' } },
+            { forename: { contains: term, mode: 'insensitive' as const } },
+            { surname: { contains: term, mode: 'insensitive' as const } },
+            { username: { contains: term, mode: 'insensitive' as const } },
           ],
         })),
-      };
+      );
+    }
 
-      if (role) {
-        where.role = role;
-      }
-
-      const findManyArgs: UserFindManyArgs = {
-        where,
-        orderBy: { createdAt: 'asc' },
-        take: limit + 1,
-        omit: {
-          email: true,
-          password: true,
-          deletedAt: true,
+    if (interest) {
+      // Public interests come only from what a user has published
+      filters.push({
+        posts: {
+          some: {
+            publishedAt: { not: null },
+            deletedAt: null,
+            tags: {
+              some: { name: { equals: interest.trim(), mode: 'insensitive' } },
+            },
+          },
         },
-      };
-
-      if (cursor) {
-        findManyArgs.cursor = { id: cursor };
-        findManyArgs.skip = 1;
-      }
-
-      const rows = await app.prisma.user.findMany(findManyArgs);
-      const hasMore = rows.length > limit;
-      const users = hasMore ? rows.slice(0, limit) : rows;
-
-      if (!users.length) {
-        return res.code(404).send({
-          error: 'NotFound',
-          message: `No users found matching '${name}'`,
-        } satisfies Static<typeof NotFoundResponse>);
-      }
-
-      return res.send({
-        users,
-        nextCursor: hasMore ? users.at(-1)!.id : null,
       });
+    }
+
+    const findManyArgs: UserFindManyArgs = {
+      where: { deletedAt: null, AND: filters },
+      orderBy: { createdAt: 'asc' },
+      take: limit + 1,
+      omit: {
+        email: true,
+        password: true,
+        deletedAt: true,
+      },
+    };
+
+    if (cursor) {
+      findManyArgs.cursor = { id: cursor };
+      findManyArgs.skip = 1;
+    }
+
+    const rows = await app.prisma.user.findMany(findManyArgs);
+    const hasMore = rows.length > limit;
+    const users = hasMore ? rows.slice(0, limit) : rows;
+
+    if (!users.length) {
+      const criteria = [
+        name && `name '${name}'`,
+        interest && `interest '${interest}'`,
+      ].filter(Boolean).join(' and ');
+
+      return res.code(404).send({
+        error: 'NotFound',
+        message: `No users found matching ${criteria}`,
+      } satisfies Static<typeof NotFoundResponse>);
+    }
+
+    return res.send({
+      users,
+      nextCursor: hasMore ? users.at(-1)!.id : null,
+    });
   });
 
   app.get('/:userId', {

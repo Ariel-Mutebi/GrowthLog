@@ -30,16 +30,3 @@ export const Username = Type.String({
 export const Email = Type.String({
   format: 'email',
 });
-
-export const NonModeratorRole = Type.Union([
-  Type.Literal('ADVERTISER'),
-  Type.Literal('AUTOBIOGRAPHER'),
-  Type.Literal('BIOGRAPHER'),
-]);
-
-export const UserRole = Type.Union([
-  Type.Literal('ADVERTISER'),
-  Type.Literal('AUTOBIOGRAPHER'),
-  Type.Literal('BIOGRAPHER'),
-  Type.Literal('MODERATOR'),
-]);
