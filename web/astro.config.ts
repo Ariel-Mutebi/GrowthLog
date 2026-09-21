@@ -24,11 +24,19 @@ export default defineConfig({
     },
     {
       provider: fontProviders.google(),
-      name: 'DM Mono',
-      cssVariable: '--dm-mono',
+      name: 'Space Mono',
+      cssVariable: '--space-mono',
       fallbacks: ['monospace'],
       weights: ['400'],
       styles: ['normal'],
-    }
-  ]
+    },
+    {
+      provider: fontProviders.google(),
+      name: 'Work Sans',
+      cssVariable: '--work-sans',
+      fallbacks: ['Arial', 'sans-serif'],
+      weights: ['100 900'],
+      styles: ['normal', 'italic'],
+    },
+  ],
 });

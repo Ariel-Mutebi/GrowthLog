@@ -2,13 +2,10 @@
   import { createForm } from 'felte';
   import { validator } from '@felte/validator-zod';
   import { toast } from 'svelte-sonner';
-  import Toaster from '../common/Toaster.svelte';
+  import Toaster from '../Toaster.svelte';
   import { client } from '../../api/client.ts';
   import Field from './Field.svelte';
-  import Submit from './Submit.svelte';
-  import Password from './Password.svelte';
   import { schema, type SignUpData } from './schema.ts';
-  import { setSignUpData, setValidationErrors } from './context.ts';
   import { navigate } from "astro:transitions/client";
 
   const { form, data, errors } = createForm<SignUpData>({
@@ -29,9 +26,6 @@
       }
     },
   });
-
-  setSignUpData(data);
-  setValidationErrors(errors);
 </script>
 
 <form use:form class="flex justify-center items-center grow">

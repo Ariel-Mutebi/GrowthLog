@@ -2,12 +2,13 @@
 
 @theme inline {
   --font-serif: var(--fraunces);
-  --font-mono: var(--dm-mono);
+  --font-mono: var(--space-mono);
+  --font-sans: var(--work-sans);
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Smoothen light-dark mode transition */
+/* Smoothen light-dark mode background transition */
 @layer base {
   * {
     transition: background-color 0.3s ease-in-out, border-color 0.3s ease-in-out, color 0.3s ease-in-out;
