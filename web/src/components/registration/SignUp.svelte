@@ -5,8 +5,12 @@
   import Toaster from '../Toaster.svelte';
   import { client } from '../../api/client.ts';
   import Field from './Field.svelte';
+  import Password from './Password.svelte';
   import { schema, type SignUpData } from './schema.ts';
   import { navigate } from "astro:transitions/client";
+  import FieldWrapper from './FieldWrapper.svelte';
+  import PasswordStrengthMeter from './PasswordStrengthMeter.svelte';
+  import Submit from './Submit.svelte';
 
   const { form, data, errors } = createForm<SignUpData>({
     extend: validator({ schema }),
@@ -28,18 +32,20 @@
   });
 </script>
 
-<form use:form class="flex justify-center items-center grow">
-  <div class="flex flex-col w-xl p-6 gap-5 h-max">
-    <div class="flex gap-4 w-full">
-      <Field label="First name" name="forename" />
-      <Field label="Last name" name="surname" />
-    </div>
-
-    <Field label="Email" name="email" type="email" />
-    <Password showStrength={true} />
-    
-    <Submit text="Sign up" />
+<form use:form class="flex flex-col gap-8 px-8">
+  <div class="flex gap-8 w-full">
+    <Field label="First name" name="forename" errors={$errors.forename} />
+    <Field label="Last name" name="surname" errors={$errors.surname} />
   </div>
+
+  <Field label="Email" name="email" type="email" errors={$errors.email} />
+  
+  <FieldWrapper>
+    <Password errors={$errors.password} />
+    <PasswordStrengthMeter {...$data} />
+  </FieldWrapper>
+  
+  <Submit text="Sign up" />
 </form>
 
 <Toaster />

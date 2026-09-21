@@ -2,16 +2,16 @@
   import { CircleAlert } from '@lucide/svelte';
 
   interface Props {
-    message: string;
+    errors: string[];
   }
 
-  const { message }: Props = $props();
+  const { errors }: Props = $props();
 </script>
 
-<div class="flex gap-1 bg-red-200 dark:bg-red-800">
+<div class="flex gap-1 bg-red-200 dark:bg-red-800 rounded-3xl px-3 py-1">
   <span class="text-red-900 dark:text-red-200">
     <CircleAlert />
   </span>
 
-  <p class="text-stone-900 dark:text-stone-100">{message}</p>
+  <p class="text-stone-900 dark:text-stone-100">{errors[0]}</p>
 </div>

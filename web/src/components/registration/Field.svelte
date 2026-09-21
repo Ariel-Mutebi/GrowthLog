@@ -2,21 +2,22 @@
   import Label from './Label.svelte';
   import Input from './Input.svelte';
   import Error from './Error.svelte';
+  import FieldWrapper from './FieldWrapper.svelte';
 
   interface Props {
     label: string;
     name: string;
     type?: string;
-    error?: string;
+    errors?: string[] | null;
   }
 
-  const { name, label, error, type = 'text' }: Props = $props();
+  const { name, label, errors, type = 'text' }: Props = $props();
 </script>
 
-<div class="flex flex-col gap-3 w-full">
+<FieldWrapper>
   <Label {name} {label} />
   <Input {name} {type} />
-  {#if error}
-    <Error message={error} />
+  {#if errors}
+    <Error {errors} />
   {/if}
-</div>
+</FieldWrapper>

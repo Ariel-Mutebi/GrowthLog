@@ -7,10 +7,3 @@
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
-
-/* Smoothen light-dark mode background transition */
-@layer base {
-  * {
-    transition: background-color 0.3s ease-in-out, border-color 0.3s ease-in-out, color 0.3s ease-in-out;
-  }
-}

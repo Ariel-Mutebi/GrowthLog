@@ -1,0 +1,20 @@
+---
+import HeadLayout from "./HeadLayout.astro";
+
+interface Props {
+  title: string;
+  CTA: string;
+  bgLight: string;
+  bgDark: string;
+}
+
+const { title, CTA } = Astro.props;
+---
+
+<HeadLayout {title}>
+  <div class="w-dvw min-h-dvh bg-orange-50 dark:bg-red-950 grid grid-cols-5">
+    <div class="col-span-3">
+      <slot />
+    </div>
+  </div>
+</HeadLayout>
