@@ -24,9 +24,9 @@
         isVisible = !isVisible;
       }}
       aria-label={isVisible ? "Hide password" : "Show password"}
-      class="absolute inset-y-0 right-0 pr-3 flex items-center text-stone-600 dark:text-stone-300
+      class="absolute inset-y-0 right-0 px-3 flex items-center text-stone-600 dark:text-stone-300
         hover:text-stone-900 hover:dark:text-stone-100 focus:text-stone-900 focus:dark:text-stone-100
-        focus:outline-stone-200 focus:dark:outline-stone-600"
+        focus:outline focus:outline-stone-500 focus:dark:outline-stone-300"
     >
       {#if isVisible}
         <EyeClosed />

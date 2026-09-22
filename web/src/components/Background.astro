@@ -7,14 +7,14 @@ const { light, dark } = Astro.props;
 ---
 
 <div
-  class="fixed inset-0 -z-10 bg-cover bg-center transition-opacity duration-500 ease-in-out opacity-100"
+  class="absolute inset-0 -z-10 bg-cover bg-center transition-opacity duration-500 ease-in-out opacity-100"
   style={`background-image: url(${light})`}
   aria-hidden="true"
 >
 </div>
 
 <div
-  class="fixed inset-0 -z-10 bg-cover bg-center transition-opacity duration-500 ease-in-out opacity-0 dark:opacity-100"
+  class="absolute inset-0 -z-10 bg-cover bg-center transition-opacity duration-500 ease-in-out opacity-0 dark:opacity-100"
   style={`background-image: url(${dark})`}
   aria-hidden="true"
 >

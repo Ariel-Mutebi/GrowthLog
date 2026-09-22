@@ -1,5 +1,6 @@
 ---
 import HeadLayout from "./HeadLayout.astro";
+import Background from "../components/Background.astro";
 
 interface Props {
   title: string;
@@ -8,11 +9,15 @@ interface Props {
   bgDark: string;
 }
 
-const { title, CTA } = Astro.props;
+const { title, CTA, bgLight, bgDark } = Astro.props;
 ---
 
 <HeadLayout {title}>
   <div class="w-dvw min-h-dvh bg-orange-50 dark:bg-red-950 grid grid-cols-5">
+    <div class="col-span-2 relative isolate">
+      <Background light={bgLight} dark={bgDark} />
+    </div>
+
     <div class="col-span-3">
       <slot />
     </div>

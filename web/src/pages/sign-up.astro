@@ -1,8 +1,20 @@
 ---
+import { getImage } from 'astro:assets';
 import RegistrationLayout from '../layouts/RegistrationLayout.astro';
 import SignUp from '../components/registration/SignUp.svelte';
+import communityAfternoon from '../assets/community-afternoon.jpg';
+import communityDawn from '../assets/community-dawn.jpg';
+
+const { src: bgLight } = await getImage({ src: communityAfternoon, format: 'webp' });
+const { src: bgDark } = await getImage({ src: communityDawn, format: 'webp' });
+
 ---
 
-<RegistrationLayout title="GrowthLog | Sign-up">
+<RegistrationLayout
+  title="GrowthLog | Sign-up"
+  CTA="Join our community"
+  {bgLight}
+  {bgDark}
+>
   <SignUp client:load />
 </RegistrationLayout>
