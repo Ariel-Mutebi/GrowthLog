@@ -21,6 +21,15 @@ export default defineConfig({
       fallbacks: ['serif'],
       weights: ['100 900'], 
       styles: ['normal', 'italic'],
+      options: {
+        experimental: {
+          variableAxis: {
+            SOFT: [['0', '100']],
+            opsz: [['9', '144']],
+            WONK: [['0', '1']],
+          },
+        },
+      },
     },
     {
       provider: fontProviders.google(),

@@ -16,9 +16,14 @@ const { title, CTA, bgLight, bgDark } = Astro.props;
   <div class="w-dvw min-h-dvh bg-orange-50 dark:bg-red-950 grid grid-cols-5">
     <div class="col-span-2 relative isolate">
       <Background light={bgLight} dark={bgDark} />
+      <h2
+        class="mt-30 font-serif text-lime-100 text-7xl lg:text-8xl
+          font-bold wrap-break-word display-heading">
+        {CTA}
+      </h2>
     </div>
 
-    <div class="col-span-3">
+    <div class="col-span-3 p-8">
       <slot />
     </div>
   </div>

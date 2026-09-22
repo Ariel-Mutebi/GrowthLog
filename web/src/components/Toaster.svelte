@@ -1,6 +1,6 @@
 <script>
   import { Toaster } from 'svelte-sonner';
-  import { CircleX } from '@lucide/svelte';
+  import CircleX from '@lucide/svelte/icons/circle-x';
 </script>
 
 <Toaster

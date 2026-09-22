@@ -3,7 +3,8 @@
   import { Tween } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
   import { fade } from 'svelte/transition';
-  import { Sun, Moon } from '@lucide/svelte';
+  import Sun from '@lucide/svelte/icons/sun';
+  import Moon from '@lucide/svelte/icons/moon';
 
   let isDark = $state(false);
   let hasMounted = $state(false);

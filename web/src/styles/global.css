@@ -7,3 +7,7 @@
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+.display-heading {
+  font-variation-settings: "SOFT" 0, "opsz" 144, "WONK" 1;
+}

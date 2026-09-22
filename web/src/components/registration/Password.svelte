@@ -3,7 +3,8 @@
   import Input from './Input.svelte';
   import Errors from './Error.svelte';
   import FieldWrapper from './FieldWrapper.svelte';
-  import { Eye, EyeClosed } from '@lucide/svelte';
+  import Eye from '@lucide/svelte/icons/eye';
+  import EyeClosed from '@lucide/svelte/icons/eye-closed';
 
   interface Props {
     errors?: string[] | null;
