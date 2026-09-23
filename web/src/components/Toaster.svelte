@@ -1,6 +1,9 @@
 <script>
   import { Toaster } from 'svelte-sonner';
-  import CircleX from '@lucide/svelte/icons/circle-x';
+  import CircleAlert from '@lucide/svelte/icons/circle-alert';
+  import CircleCheck from '@lucide/svelte/icons/circle-check';
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+  import Info from '@lucide/svelte/icons/info';
 </script>
 
 <Toaster
@@ -13,7 +16,7 @@
   }}
 >
   {#snippet errorIcon()}
-    <CircleX class="text-red-400" />
+    <CircleAlert class="text-red-400" />
   {/snippet}
   {#snippet successIcon()}
     <CircleCheck class="text-green-400" />
