@@ -1,8 +1,5 @@
 packages:
-  - api
-  - web
-  - collab
-  - db
+  - workspaces/*
 allowBuilds:
   '@prisma/engines': true
   bcrypt: true

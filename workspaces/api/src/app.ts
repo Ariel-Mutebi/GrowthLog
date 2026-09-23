@@ -39,12 +39,12 @@ export function buildApp(overrides?: EnvOverrides) {
 
   /**
    * Auto-register all default-exported routers within the `routes` directory
-   * tree under the `/v1` namespace, using directory names as route prefixes.
+   * tree under the `/api` namespace, using directory names as route prefixes.
    */
   app.register(autoload, {
     dir: join(__dirname, './routes'),
     dirNameRoutePrefix: true,
-    options: { prefix: 'v1/' },
+    options: { prefix: 'api/' },
   });
 
   app.ready(() => {    

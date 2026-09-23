@@ -1,5 +1,5 @@
 {
-  "name": "@growthlog/collab",
+  "name": "@growthlog/docs",
   "private": true,
   "main": "dist/server.js",
   "type": "module",

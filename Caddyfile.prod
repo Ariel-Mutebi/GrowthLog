@@ -1,5 +1,5 @@
 growthlog.com {
-	handle /collab/* {
+	handle /docs/* {
 		reverse_proxy collab:1234
 	}
 

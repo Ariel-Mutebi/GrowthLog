@@ -3,7 +3,7 @@ services:
     container_name: GrowthLogApi
     build:
       context: .
-      dockerfile: api/Dockerfile
+      dockerfile: workspaces/api/Dockerfile
     env_file:
       - .env
     depends_on:
@@ -15,10 +15,10 @@ services:
     tty: true
 
   collab:
-    container_name: GrowthLogCollab
+    container_name: GrowthLogDocs
     build:
       context: .
-      dockerfile: collab/Dockerfile
+      dockerfile: workspaces/docs/Dockerfile
     env_file:
       - .env
     depends_on:

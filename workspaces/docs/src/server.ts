@@ -38,13 +38,13 @@ const server = new Server({
         deletedAt: null,
       },
       select: {
-        content: true,
+        draftContent: true,
       },
     });
 
-    if (post?.content) {
+    if (post?.draftContent) {
       const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, post.content);
+      Y.applyUpdate(ydoc, post.draftContent);
       return ydoc;
     }
 
