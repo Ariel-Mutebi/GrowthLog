@@ -1,6 +1,7 @@
 ---
 import HeadLayout from "./HeadLayout.astro";
 import Background from "../components/Background.astro";
+import Navbar from "../components/registration/Navbar.astro";
 
 interface Props {
   title: string;
@@ -23,7 +24,8 @@ const { title, CTA, bgLight, bgDark } = Astro.props;
       </h2>
     </div>
 
-    <div class="col-span-3 p-8">
+    <div class="col-span-3 p-8 flex flex-col gap-8">
+      <Navbar {title} />
       <slot />
     </div>
   </div>

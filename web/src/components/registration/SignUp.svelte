@@ -1,16 +1,17 @@
 <script lang="ts">
-  import { createForm } from 'felte';
-  import { validator } from '@felte/validator-zod';
   import { toast } from 'svelte-sonner';
+  import { createForm } from 'felte';
+  import Field from './Field.svelte';
+  import Link from './Link.svelte';
+  import Submit from './Submit.svelte';
+  import Password from './Password.svelte';
   import Toaster from '../Toaster.svelte';
   import { client } from '../../api/client.ts';
-  import Field from './Field.svelte';
-  import Password from './Password.svelte';
-  import { schema, type SignUpData } from './schema.ts';
-  import { navigate } from "astro:transitions/client";
+  import { validator } from '@felte/validator-zod';
   import FieldWrapper from './FieldWrapper.svelte';
+  import { navigate } from 'astro:transitions/client';
+  import { schema, type SignUpData } from './schema.ts';
   import PasswordStrengthMeter from './PasswordStrengthMeter.svelte';
-  import Submit from './Submit.svelte';
 
   const { form, data, errors } = createForm<SignUpData>({
     extend: validator({ schema }),
@@ -46,6 +47,8 @@
   </FieldWrapper>
   
   <Submit text="Sign up" />
+
+  <Link href="/login" text="Already have an account? Log in." />
 </form>
 
 <Toaster />

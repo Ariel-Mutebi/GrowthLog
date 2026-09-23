@@ -1,0 +1,18 @@
+---
+import Theme from "../Theme.svelte";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<nav class="w-full flex justify-between items-center">
+  <header class="flex items-center gap-3">
+    <img src="/logo-64.png" class="h-16 w-16" alt="The GrowthLog logo">
+    <h1 class="font-serif text-3xl text-stone-600 dark:text-stone-200">{title}</h1>
+  </header>
+
+  <Theme client:load />
+</nav>

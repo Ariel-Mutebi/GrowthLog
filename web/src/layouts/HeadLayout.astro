@@ -14,9 +14,9 @@ const { title } = Astro.props;
   <head>
     <script is:inline>
       function applyTheme() {
-        const stored = localStorage.getItem("theme");
-        const dark = stored
-          ? stored === "dark"
+        const stored = localStorage.getItem("isDark");
+        const dark = stored !== null
+          ? stored === "true"
           : window.matchMedia("(prefers-color-scheme: dark)").matches;
 
         document.documentElement.classList.toggle("dark", dark);
