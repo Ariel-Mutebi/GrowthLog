@@ -14,18 +14,24 @@ const { title, CTA, bgLight, bgDark } = Astro.props;
 ---
 
 <HeadLayout {title}>
-  <div class="w-dvw min-h-dvh bg-orange-50 dark:bg-red-950 grid grid-cols-5">
-    <div class="col-span-2 relative isolate">
+  <div
+    class="w-dvw min-h-dvh bg-orange-50 dark:bg-red-950 flex flex-col sm:grid grid-cols-5"
+  >
+    <div class="col-span-3 col-start-3 p-4">
+      <Navbar {title} />
+    </div>
+
+    <div class="row-start-1 row-span-2 col-span-2 relative isolate py-8">
       <Background light={bgLight} dark={bgDark} />
       <h2
-        class="mt-30 font-serif text-lime-100 text-7xl lg:text-8xl
-          font-bold wrap-break-word display-heading">
+        class="sm:mt-30 font-serif text-lime-100 text-6xl md:text-7xl lg:text-8xl
+          font-bold wrap-break-word display-heading"
+      >
         {CTA}
       </h2>
     </div>
 
-    <div class="col-span-3 p-8 flex flex-col gap-8">
-      <Navbar {title} />
+    <div class="col-span-3">
       <slot />
     </div>
   </div>

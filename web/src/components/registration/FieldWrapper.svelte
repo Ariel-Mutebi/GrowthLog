@@ -8,6 +8,6 @@
   const { children }: Props = $props();
 </script>
 
-<div class="flex flex-col gap-3 w-full">
+<div class="flex flex-col gap-1 sm:gap-3 w-full">
   {@render children()}
 </div>

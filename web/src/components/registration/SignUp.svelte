@@ -33,8 +33,8 @@
   });
 </script>
 
-<form use:form class="flex flex-col gap-8 lg:px-8">
-  <div class="flex gap-8 w-full">
+<form use:form class="flex flex-col gap-4 sm:gap-8 p-4 sm:p-8 lg:px-16">
+  <div class="flex gap-4 sm:gap-8 w-full">
     <Field label="First name" name="forename" errors={$errors.forename} />
     <Field label="Last name" name="surname" errors={$errors.surname} />
   </div>

@@ -7,4 +7,4 @@
   const { href, text }: Props = $props();
 </script>
 
-<a {href} class="underline text-zinc-600 dark:text-zinc-400">{text}</a>
+<a {href} class="text-sm lg:text-base underline text-zinc-600 dark:text-zinc-400">{text}</a>

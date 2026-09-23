@@ -9,9 +9,9 @@ const { title } = Astro.props;
 ---
 
 <nav class="w-full flex justify-between items-center">
-  <header class="flex items-center gap-3">
-    <img src="/logo-64.png" class="h-16 w-16" alt="The GrowthLog logo">
-    <h1 class="font-serif text-3xl text-stone-600 dark:text-stone-200">{title}</h1>
+  <header class="flex items-center gap-1 md:gap-2 lg:gap-3">
+    <img src="/logo-64.png" class="h-8 w-8 md:h-16 md:w-16" alt="The GrowthLog logo">
+    <h1 class="font-serif text-xl sm:text-2xl lg:text-3xl text-stone-600 dark:text-stone-200">{title}</h1>
   </header>
 
   <Theme client:load />

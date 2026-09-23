@@ -65,7 +65,7 @@
 {#if hasMounted}
   <div
     transition:fade={{ duration: DURATION }}
-    class="flex items-center gap-2 p-1 md:pr-4 rounded-4xl bg-neutral-100 dark:bg-neutral-800
+    class="flex items-center gap-2 p-1 lg:pr-4 rounded-4xl bg-neutral-100 dark:bg-neutral-800
       text-neutral-800 dark:text-neutral-100 inset-shadow-[2px_2px_0] inset-shadow-neutral-300
       dark:inset-shadow-neutral-600"
   >
@@ -84,7 +84,10 @@
       {@render option('dark', isDark, 'Dark mode', Moon)}
     </fieldset>
 
-    <p class="hidden md:block text-xl text-shadow-[1px_2px_1px] text-shadow-neutral-300 dark:text-shadow-neutral-600">
+    <p
+      class="hidden w-max lg:block text-xl text-shadow-[1px_2px_1px]
+      text-shadow-neutral-300 dark:text-shadow-neutral-600"
+    >
       {isDark ? 'Dark mode' : 'Light mode'}
     </p>
   </div>
