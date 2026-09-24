@@ -5,7 +5,7 @@ import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 async function getFollowers(app: FastifyInstance, userId: string) {
-  const rows = await app.prisma.followUser.findMany({
+  const rows = await app.prisma.follow.findMany({
     where: { followingId: userId },
     select: { follower: { select: { id: true, username: true } } },
   });
@@ -13,7 +13,7 @@ async function getFollowers(app: FastifyInstance, userId: string) {
 }
 
 async function getFollowing(app: FastifyInstance, userId: string) {
-  const rows = await app.prisma.followUser.findMany({
+  const rows = await app.prisma.follow.findMany({
     where: { followerId: userId },
     select: { following: { select: { id: true, username: true } } },
   });
@@ -60,7 +60,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     assertIsLoggedIn(req);
 
     try {
-      await app.prisma.followUser.create({
+      await app.prisma.follow.create({
         data: {
           followerId: req.user.id,
           followingId: req.params.userId,
@@ -83,7 +83,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     assertIsLoggedIn(req);
 
     try {
-      await app.prisma.followUser.delete({
+      await app.prisma.follow.delete({
         where: {
           followerId_followingId: {
             followerId: req.user.id,

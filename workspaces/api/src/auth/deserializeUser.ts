@@ -1,5 +1,5 @@
 import type { PassportUser } from 'fastify';
-import type { PrismaClient } from '../db/client.js';
+import type { PrismaClient } from '@growthlog/db';
 
 /**
  * Confirms the session's user wasn't deleted; returns false in case it was.

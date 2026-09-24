@@ -1,9 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { buildApp } from '../src/app.js';
-import { loadEnv } from '../src/utils/config.js';
 import openapiTS, { astToString, type OpenAPI3 } from 'openapi-typescript';
 
-loadEnv();
 const app = buildApp();
 await app.ready();
 

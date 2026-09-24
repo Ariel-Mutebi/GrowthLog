@@ -1,11 +1,1 @@
-# build output
-dist/
-
-# generated types
 .astro/
-
-# dependencies
-node_modules/
-
-# API client
-src/api/schema.d.ts

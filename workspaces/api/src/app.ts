@@ -13,17 +13,11 @@ import { redisPlugin } from './plugins/redis.js';
 import { sessionPlugin } from './plugins/session.js';
 import { swaggerPlugin } from './plugins/swagger.js';
 import { rateLimitPlugin } from './plugins/rate.js';
+import type { AppEnv } from './types/appEnv.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Overrides for per-test isolation
-type Overrides = Partial<{
-  REDIS_URL: string;
-  DATABASE_URL: string;
-  REDIS_KEY_PREFIX: string;
-}>;
-
-export function buildApp(overrides?: Overrides) {
+export function buildApp(overrides?: Partial<Record<keyof AppEnv, string>>) {
   const app = Fastify({
     logger: {
       level: 'warn',

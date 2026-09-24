@@ -8,7 +8,7 @@ export const sessionPlugin = fp(async (app) => {
     saveUninitialized: false,
     store: new RedisStore({
       client: app.redis,
-      prefix: app.config.REDIS_KEY_PREFIX,
+      prefix: app.config.REDIS_KEY_PREFIX ?? '',
     }),
     cookie: {
       secure: app.config.NODE_ENV === 'production',

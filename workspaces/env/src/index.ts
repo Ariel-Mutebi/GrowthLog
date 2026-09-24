@@ -16,7 +16,7 @@ export function loadEnv<K extends EnvKey, O extends Record<string, string> = Rec
   const subset = Object.fromEntries(keys.map((key) => [key, envDefinitions[key]])) as Subset;
   const schema = z.object(subset);
 
-  const candidate: Record<string, unknown> = { ...keys, ...overrides };
+  const candidate: Record<string, unknown> = { ...process.env, ...overrides };
   const { data: validated, success, error } = schema.safeParse(candidate);
 
   if (!success) {

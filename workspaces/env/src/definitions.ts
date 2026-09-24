@@ -9,8 +9,8 @@ export const envDefinitions = {
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   SESSION_SECRET: hexSecret(64),
   JWT_SECRET: hexSecret(64),
-  REDIS_URL: z.string().regex(/^redis(s)?:\/\/S+/),
-  DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\/S+/),
+  REDIS_URL: z.url().regex(/^redis(s)?:\/\/\S+/),
+  DATABASE_URL: z.url().regex(/^postgres(ql)?:\/\/\S+/),
 } satisfies Record<string, z.ZodTypeAny>;
 
 export type EnvKey = keyof typeof envDefinitions;

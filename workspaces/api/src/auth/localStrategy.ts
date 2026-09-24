@@ -1,4 +1,4 @@
-import type { PrismaClient } from '../db/client.js';
+import type { PrismaClient } from '@growthlog/db';
 import type { RedisClientType } from 'redis';
 import { Strategy } from 'passport-local';
 import { compare, hashSync } from 'bcrypt';

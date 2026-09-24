@@ -3,8 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "tsc -b",
     "predev": "pnpm -w run docker:up",
-    "dev": "tsx watch src/server.js",
+    "dev": "tsx watch src/server.ts",
     "pretest": "pnpm -w run docker:up",
     "test": "tsx tests/setup.ts",
     "posttest": "pnpm -w run docker:down",
