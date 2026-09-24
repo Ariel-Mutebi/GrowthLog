@@ -1,7 +1,7 @@
 {
   "name": "@growthlog/docs",
   "private": true,
-  "main": "dist/server.js",
+  "main": "src/server.ts",
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@growthlog/db": "workspace:*",
+    "@growthlog/env": "workspace:*",
     "@hocuspocus/server": "^4.6.0",
     "jsonwebtoken": "^9.0.3",
     "yjs": "^13.6.32"

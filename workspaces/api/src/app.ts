@@ -6,17 +6,24 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
+import { loadEnv } from '@growthlog/env';
 import { authPlugin } from './plugins/auth.js';
 import { prismaPlugin } from './plugins/prisma.js';
 import { redisPlugin } from './plugins/redis.js';
 import { sessionPlugin } from './plugins/session.js';
 import { swaggerPlugin } from './plugins/swagger.js';
 import { rateLimitPlugin } from './plugins/rate.js';
-import { loadConfig, type EnvOverrides } from './utils/config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function buildApp(overrides?: EnvOverrides) {
+// Overrides for per-test isolation
+type Overrides = Partial<{
+  REDIS_URL: string;
+  DATABASE_URL: string;
+  REDIS_KEY_PREFIX: string;
+}>;
+
+export function buildApp(overrides?: Overrides) {
   const app = Fastify({
     logger: {
       level: 'warn',
@@ -27,7 +34,19 @@ export function buildApp(overrides?: EnvOverrides) {
     },
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  app.decorate('config', loadConfig(overrides));
+  const config = loadEnv(
+    [
+      'API_PORT',
+      'NODE_ENV',
+      'REDIS_URL',
+      'SESSION_SECRET',
+      'JWT_SECRET',
+      'DATABASE_URL',
+    ],
+    overrides,
+  );
+
+  app.decorate('config', config);
   app.register(fastifyHelmet);
   app.register(fastifyCookie);
   app.register(redisPlugin);

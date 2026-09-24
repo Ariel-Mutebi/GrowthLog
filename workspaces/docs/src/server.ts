@@ -1,16 +1,29 @@
 import * as Y from 'yjs';
+import jwt from 'jsonwebtoken';
 import { Server } from '@hocuspocus/server';
-import { prisma } from './prisma.js';
-import { verifyCollabToken } from './auth.js';
-import { config } from './config.js';
+import { loadEnv } from '@growthlog/env';
+import { createPrismaClient } from '@growthlog/db';
+
+interface JWTPayload {
+  sub: string;
+  name: string;
+}
+
+const config = loadEnv([
+  'WS_PORT',
+  'JWT_SECRET',
+  'DATABASE_URL',
+]);
+
+const prisma = createPrismaClient(config.DATABASE_URL);
 
 const server = new Server({
-  port: Number(config.WS_PORT) || 1234,
+  port: config.WS_PORT,
 
   async onAuthenticate({ token, documentName }) {
     let payload;
     try {
-      payload = verifyCollabToken(token);
+      payload = jwt.verify(token, config.JWT_SECRET) as JWTPayload;
     } catch {
       throw new Error('Invalid or expired token');
     }

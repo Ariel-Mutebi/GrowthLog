@@ -1,8 +1,7 @@
-import path from 'node:path';
-import { env } from 'prisma/config';
+import { loadEnv } from '@growthlog/env';
 import type { PrismaConfig } from 'prisma';
 
-process.loadEnvFile(path.resolve(__dirname, '../.env'));
+const { DATABASE_URL } = loadEnv(['DATABASE_URL']);
 
 export default {
   schema: 'prisma/schema.prisma',
@@ -10,6 +9,6 @@ export default {
     path: 'prisma/migrations',
   },
   datasource: {
-    url: env('DATABASE_URL'),
+    url: DATABASE_URL,
   },
 } satisfies PrismaConfig;

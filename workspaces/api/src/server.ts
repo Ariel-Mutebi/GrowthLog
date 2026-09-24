@@ -1,7 +1,5 @@
 import { buildApp } from './app.js';
-import { loadEnv } from './utils/config.js';
 
-loadEnv();
 const app = buildApp();
 
 const shutdown = async () => {
@@ -16,7 +14,7 @@ process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
 try {
-  await app.listen({ port: app.config.PORT, host: '0.0.0.0' });
+  await app.listen({ port: app.config.API_PORT, host: '0.0.0.0' });
 } catch (error) {
   app.log.error(error);
 }

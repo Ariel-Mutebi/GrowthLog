@@ -1,14 +1,15 @@
 {
   "name": "@growthlog/db",
-  "private": true,
-  "main": "src/index.js",
+  "private": "true",
+  "main": "src/index.ts",
   "scripts": {
     "generate": "prisma generate",
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy"
   },
   "devDependencies": {
-    "prisma": "^7.9.1"
+    "prisma": "^7.9.1",
+    "@growthlog/env": "workspace:*"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
