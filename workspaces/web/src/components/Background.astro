@@ -13,7 +13,7 @@ const { light, dark } = Astro.props;
   src={light}
   alt=""
   widths={[640, 1024, 1920]}
-  sizes="(min-width: 640px) 40vw, 100vw"
+  sizes="100dvw"
   format="webp"
   class="absolute inset-0 -z-10 h-full w-full object-cover object-center
     transition-opacity duration-500 ease-in-out opacity-100"
@@ -24,7 +24,7 @@ const { light, dark } = Astro.props;
   src={dark}
   alt=""
   widths={[640, 1024, 1920]}
-  sizes="(min-width: 640px) 40vw, 100vw"
+  sizes="100dvw"
   format="webp"
   class="absolute inset-0 -z-10 h-full w-full object-cover object-center
     transition-opacity duration-500 ease-in-out opacity-0 dark:opacity-100"

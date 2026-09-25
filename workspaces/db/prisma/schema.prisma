@@ -25,6 +25,10 @@ model User {
   likes               Like[]
   comments            Comment[]
   onboardingInterests OnboardingInterest[]
+
+  images   Image[] @relation()
+  avatarId String  @unique
+  avatar   Avatar  @relation(fields: [avatarId], references: [imageId])
 }
 
 model Follow {
@@ -109,4 +113,35 @@ model OnboardingInterest {
   tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([userId, tagId])
+}
+
+enum ImageStatus {
+  PENDING
+  UPLOADED
+  FAILED
+}
+
+model Image {
+  id        String  @id @default(cuid())
+  key       String
+  mimeType  String
+  sizeBytes Int
+  width     Int?
+  height    Int?
+  format    String?
+
+  status    ImageStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  uploaderId String
+  uploader   User   @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  avatar Avatar?
+}
+
+model Avatar {
+  imageId String @id
+  image   Image  @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  user    User?
 }

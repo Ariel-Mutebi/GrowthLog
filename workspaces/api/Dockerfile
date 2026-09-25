@@ -7,6 +7,8 @@ FROM base AS builder
 COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @growthlog/db generate
+RUN pnpm --filter @growthlog/db build
+RUN pnpm --filter @growthlog/env build
 RUN pnpm --filter @growthlog/api build
 RUN pnpm deploy --filter @growthlog/api --prod /out/api
 
