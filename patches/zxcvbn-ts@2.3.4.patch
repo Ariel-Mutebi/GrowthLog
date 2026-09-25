@@ -1,0 +1,8 @@
+diff --git a/dist/esm/frequency_lists.js b/dist/esm/frequency_lists.js
+index 1d97f870a9db4156254078155095e40501d670b3..4c11bf625135f2bb25a6689cb83c6f201da4d88c 100644
+--- a/dist/esm/frequency_lists.js
++++ b/dist/esm/frequency_lists.js
+@@ -1,2 +1,2 @@
+-import frequencyListsJSON from "../data/frequency_lists.json";
++import frequencyListsJSON from "../data/frequency_lists.json" with { type: "json" };
+ export default frequencyListsJSON;

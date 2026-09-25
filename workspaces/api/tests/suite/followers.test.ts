@@ -8,7 +8,7 @@ const env = new TestEnv();
 async function followerIds(cookie: string, ip = '10.0.0.1'): Promise<string[]> {
   const res = await env.app.inject({
     method: 'GET',
-    url: '/v1/users',
+    url: '/api/users',
     headers: { cookie, 'x-forwarded-for': ip },
   });
   return res.json().followers;
@@ -18,7 +18,7 @@ before(() => env.start());
 after(() => env.stop());
 beforeEach(() => env.reset());
 
-describe('PUT /v1/followers/:userId', () => {
+describe('PUT /api/followers/:userId', () => {
   test('follows another user and returns 204', async () => {
     const { cookie: adaCookie } = await authenticatedSession(env);
     const { id: graceId } = await register(
@@ -29,7 +29,7 @@ describe('PUT /v1/followers/:userId', () => {
 
     const res = await env.app.inject({
       method: 'PUT',
-      url: `/v1/followers/${graceId}`,
+      url: `/api/followers/${graceId}`,
       headers: { cookie: adaCookie, 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -46,12 +46,12 @@ describe('PUT /v1/followers/:userId', () => {
 
     await env.app.inject({
       method: 'PUT',
-      url: `/v1/followers/${graceId}`,
+      url: `/api/followers/${graceId}`,
       headers: { cookie: adaCookie, 'x-forwarded-for': '10.0.0.1' },
     });
     const second = await env.app.inject({
       method: 'PUT',
-      url: `/v1/followers/${graceId}`,
+      url: `/api/followers/${graceId}`,
       headers: { cookie: adaCookie, 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -73,7 +73,7 @@ describe('PUT /v1/followers/:userId', () => {
 
     await env.app.inject({
       method: 'PUT',
-      url: `/v1/followers/${graceId}`,
+      url: `/api/followers/${graceId}`,
       headers: { cookie: adaCookie, 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -84,14 +84,14 @@ describe('PUT /v1/followers/:userId', () => {
   test('returns 401 when not logged in', async () => {
     const res = await env.app.inject({
       method: 'PUT',
-      url: '/v1/followers/00000000-0000-0000-0000-000000000000',
+      url: '/api/followers/00000000-0000-0000-0000-000000000000',
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(res.statusCode, 401);
   });
 });
 
-describe('DELETE /v1/followers/:userId', () => {
+describe('DELETE /api/followers/:userId', () => {
   test('unfollows a followed user and returns 204', async () => {
     const { cookie: adaCookie } = await authenticatedSession(env);
     const { id: graceId } = await register(
@@ -102,12 +102,12 @@ describe('DELETE /v1/followers/:userId', () => {
 
     await env.app.inject({
       method: 'PUT',
-      url: `/v1/followers/${graceId}`,
+      url: `/api/followers/${graceId}`,
       headers: { cookie: adaCookie, 'x-forwarded-for': '10.0.0.1' },
     });
     const res = await env.app.inject({
       method: 'DELETE',
-      url: `/v1/followers/${graceId}`,
+      url: `/api/followers/${graceId}`,
       headers: { cookie: adaCookie, 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -124,7 +124,7 @@ describe('DELETE /v1/followers/:userId', () => {
 
     const res = await env.app.inject({
       method: 'DELETE',
-      url: `/v1/followers/${graceId}`,
+      url: `/api/followers/${graceId}`,
       headers: { cookie: adaCookie, 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -146,12 +146,12 @@ describe('DELETE /v1/followers/:userId', () => {
 
     await env.app.inject({
       method: 'PUT',
-      url: `/v1/followers/${graceId}`,
+      url: `/api/followers/${graceId}`,
       headers: { cookie: adaCookie, 'x-forwarded-for': '10.0.0.1' },
     });
     await env.app.inject({
       method: 'DELETE',
-      url: `/v1/followers/${graceId}`,
+      url: `/api/followers/${graceId}`,
       headers: { cookie: adaCookie, 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -162,7 +162,7 @@ describe('DELETE /v1/followers/:userId', () => {
   test('returns 401 when not logged in', async () => {
     const res = await env.app.inject({
       method: 'DELETE',
-      url: '/v1/followers/00000000-0000-0000-0000-000000000000',
+      url: '/api/followers/00000000-0000-0000-0000-000000000000',
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(res.statusCode, 401);

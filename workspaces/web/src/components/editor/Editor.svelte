@@ -28,7 +28,7 @@
   onMount(async () => {
     try {
       const currentUser = await getCurrentUser();
-      const { data: token } = await client.GET('/v1/collab');
+      const { data: token } = await client.GET('/api/collab');
       if (!currentUser || !token) throw new Error('Unauthenticated');
 
       ydoc = new Y.Doc();

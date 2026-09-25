@@ -9,7 +9,7 @@ before(() => env.start());
 after(() => env.stop());
 beforeEach(() => env.reset());
 
-describe('POST /v1/users', () => {
+describe('POST /api/users', () => {
   test('creates a user and returns 201 with the user body (no password)', async () => {
     const { res } = await register(env);
 
@@ -46,12 +46,12 @@ describe('POST /v1/users', () => {
   });
 });
 
-describe('GET /v1/users (self)', () => {
+describe('GET /api/users (self)', () => {
   test('returns the authenticated user with follower id arrays', async () => {
     const { cookie } = await authenticatedSession(env);
     const res = await env.app.inject({
       method: 'GET',
-      url: '/v1/users',
+      url: '/api/users',
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -67,14 +67,14 @@ describe('GET /v1/users (self)', () => {
   test('returns 401 when not logged in', async () => {
     const res = await env.app.inject({
       method: 'GET',
-      url: '/v1/users',
+      url: '/api/users',
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(res.statusCode, 401);
   });
 });
 
-describe('GET /v1/users/:userId', () => {
+describe('GET /api/users/:userId', () => {
   test('returns the target user without email or password', async () => {
     const { id: graceId } = await register(
       env,
@@ -84,7 +84,7 @@ describe('GET /v1/users/:userId', () => {
 
     const res = await env.app.inject({
       method: 'GET',
-      url: `/v1/users/${graceId}`,
+      url: `/api/users/${graceId}`,
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -98,7 +98,7 @@ describe('GET /v1/users/:userId', () => {
   test('returns 404 for an unknown userId', async () => {
     const res = await env.app.inject({
       method: 'GET',
-      url: '/v1/users/00000000-0000-0000-0000-000000000000',
+      url: '/api/users/00000000-0000-0000-0000-000000000000',
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(res.statusCode, 404);
@@ -118,27 +118,27 @@ describe('GET /v1/users/:userId', () => {
 
     await env.app.inject({
       method: 'DELETE',
-      url: '/v1/users',
+      url: '/api/users',
       payload: { currentPassword: STRONG_PASSWORD },
       headers: { cookie: graceCookie, 'x-forwarded-for': '10.0.0.2' },
     });
 
     const res = await env.app.inject({
       method: 'GET',
-      url: `/v1/users/${graceId}`,
+      url: `/api/users/${graceId}`,
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(res.statusCode, 404, 'soft-deleted user should not be found');
   });
 });
 
-describe('GET /v1/users/search', () => {
+describe('GET /api/users/search', () => {
   test('finds users matching a single name term', async () => {
     await register(env, { email: 'grace@example.com', username: 'grace-hopper' }, '10.0.0.2');
 
     const res = await env.app.inject({
       method: 'GET',
-      url: '/v1/users/search?name=grace',
+      url: '/api/users/search?name=grace',
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -162,7 +162,7 @@ describe('GET /v1/users/search', () => {
 
     const res = await env.app.inject({
       method: 'GET',
-      url: '/v1/users/search?name=Grace+Hopper',
+      url: '/api/users/search?name=Grace+Hopper',
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -175,7 +175,7 @@ describe('GET /v1/users/search', () => {
   test('returns 404 when no users match', async () => {
     const res = await env.app.inject({
       method: 'GET',
-      url: '/v1/users/search?name=doesnotexist',
+      url: '/api/users/search?name=doesnotexist',
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(res.statusCode, 404);
@@ -185,7 +185,7 @@ describe('GET /v1/users/search', () => {
     await register(env);
     const res = await env.app.inject({
       method: 'GET',
-      url: '/v1/users/search?name=Ada&limit=20',
+      url: '/api/users/search?name=Ada&limit=20',
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -200,7 +200,7 @@ describe('GET /v1/users/search', () => {
 
     const page1 = await env.app.inject({
       method: 'GET',
-      url: '/v1/users/search?name=Ada&limit=2',
+      url: '/api/users/search?name=Ada&limit=2',
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(page1.statusCode, 200);
@@ -210,7 +210,7 @@ describe('GET /v1/users/search', () => {
 
     const page2 = await env.app.inject({
       method: 'GET',
-      url: `/v1/users/search?name=Ada&limit=2&cursor=${nextCursor}`,
+      url: `/api/users/search?name=Ada&limit=2&cursor=${nextCursor}`,
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(page2.statusCode, 200);
@@ -226,12 +226,12 @@ describe('GET /v1/users/search', () => {
   });
 });
 
-describe('PATCH /v1/users', () => {
+describe('PATCH /api/users', () => {
   test('updates non-sensitive fields without currentPassword', async () => {
     const { cookie } = await authenticatedSession(env);
     const res = await env.app.inject({
       method: 'PATCH',
-      url: '/v1/users',
+      url: '/api/users',
       payload: { forename: 'Augusta' },
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
@@ -244,7 +244,7 @@ describe('PATCH /v1/users', () => {
     const { cookie } = await authenticatedSession(env);
     const res = await env.app.inject({
       method: 'PATCH',
-      url: '/v1/users',
+      url: '/api/users',
       payload: { email: 'ada-new@example.com', currentPassword: STRONG_PASSWORD },
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
@@ -257,7 +257,7 @@ describe('PATCH /v1/users', () => {
     const { cookie } = await authenticatedSession(env);
     const res = await env.app.inject({
       method: 'PATCH',
-      url: '/v1/users',
+      url: '/api/users',
       payload: { email: 'ada-new@example.com', currentPassword: 'wrong-password-here-123' },
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
@@ -269,7 +269,7 @@ describe('PATCH /v1/users', () => {
     const { cookie } = await authenticatedSession(env);
     const res = await env.app.inject({
       method: 'PATCH',
-      url: '/v1/users',
+      url: '/api/users',
       payload: { password: '12345', currentPassword: STRONG_PASSWORD },
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
@@ -281,7 +281,7 @@ describe('PATCH /v1/users', () => {
     const { cookie } = await authenticatedSession(env);
     const res = await env.app.inject({
       method: 'PATCH',
-      url: '/v1/users',
+      url: '/api/users',
       payload: { forename: 'Augusta' },
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
@@ -292,7 +292,7 @@ describe('PATCH /v1/users', () => {
   test('returns 401 when not logged in', async () => {
     const res = await env.app.inject({
       method: 'PATCH',
-      url: '/v1/users',
+      url: '/api/users',
       payload: { forename: 'Augusta' },
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });
@@ -300,12 +300,12 @@ describe('PATCH /v1/users', () => {
   });
 });
 
-describe('DELETE /v1/users', () => {
+describe('DELETE /api/users', () => {
   test('soft-deletes the account and destroys the session', async () => {
     const { cookie } = await authenticatedSession(env);
     const res = await env.app.inject({
       method: 'DELETE',
-      url: '/v1/users',
+      url: '/api/users',
       payload: { currentPassword: STRONG_PASSWORD },
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
@@ -315,7 +315,7 @@ describe('DELETE /v1/users', () => {
 
     const after = await env.app.inject({
       method: 'GET',
-      url: '/v1/users',
+      url: '/api/users',
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(after.statusCode, 401, 'destroyed session must not authenticate');
@@ -325,7 +325,7 @@ describe('DELETE /v1/users', () => {
     const { cookie } = await authenticatedSession(env);
     const res = await env.app.inject({
       method: 'DELETE',
-      url: '/v1/users',
+      url: '/api/users',
       payload: { currentPassword: 'wrong-password-here-123' },
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
@@ -336,7 +336,7 @@ describe('DELETE /v1/users', () => {
   test('returns 401 when not logged in', async () => {
     const res = await env.app.inject({
       method: 'DELETE',
-      url: '/v1/users',
+      url: '/api/users',
       payload: { currentPassword: STRONG_PASSWORD },
       headers: { 'x-forwarded-for': '10.0.0.1' },
     });

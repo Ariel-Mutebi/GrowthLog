@@ -22,6 +22,6 @@ export const swaggerPlugin = fp(async (app) => {
 
   if (app.config.NODE_ENV === 'development') {
     const { default: fastifySwaggerUi } = await import('@fastify/swagger-ui');
-    app.register(fastifySwaggerUi, { routePrefix: '/v1/docs' });
+    app.register(fastifySwaggerUi, { routePrefix: '/api/docs' });
   }
 });

@@ -122,7 +122,7 @@ describe('soft-delete restore', () => {
 
     await env.app.inject({
       method: 'DELETE',
-      url: '/v1/users',
+      url: '/api/users',
       payload: { currentPassword: STRONG_PASSWORD },
       headers: { cookie: firstCookie, 'x-forwarded-for': '10.0.0.1' },
     });
@@ -135,7 +135,7 @@ describe('soft-delete restore', () => {
     // The restored session must be able to authenticate.
     const profile = await env.app.inject({
       method: 'GET',
-      url: '/v1/users',
+      url: '/api/users',
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(profile.statusCode, 200, 'restored account must authenticate');
@@ -164,7 +164,7 @@ describe('logout', () => {
 
     const res = await env.app.inject({
       method: 'DELETE',
-      url: '/v1/sessions',
+      url: '/api/sessions',
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
 
@@ -173,7 +173,7 @@ describe('logout', () => {
 
     const after = await env.app.inject({
       method: 'GET',
-      url: '/v1/users',
+      url: '/api/users',
       headers: { cookie, 'x-forwarded-for': '10.0.0.1' },
     });
     assert.equal(after.statusCode, 401, 'destroyed session must not authenticate');

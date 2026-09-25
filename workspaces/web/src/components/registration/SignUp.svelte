@@ -17,7 +17,7 @@
     extend: validator({ schema }),
     onSubmit: async (body) => {
       try {
-        const { data, error } = await client.POST('/v1/users', { body });
+        const { data, error } = await client.POST('/api/users', { body });
 
         if (error) {
           return toast.error(error.error, { description: error.message });

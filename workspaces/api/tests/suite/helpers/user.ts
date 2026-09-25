@@ -20,7 +20,7 @@ export async function register(
 ) {
   const res = await env.app.inject({
     method: 'POST',
-    url: '/v1/users',
+    url: '/api/users',
     payload: newUser(over),
     headers: { 'x-forwarded-for': ip },
   });
@@ -35,7 +35,7 @@ export async function login(
 ) {
   const res = await env.app.inject({
     method: 'POST',
-    url: '/v1/sessions',
+    url: '/api/sessions',
     payload: { email, password },
     headers: { 'x-forwarded-for': ip },
   });

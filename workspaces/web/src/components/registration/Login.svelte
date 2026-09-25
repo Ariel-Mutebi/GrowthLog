@@ -18,7 +18,7 @@
   const { form } = createForm<Data>({
     onSubmit: async (body)  => {
       try {
-        const { data, error } = await client.POST('/v1/sessions', { body });
+        const { data, error } = await client.POST('/api/sessions', { body });
 
         if (error) {
           return toast.error(error.error, { description: error.message });

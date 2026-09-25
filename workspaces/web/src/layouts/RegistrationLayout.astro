@@ -2,12 +2,13 @@
 import HeadLayout from "./HeadLayout.astro";
 import Background from "../components/Background.astro";
 import Navbar from "../components/registration/Navbar.astro";
+import type { ImageMetadata } from "astro";
 
 interface Props {
   title: string;
   CTA: string;
-  bgLight: string;
-  bgDark: string;
+  bgLight: ImageMetadata;
+  bgDark: ImageMetadata;
 }
 
 const { title, CTA, bgLight, bgDark } = Astro.props;
