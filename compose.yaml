@@ -19,7 +19,7 @@ services:
   
   minio:
     container_name: GrowthLogMinio
-    image: minio/minio:latest
+    image: pgsty/minio:latest
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"

@@ -87,7 +87,7 @@ services:
 
   minio:
     container_name: GrowthLogMinio
-    image: minio/minio:latest
+    image: pgsty/minio:latest
     command: server /data
     env_file:
       - .env
