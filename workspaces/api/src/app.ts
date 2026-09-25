@@ -13,11 +13,12 @@ import { redisPlugin } from './plugins/redis.js';
 import { sessionPlugin } from './plugins/session.js';
 import { swaggerPlugin } from './plugins/swagger.js';
 import { rateLimitPlugin } from './plugins/rate.js';
-import type { AppEnv } from './types/appEnv.js';
+import type { Config } from './types/config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+type Overrides = Partial<Record<keyof Config, string>>;
 
-export function buildApp(overrides?: Partial<Record<keyof AppEnv, string>>) {
+export function buildApp(overrides?: Overrides) {
   const app = Fastify({
     logger: {
       level: 'warn',
@@ -55,7 +56,7 @@ export function buildApp(overrides?: Partial<Record<keyof AppEnv, string>>) {
    * tree under the `/api` namespace, using directory names as route prefixes.
    */
   app.register(autoload, {
-    dir: join(__dirname, './routes'),
+    dir: join(__dirname, 'routes'),
     dirNameRoutePrefix: true,
     options: { prefix: 'api/' },
   });
