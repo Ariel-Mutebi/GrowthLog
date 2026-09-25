@@ -6,6 +6,6 @@
   "include": [
     "src",
     "tests",
-    "schema"
+    "openapi"
   ]
 }

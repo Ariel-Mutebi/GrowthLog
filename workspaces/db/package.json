@@ -1,6 +1,7 @@
 {
   "name": "@growthlog/db",
-  "private": "true",
+  "private": true,
+  "type": "module",
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "scripts": {

@@ -1,10 +1,9 @@
 {
   "name": "@growthlog/docs",
   "private": true,
-  "main": "src/server.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -b",
     "predev": "pnpm -w run docker:up",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js"

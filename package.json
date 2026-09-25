@@ -13,14 +13,18 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.8.0",
+    "eslint": "^10.11.0",
     "eslint-plugin-import-x": "^4.17.1",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
-    "typescript-eslint": "^8.66.0"
+    "lint-staged": "^17.5.1",
+    "typescript-eslint": "^8.70.1"
   },
   "lint-staged": {
-    "api/src/**/*.ts": ["eslint --fix"],
-    "web/src/**/*.ts": ["eslint --fix"]
+    "api/src/**/*.ts": [
+      "eslint --fix"
+    ],
+    "web/src/**/*.ts": [
+      "eslint --fix"
+    ]
   }
 }
