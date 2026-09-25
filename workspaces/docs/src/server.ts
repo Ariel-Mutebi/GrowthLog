@@ -21,7 +21,7 @@ const server = new Server({
   port: config.DOCS_PORT,
 
   async onAuthenticate({ token, documentName }) {
-    let payload;
+    let payload: JWTPayload;
     try {
       payload = jwt.verify(token, config.JWT_SECRET) as JWTPayload;
     } catch {

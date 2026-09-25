@@ -234,6 +234,9 @@ importers:
       '@growthlog/env':
         specifier: workspace:*
         version: link:../env
+      '@sinclair/typebox':
+        specifier: ^0.34.52
+        version: 0.34.52
       fastify:
         specifier: ^5.12.5
         version: 5.12.5

@@ -24,6 +24,7 @@ export function buildApp() {
   const config = loadEnv([
     'NODE_ENV',
     'IMAGES_PORT',
+    'JWT_SECRET',
     'DATABASE_URL',
     'MINIO_PUBLIC_ENDPOINT',
     'MINIO_INTERNAL_ENDPOINT',
