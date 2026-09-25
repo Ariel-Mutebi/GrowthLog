@@ -11,14 +11,14 @@
   "dependencies": {
     "@growthlog/db": "workspace:*",
     "@growthlog/env": "workspace:*",
-    "@hocuspocus/server": "^4.6.0",
+    "@hocuspocus/server": "^4.7.0",
     "jsonwebtoken": "^9.0.3",
-    "yjs": "^13.6.32"
+    "yjs": "^13.6.33"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^25.9.5",
-    "tsx": "^4.23.8",
-    "typescript": "^6.0.3"
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   }
 }
