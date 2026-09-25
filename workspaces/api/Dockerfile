@@ -1,4 +1,3 @@
-# Build with repo root as context
 FROM node:25-alpine AS base
 RUN corepack enable
 WORKDIR /repo

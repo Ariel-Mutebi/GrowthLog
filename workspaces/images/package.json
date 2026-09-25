@@ -5,6 +5,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1139.0",
     "@aws-sdk/s3-request-presigner": "^3.1139.0",
+    "@fastify/autoload": "^6.5.0",
+    "@fastify/helmet": "^13.1.1",
     "@growthlog/db": "workspace:*",
     "@growthlog/env": "workspace:*",
     "fastify": "^5.12.5",

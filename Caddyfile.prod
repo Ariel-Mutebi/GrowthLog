@@ -1,9 +1,9 @@
 growthlog.com {
 	handle /docs/* {
-		reverse_proxy collab:1234
+		reverse_proxy docs:{$DOCS_PORT}
 	}
 
 	handle {
-		reverse_proxy api:3000
+		reverse_proxy api:{$API_PORT}
 	}
 }

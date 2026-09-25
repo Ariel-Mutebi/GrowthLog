@@ -219,6 +219,12 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.1139.0
         version: 3.1139.0
+      '@fastify/autoload':
+        specifier: ^6.5.0
+        version: 6.5.0
+      '@fastify/helmet':
+        specifier: ^13.1.1
+        version: 13.1.1
       '@growthlog/db':
         specifier: workspace:*
         version: link:../db

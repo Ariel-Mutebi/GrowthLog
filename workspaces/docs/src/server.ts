@@ -10,7 +10,7 @@ interface JWTPayload {
 }
 
 const config = loadEnv([
-  'WS_PORT',
+  'DOCS_PORT',
   'JWT_SECRET',
   'DATABASE_URL',
 ]);
@@ -18,7 +18,7 @@ const config = loadEnv([
 const prisma = createPrismaClient(config.DATABASE_URL);
 
 const server = new Server({
-  port: config.WS_PORT,
+  port: config.DOCS_PORT,
 
   async onAuthenticate({ token, documentName }) {
     let payload;

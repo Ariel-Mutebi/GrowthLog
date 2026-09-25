@@ -14,7 +14,7 @@ services:
     networks: [back-tier]
     tty: true
 
-  collab:
+  docs:
     container_name: GrowthLogDocs
     build:
       context: .
@@ -25,6 +25,21 @@ services:
       postgres:
         condition: service_started
       redis:
+        condition: service_started
+    networks: [back-tier]
+    tty: true
+
+  images:
+    container_name: GrowthLogImages
+    build:
+      context: .
+      dockerfile: workspaces/images/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_started
+      minio:
         condition: service_started
     networks: [back-tier]
     tty: true
@@ -42,7 +57,11 @@ services:
       - caddy-config:/config
     depends_on:
       - api
-      - collab
+      - docs
+      - images
+      - minio
+    env_file:
+      - .env
     networks: [back-tier]
 
   postgres:
@@ -66,6 +85,18 @@ services:
       driver: none
     networks: [back-tier]
 
+  minio:
+    container_name: GrowthLogMinio
+    image: minio/minio:latest
+    command: server /data
+    env_file:
+      - .env
+    volumes:
+      - minio-data:/data
+    logging:
+      driver: none
+    networks: [back-tier]
+
 networks:
   back-tier:
 
@@ -74,3 +105,4 @@ volumes:
   redis-data:
   caddy-data:
   caddy-config:
+  minio-data:
