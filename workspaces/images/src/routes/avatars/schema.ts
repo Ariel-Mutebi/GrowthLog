@@ -18,6 +18,10 @@ export const RequestUpload = {
     }),
   }),
   response: {
+    200: Type.Object({
+      imageId: Type.String(),
+      uploadUrl: Type.String(),
+    }),
     400: BadRequestResponse,
     401: UnauthorizedResponse,
   },

@@ -22,7 +22,7 @@ export const envDefinitions = {
   MINIO_ROOT_USER: hexSecret(64),
   MINIO_ROOT_PASSWORD: hexSecret(64),
   MINIO_AVATAR_BUCKET: z.string(),
-
+  PRESIGNED_URL_EXPIRY_SECONDS: z.coerce.number().positive(),
 } satisfies Record<string, z.ZodType>;
 
 export type EnvKey = keyof typeof envDefinitions;

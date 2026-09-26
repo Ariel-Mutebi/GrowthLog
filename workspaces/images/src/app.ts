@@ -7,6 +7,7 @@ import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import { loadEnv } from '@growthlog/env';
 import { prismaPlugin } from './plugins/prisma.js';
+import { minioPlugin } from './plugins/minio.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -31,11 +32,13 @@ export function buildApp() {
     'MINIO_ROOT_USER',
     'MINIO_ROOT_PASSWORD',
     'MINIO_AVATAR_BUCKET',
+    'PRESIGNED_URL_EXPIRY_SECONDS',
   ]);
 
   app.decorate('config', config);
   app.register(fastifyHelmet);
   app.register(prismaPlugin);
+  app.register(minioPlugin);
 
   app.register(autoload, {
     dir: join(__dirname, 'routes'),
