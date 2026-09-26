@@ -1,36 +1,31 @@
 import { Confirm, RequestUpload } from './schema.js';
 import { decodeJWT } from '../../utils/decodeJWT.js';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
-  PutObjectCommand,
-  HeadObjectCommand,
-  DeleteObjectCommand,
-  GetObjectCommand,
-} from '@aws-sdk/client-s3';
-import type {
-  HeadObjectCommandInput,
-  HeadObjectCommandOutput,
-  GetObjectCommandOutput,
-} from '@aws-sdk/client-s3';
-import imageSize from 'image-size';
-import { fileTypeFromBuffer } from 'file-type';
-
-import type { Image, ImageWhereUniqueInput } from '@growthlog/db';
+  AvatarService,
+  FileTooLargeError,
+  FileTypeMismatchError,
+  ImageNotFoundError,
+  ObjectNotUploadedError,
+  UploadAlreadyFailedError,
+} from './service.js';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
+  const service = new AvatarService({
+    prisma: app.prisma,
+    minio: app.minio,
+    presigner: app.minioPresign,
+    bucket: app.config.MINIO_AVATAR_BUCKET,
+    maxSizeBytes: app.config.MAX_AVATAR_SIZE_BYTES,
+    presignedUrlExpirySeconds: app.config.PRESIGNED_URL_EXPIRY_SECONDS,
+  });
+
+  const maxSizeMegabytes = app.config.MAX_AVATAR_SIZE_BYTES / 1024 ** 2;
+
   app.post('request-upload', {
     schema: RequestUpload,
   }, async (req, res) => {
     const { token, mimeType, sizeBytes } = req.body;
-
-    if (sizeBytes > app.config.MAX_AVATAR_SIZE_BYTES) {
-      return res.code(400).send({
-        error: 'BadRequest',
-        message: `The maximum file size for an avatar is ${app.config.MAX_AVATAR_SIZE_BYTES / 1024 ** 2}MB`,
-      });
-    }
-
     const payload = decodeJWT(token, app.config.JWT_SECRET);
 
     if (!payload) {
@@ -40,39 +35,24 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       });
     }
 
-    const uploaderId = payload.sub;
-    const key = `${app.config.MINIO_AVATAR_BUCKET}/${uploaderId}/${Date.now()}`;
+    try {
+      const response = await service.requestUpload(payload.sub, mimeType, sizeBytes);
+      return res.code(200).send(response);
+    } catch (error) {
+      if (error instanceof FileTooLargeError) {
+        return res.code(400).send({
+          error: 'BadRequest',
+          message: `Max avatar size is ${maxSizeMegabytes}MB`,
+        });
+      }
 
-    const imageId = await app.prisma.$transaction(async (client) => {
-      const image = await client.image.create({
-        data: {
-          key,
-          mimeType,
-          sizeBytes,
-          uploaderId,
-        },
+      app.log.error(error);
+
+      return res.code(500).send({
+        error: 'InternalServerError',
+        message: 'Something went wrong. Please try again',
       });
-
-      await client.avatar.create({
-        data: {
-          imageId: image.id,
-        },
-      });
-
-      return image.id;
-    });
-
-    const uploadUrl = await getSignedUrl(
-      app.minioPresign,
-      new PutObjectCommand({
-        Bucket: app.config.MINIO_AVATAR_BUCKET,
-        Key: key,
-        ContentType: mimeType,
-      }),
-      { expiresIn: app.config.PRESIGNED_URL_EXPIRY_SECONDS },
-    );
-
-    return res.code(200).send({ imageId, uploadUrl });
+    }
   });
 
   app.post(':id/confirm', {
@@ -87,123 +67,50 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       });
     }
 
-    const where = {
-      id: req.params.id,
-      uploaderId: payload.sub,
-    } satisfies ImageWhereUniqueInput;
-
-    const image = await app.prisma.image.findFirst({ where });
-
-    if (!image) {
-      return res.code(404).send({
-        error: 'NotFound',
-        message: 'No image with this id was found',
-      });
-    }
-
-    if (image.status === 'UPLOADED') {
-      return res.code(200).send(image);
-    }
-
-    if (image.status === 'FAILED') {
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Avatar upload failed. Call POST request-upload and retry.',
-      });
-    }
-
-    let head: HeadObjectCommandOutput;
-
-    const input = {
-      Bucket: app.config.MINIO_AVATAR_BUCKET,
-      Key: image.key,
-    } satisfies HeadObjectCommandInput;
-
     try {
-      head = await app.minio.send(new HeadObjectCommand(input));
-    } catch {
-      await app.prisma.image.update({
-        where,
-        data: {
-          status: 'FAILED',
-        },
-      });
-
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Avatar upload failed. Call POST request-upload and retry.',
-      });
-    }
-
-    if (!head.ContentLength || head.ContentLength > app.config.MAX_AVATAR_SIZE_BYTES) {
-      try {
-        await app.prisma.image.update({
-          where,
-          data: {
-            status: 'FAILED',
-          },
-        });
-
-        await app.minio.send(new DeleteObjectCommand(input)); 
-
-        return res.code(500).send({
-          error: 'InternalServerError',
-          message: `The maximum file size for an avatar is ${app.config.MAX_AVATAR_SIZE_BYTES / 1024 ** 2}MB`,
-        });
-      } catch {
-        return res.code(500).send({
-          error: 'InternalServerError',
-          message: 'Failed to update image status or delete oversized image. Please retry.',
+      const image = await service.confirmUpload(req.params.id, payload.sub);
+      return res.code(200).send(image);
+    } catch (error) {
+      if (error instanceof ImageNotFoundError) {
+        return res.code(404).send({
+          error: 'NotFound',
+          message: 'No image with this id was found',
         });
       }
-    }
 
-    let object: GetObjectCommandOutput;
+      if (error instanceof UploadAlreadyFailedError) {
+        return res.code(409).send({
+          error: 'Conflict',
+          message: 'Upload failed previously; call request-upload again',
+        });
+      }
 
-    try {
-      object = await app.minio.send(
-        new GetObjectCommand({
-          ...input,
-          Range: 'bytes=0-65535', // 64KB
-        }),
-      );
-    } catch {
+      if (error instanceof ObjectNotUploadedError) {
+        return res.code(422).send({
+          error: 'UnprocessableEntity',
+          message: 'The upload was never received by storage',
+        });
+      }
+
+      if (error instanceof FileTooLargeError) {
+        return res.code(413).send({
+          error: 'PayloadTooLarge',
+          message: `Max avatar size is ${maxSizeMegabytes}MB`,
+        });
+      }
+
+      if (error instanceof FileTypeMismatchError) {
+        return res.code(422).send({
+          error: 'UnprocessableEntity',
+          message: 'The type of the uploaded file does not match the declared type',
+        });
+      }
+
       return res.code(500).send({
         error: 'InternalServerError',
-        message: 'Failed to load avatar. Please retry.',
+        message: 'Something went wrong, please retry the request',
       });
     }
-
-    const buffer = Buffer.from(await object.Body!.transformToByteArray());
-    const detectedType = await fileTypeFromBuffer(buffer);
-
-    if (!detectedType || detectedType.mime != image.mimeType) {
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'The mime type that you declared differs from the one that you uploaded',
-      });
-    }
-
-    let verifiedImage: Image;
-    const { height, width } = imageSize(buffer);
-    
-    try {
-      verifiedImage = await app.prisma.image.update({
-        where,
-        data: {
-          width,
-          height,
-          status: 'UPLOADED',
-        },
-      });
-    } catch {
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Failed to update image properties. Please retry',
-      });
-    }
-
-    return res.code(200).send(verifiedImage);
   });
 };
 

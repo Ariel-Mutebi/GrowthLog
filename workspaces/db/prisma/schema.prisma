@@ -27,8 +27,8 @@ model User {
   onboardingInterests OnboardingInterest[]
 
   images   Image[] @relation()
-  avatarId String  @unique
-  avatar   Avatar  @relation(fields: [avatarId], references: [imageId])
+  avatarId String? @unique
+  avatar   Avatar? @relation(fields: [avatarId], references: [imageId])
 }
 
 model Follow {
@@ -122,13 +122,12 @@ enum ImageStatus {
 }
 
 model Image {
-  id        String  @id @default(cuid())
+  id        String @id @default(cuid())
   key       String
   mimeType  String
   sizeBytes Int
   width     Int?
   height    Int?
-  format    String?
 
   status    ImageStatus @default(PENDING)
   createdAt DateTime    @default(now())

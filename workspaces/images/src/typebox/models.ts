@@ -9,7 +9,6 @@ export const ImageModel = Type.Object({
   sizeBytes: Type.Number(),
   width: Type.Union([Type.Number(), Type.Null()]),
   height: Type.Union([Type.Number(), Type.Null()]),
-  format: Type.Union([Type.String(), Type.Null()]),
   status: Type.String(),
   createdAt: Type.Date(),
   updatedAt: Type.Date(),

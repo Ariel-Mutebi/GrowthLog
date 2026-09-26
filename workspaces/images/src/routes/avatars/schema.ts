@@ -5,6 +5,9 @@ import {
   NotFound,
   Unauthorized,
   InternalServerError,
+  Conflict,
+  PayloadTooLarge,
+  UnprocessableEntity,
 } from '../../typebox/responses.js';
 import { ImageModel } from '../../typebox/models.js';
 
@@ -25,6 +28,7 @@ export const RequestUpload = {
     }),
     400: BadRequest,
     401: Unauthorized,
+    500: InternalServerError,
   },
 } satisfies FastifySchema;
 
@@ -39,6 +43,9 @@ export const Confirm = {
     200: ImageModel,
     401: Unauthorized,
     404: NotFound,
+    409: Conflict,
+    413: PayloadTooLarge,
+    422: UnprocessableEntity,
     500: InternalServerError,
   },
 } satisfies FastifySchema;

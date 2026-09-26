@@ -19,3 +19,18 @@ export const InternalServerError = Type.Object({
   error: Type.Literal('InternalServerError'),
   message: Type.String(),
 });
+
+export const UnprocessableEntity = Type.Object({
+  error: Type.Literal('UnprocessableEntity'),
+  message: Type.String(),
+});
+
+export const PayloadTooLarge = Type.Object({
+  error: Type.Literal('PayloadTooLarge'),
+  message: Type.String(),
+});
+
+export const Conflict = Type.Object({
+  error: Type.Literal('Conflict'),
+  message: Type.String(),
+});
