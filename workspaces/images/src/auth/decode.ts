@@ -7,7 +7,7 @@ const JWTPayload = Type.Object({
   name: Type.String(),
 });
 
-type JWTPayload = Static<typeof JWTPayload>;
+export type JWTPayload = Static<typeof JWTPayload>;
 
 export function decodeJWT(token: string, secret: string): JWTPayload | null {
   let decoded: unknown;

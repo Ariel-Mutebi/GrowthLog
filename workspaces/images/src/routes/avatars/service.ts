@@ -1,3 +1,4 @@
+import { randomUUIDv7 } from 'node:crypto';
 import {
   PutObjectCommand,
   HeadObjectCommand,
@@ -8,6 +9,7 @@ import imageSize from 'image-size';
 import { fileTypeFromBuffer } from 'file-type';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
+import type { FastifyLogFn } from 'fastify';
 import type { PrismaClient, Image } from '@growthlog/db';
 import type { S3Client, HeadObjectCommandOutput } from '@aws-sdk/client-s3';
 
@@ -24,6 +26,7 @@ interface AvatarServiceParams {
   bucket: string;
   maxSizeBytes: number;
   presignedUrlExpirySeconds: number;
+  logError: FastifyLogFn;
 }
 
 export class AvatarService {
@@ -33,6 +36,7 @@ export class AvatarService {
   private readonly bucket: string;
   private readonly maxSizeBytes: number;
   private readonly presignedUrlExpirySeconds: number;
+  private readonly logError: FastifyLogFn;
 
   constructor(params: AvatarServiceParams)  {
     this.prisma = params.prisma;
@@ -41,12 +45,13 @@ export class AvatarService {
     this.bucket = params.bucket;
     this.maxSizeBytes = params.maxSizeBytes;
     this.presignedUrlExpirySeconds = params.presignedUrlExpirySeconds;
+    this.logError = params.logError;
   }
 
   public async requestUpload(uploaderId: string, mimeType: string, sizeBytes: number) {
     if (sizeBytes > this.maxSizeBytes) throw new FileTooLargeError();
 
-    const key = `${this.bucket}/${uploaderId}/${Date.now()}`;
+    const key = `${uploaderId}/${randomUUIDv7()}`;
 
     const imageId = await this.prisma.$transaction(async (transactor) => {
       const image = await transactor.image.create({
@@ -130,13 +135,10 @@ export class AvatarService {
       throw new ObjectNotUploadedError();
     }
 
-    const size = head.ContentLength!;
+    if (head.ContentLength === undefined) throw new ObjectNotUploadedError();
+    if (head.ContentLength > this.maxSizeBytes) throw new FileTooLargeError();
 
-    if (size > this.maxSizeBytes) {
-      throw new FileTooLargeError();
-    }
-
-    return size;
+    return head.ContentLength;
   }
 
   private async verifyFileContent(key: string, declaredMimeType: string) {
@@ -225,22 +227,26 @@ export class AvatarService {
   }
 
   private async handleError(image: Image, error: unknown) {
-    await this.prisma.image.update({
-      where: {
-        id: image.id,
-      },
-      data: {
-        status: 'FAILED',
-      },
-    });
-
-    if (error instanceof FileTooLargeError || error instanceof FileTypeMismatchError) {
-      await this.minio.send(
-        new DeleteObjectCommand({
-          Bucket: this.bucket,
-          Key: image.key,
-        }),
-      );
+    try {
+      await this.prisma.image.update({
+        where: {
+          id: image.id,
+        },
+        data: {
+          status: 'FAILED',
+        },
+      });
+      
+      if (error instanceof FileTooLargeError || error instanceof FileTypeMismatchError) {
+        await this.minio.send(
+          new DeleteObjectCommand({
+            Bucket: this.bucket,
+            Key: image.key,
+          }),
+        );
+      }
+    } catch (error) {
+      this.logError(error);
     }
   }
 }

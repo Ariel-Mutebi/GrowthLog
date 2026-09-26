@@ -1,5 +1,5 @@
 import { Confirm, RequestUpload } from './schema.js';
-import { decodeJWT } from '../../utils/decodeJWT.js';
+import { verifyJWT } from '../../auth/preHandler.js';
 import {
   AvatarService,
   FileTooLargeError,
@@ -18,25 +18,21 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     bucket: app.config.MINIO_AVATAR_BUCKET,
     maxSizeBytes: app.config.MAX_AVATAR_SIZE_BYTES,
     presignedUrlExpirySeconds: app.config.PRESIGNED_URL_EXPIRY_SECONDS,
+    logError: app.log.error,
   });
 
   const maxSizeMegabytes = app.config.MAX_AVATAR_SIZE_BYTES / 1024 ** 2;
 
   app.post('request-upload', {
     schema: RequestUpload,
+    preHandler: verifyJWT,
   }, async (req, res) => {
-    const { token, mimeType, sizeBytes } = req.body;
-    const payload = decodeJWT(token, app.config.JWT_SECRET);
-
-    if (!payload) {
-      return res.code(401).send({
-        error: 'Unauthorized',
-        message: 'This JWT is invalid or expired or malformed',
-      });
-    }
-
     try {
-      const response = await service.requestUpload(payload.sub, mimeType, sizeBytes);
+      const response = await service.requestUpload(
+        req.jwt.sub,
+        req.body.mimeType,
+        req.body.sizeBytes,
+      );
       return res.code(200).send(response);
     } catch (error) {
       if (error instanceof FileTooLargeError) {
@@ -57,18 +53,10 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
 
   app.post(':id/confirm', {
     schema: Confirm,
+    preHandler: verifyJWT,
   }, async (req, res) => {
-    const payload = decodeJWT(req.body.token, app.config.JWT_SECRET);
-
-    if (!payload) {
-      return res.code(401).send({
-        error: 'Unauthorized',
-        message: 'This JWT is invalid or expired or malformed',
-      });
-    }
-
     try {
-      const image = await service.confirmUpload(req.params.id, payload.sub);
+      const image = await service.confirmUpload(req.params.id, req.jwt.sub);
       return res.code(200).send(image);
     } catch (error) {
       if (error instanceof ImageNotFoundError) {
