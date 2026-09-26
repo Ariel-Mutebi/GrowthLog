@@ -7,6 +7,7 @@ export interface Config {
   MINIO_ROOT_USER: string;
   MINIO_ROOT_PASSWORD: string;
   MINIO_AVATAR_BUCKET: string;
+  MAX_AVATAR_SIZE_BYTES: number;
   PRESIGNED_URL_EXPIRY_SECONDS: number;
   NODE_ENV: 'development' | 'test' | 'production';
 }

@@ -5,6 +5,7 @@ const hexSecret = (length: number) =>
   z.string().length(length).regex(new RegExp(`^[0-9a-f]{${length}}$`));
 
 const port = z.coerce.number().int().min(0).max(65535);
+const positive = z.coerce.number().positive();
 
 export const envDefinitions = {
   API_PORT: port,
@@ -22,7 +23,8 @@ export const envDefinitions = {
   MINIO_ROOT_USER: hexSecret(64),
   MINIO_ROOT_PASSWORD: hexSecret(64),
   MINIO_AVATAR_BUCKET: z.string(),
-  PRESIGNED_URL_EXPIRY_SECONDS: z.coerce.number().positive(),
+  MAX_AVATAR_SIZE_BYTES: positive,
+  PRESIGNED_URL_EXPIRY_SECONDS: positive,
 } satisfies Record<string, z.ZodType>;
 
 export type EnvKey = keyof typeof envDefinitions;

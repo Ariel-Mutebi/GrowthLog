@@ -32,6 +32,7 @@ export function buildApp() {
     'MINIO_ROOT_USER',
     'MINIO_ROOT_PASSWORD',
     'MINIO_AVATAR_BUCKET',
+    'MAX_AVATAR_SIZE_BYTES',
     'PRESIGNED_URL_EXPIRY_SECONDS',
   ]);
 
