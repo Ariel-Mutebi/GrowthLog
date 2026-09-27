@@ -18,7 +18,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     bucket: app.config.MINIO_AVATAR_BUCKET,
     maxSizeBytes: app.config.MAX_AVATAR_SIZE_BYTES,
     presignedUrlExpirySeconds: app.config.PRESIGNED_URL_EXPIRY_SECONDS,
-    logError: app.log.error,
+    logError: req.log.error,
   });
 
   const maxSizeMegabytes = app.config.MAX_AVATAR_SIZE_BYTES / 1024 ** 2;
@@ -42,7 +42,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      app.log.error(error);
+      req.log.error(error);
 
       return res.code(500).send({
         error: 'InternalServerError',
@@ -94,7 +94,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      app.log.error(error);
+      req.log.error(error);
 
       return res.code(500).send({
         error: 'InternalServerError',

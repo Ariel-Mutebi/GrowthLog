@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { RateLimitedResponse } from '../../typebox/responses.js';
-import { MinimalUser } from '../../typebox/profiles.js';
+import { UserPublicSafe } from '../../typebox/userTypes.js';
+import { InternalServerErrorResponse } from '../../typebox/responses.js';
 
 const FollowersMutationSchema = {
   tags: ['Followers'],
@@ -11,7 +11,7 @@ const FollowersMutationSchema = {
   }),
   response: {
     204: Type.Null(),
-    429: RateLimitedResponse,
+    500: InternalServerErrorResponse,
   },
 } satisfies FastifySchema;
 
@@ -31,8 +31,8 @@ const FollowersQuerySchema = {
   tags: ['Followers'],
   security: [{ session: [] }],
   response: {
-    200: Type.Array(MinimalUser),
-    429: RateLimitedResponse,
+    200: Type.Array(UserPublicSafe),
+    500: InternalServerErrorResponse,
   },
 } satisfies FastifySchema;
 

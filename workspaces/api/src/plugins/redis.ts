@@ -7,7 +7,7 @@ export const redisPlugin = fp(async (app) => {
     RESP: 3,
   });
   
-  redis.on('error', (error) => app.log.error('Redis error:', error));
+  redis.on('error', (error) => req.log.error('Redis error:', error));
 
   await redis.connect();
   app.decorate('redis', redis);

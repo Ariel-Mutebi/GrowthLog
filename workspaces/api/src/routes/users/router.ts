@@ -65,7 +65,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      app.log.error(error);
+      req.log.error(error);
 
       return res.code(500).send({
         error: 'InternalServerError',
@@ -91,7 +91,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      app.log.error(error);
+      req.log.error(error);
 
       return res.code(500).send({
         error: 'InternalServerError',
@@ -113,7 +113,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      app.log.error(error);
+      req.log.error(error);
 
       return res.code(500).send({
         error: 'InternalServerError',
@@ -136,7 +136,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      app.log.error(error);
+      req.log.error(error);
 
       return res.code(500).send({
         error: 'InternalServerError',
