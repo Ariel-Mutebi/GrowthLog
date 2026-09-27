@@ -9,6 +9,7 @@ import { loadEnv } from '@growthlog/env';
 import { prismaPlugin } from './plugins/prisma.js';
 import { minioPlugin } from './plugins/minio.js';
 import { authPlugin } from './plugins/auth.js';
+import { swaggerPlugin } from './plugins/swagger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -42,6 +43,7 @@ export function buildApp() {
   app.register(prismaPlugin);
   app.register(minioPlugin);
   app.register(authPlugin);
+  app.register(swaggerPlugin);
 
   app.register(autoload, {
     dir: join(__dirname, 'routes'),

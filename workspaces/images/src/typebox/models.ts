@@ -1,6 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import type { Image } from '@growthlog/db';
 import type { TypeBoxModel } from './mapping.js';
+import { SerializableDate } from './date.js';
 
 export const ImageModel = Type.Object({
   id: Type.String(),
@@ -10,7 +11,7 @@ export const ImageModel = Type.Object({
   width: Type.Union([Type.Number(), Type.Null()]),
   height: Type.Union([Type.Number(), Type.Null()]),
   status: Type.String(),
-  createdAt: Type.Date(),
-  updatedAt: Type.Date(),
+  createdAt: SerializableDate,
+  updatedAt: SerializableDate,
   uploaderId: Type.String(),
 } satisfies TypeBoxModel<Image>);

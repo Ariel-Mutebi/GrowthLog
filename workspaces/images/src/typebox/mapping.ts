@@ -4,7 +4,7 @@ type BaseTypeBoxSchema<T> =
   [T] extends [string] ? ReturnType<typeof Type.String> :
   [T] extends [number] ? ReturnType<typeof Type.Number> :
   [T] extends [boolean] ? ReturnType<typeof Type.Boolean> :
-  [T] extends [Date] ? ReturnType<typeof Type.Date> :
+  [T] extends [Date] ? ReturnType<typeof Type.Unsafe<Date>> :
   TSchema;
 
 type TypeBoxSchema<T> = [T] extends [null]

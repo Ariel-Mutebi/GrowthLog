@@ -4,5 +4,5 @@ import { Type } from '@sinclair/typebox';
  * Type.Date() produces { type: 'object' } which fast-json-stringify 
  * can't serialize — string with date-time format works instead.
  */
-export const SerializedDate = Type.Unsafe<Date>({ type: 'string', format: 'date-time' });
-export const OptionalDate = Type.Union([SerializedDate, Type.Null()]);
+export const SerializableDate = Type.Unsafe<Date>({ type: 'string', format: 'date-time' });
+export const OptionalDate = Type.Union([SerializableDate, Type.Null()]);

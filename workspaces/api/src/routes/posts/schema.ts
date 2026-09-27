@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import { ConflictResponse, NotFoundResponse, RateLimitedResponse } from '../../typebox/responses.js';
-import { OptionalDate, SerializedDate } from '../../typebox/date.js';
+import { OptionalDate, SerializableDate } from '../../typebox/date.js';
 
 const DraftMeta = Type.Object({
   title: Type.String(),
@@ -9,8 +9,8 @@ const DraftMeta = Type.Object({
   id: Type.String(),
   authorId: Type.String(),
   publishedAt: OptionalDate,
-  createdAt: SerializedDate,
-  updatedAt: SerializedDate,
+  createdAt: SerializableDate,
+  updatedAt: SerializableDate,
   deletedAt: OptionalDate,
 });
 
