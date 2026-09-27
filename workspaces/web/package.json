@@ -28,7 +28,7 @@
     "svelte": "^5.57.1",
     "svelte-sonner": "^1.2.1",
     "tailwindcss": "^4.3.3",
-    "typescript": "^7.0.2",
+    "typescript": "^6.0.3",
     "yjs": "^13.6.33",
     "zod": "^4.6.5",
     "zxcvbn-ts": "^2.4.0"
