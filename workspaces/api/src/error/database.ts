@@ -13,7 +13,7 @@ interface DriverAdapterError {
   };
 }
 
-function extractConflictColumns(meta?: Record<string, unknown>): string[] {
+export function extractConflictColumns(meta?: Record<string, unknown>): string[] {
   const driverAdapterError = meta?.driverAdapterError as DriverAdapterError | undefined;
   return driverAdapterError?.cause?.constraint?.fields ?? [];
 }

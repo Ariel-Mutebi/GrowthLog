@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyRequest, PassportUser, preHandlerHookHandler } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest, PassportUser, preHandlerHookHandler } from 'fastify';
 import type { User } from '@growthlog/db';
 import type { Static } from '@sinclair/typebox';
 import type { LockedResponse, UnauthorizedResponse } from '../typebox/responses.js';
@@ -17,7 +17,13 @@ export function assertIsLoggedIn(req: FastifyRequest): asserts req is FastifyReq
 }
 
 export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>
-  app.auth.authenticate('local', async (req, res, err, user, info) => {
+  app.auth.authenticate('local', async (
+    req: FastifyRequest,
+    res: FastifyReply,
+    err: unknown,
+    user: User,
+    info: object,
+  ) => {
     if (err) throw err;
 
     if (!user) {
@@ -45,7 +51,7 @@ export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>
       email,
       createdAt,
       deletedAt,
-    } = user as User;
+    } = user;
 
     // Restore soft-deleted user if they log back in within 7 days.
     if (deletedAt) {

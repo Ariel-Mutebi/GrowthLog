@@ -1,57 +1,33 @@
 import { Type } from '@sinclair/typebox';
-import type { FastifySchema } from 'fastify';
-import type { User } from '@growthlog/db';
-import {
-  Username,
-  Email,
-  LettersOnlyString,
-  Password,
-} from '../../typebox/inputs.js';
+import { NameInput } from '../../typebox/inputs.js';
 import {
   BadRequest,
   ConflictResponse,
+  InternalServerErrorResponse,
   NotFoundResponse,
-  RateLimitedResponse,
   UnauthorizedResponse,
 } from '../../typebox/responses.js';
-import { InternalUser, PublicProfile } from '../../typebox/profiles.js';
+import {
+  UserClientSafe,
+  UserPublicSafe,
+  UserDeclaredFields,
+} from '../../typebox/userTypes.js';
+import type { FastifySchema } from 'fastify';
+import type { Static } from '@sinclair/typebox';
 
-type ValuesUnknown<T> = {
-  [K in keyof T]: unknown;
-};
-
-type UserKeys = Partial<ValuesUnknown<User>>;
-
-const CreateUser = Type.Object({
-  forename: LettersOnlyString,
-  surname: LettersOnlyString,
-  email: Email,
-  password: Password,
-  username: Type.Optional(Username),
-} satisfies UserKeys);
-
-const UpdateUser = Type.Partial(Type.Object({
-  forename: LettersOnlyString,
-  surname: LettersOnlyString,
-  username: Username,
-  email: Email,
-  password: Password,
-} satisfies UserKeys));
-
-const revalidateIdentity = Type.Object({
-  currentPassword: Password,
-});
+const IdentityProof = Type.Object({ currentPassword: Type.String() });
+export type IdentityProof = Static<typeof IdentityProof>;
 
 export const CreateUserSchema = {
   summary: 'Register a new user',
-  description: 'Creates a user account and opens a session. Rate limited to one registration per IP per day.',
+  description: 'Creates a user account and opens a session. One request per IP per day.',
   tags: ['Users'],
-  body: CreateUser,
+  body: UserDeclaredFields,
   response: {
-    201: InternalUser,
+    201: UserClientSafe,
     400: BadRequest,
     409: ConflictResponse,
-    429: RateLimitedResponse,
+    500: InternalServerErrorResponse,
   },
 } satisfies FastifySchema;
 
@@ -60,9 +36,9 @@ export const GetSelfSchema = {
   tags: ['Users'],
   security: [{ session: [] }],
   response: {
-    200: InternalUser,
+    200: UserClientSafe,
     404: NotFoundResponse,
-    429: RateLimitedResponse,
+    500: InternalServerErrorResponse,
   },
 } satisfies FastifySchema;
 
@@ -71,14 +47,14 @@ export const UpdateUserSchema = {
   description: 'Updating email or password requires `currentPassword` to be provided.',
   tags: ['Users'],
   security: [{ session: [] }],
-  body: Type.Intersect([Type.Partial(revalidateIdentity), UpdateUser]),
+  body: Type.Intersect([Type.Partial(IdentityProof), Type.Partial(UserDeclaredFields)]),
   response: {
-    200: InternalUser,
+    200: UserClientSafe,
     400: BadRequest,
     401: UnauthorizedResponse,
     404: NotFoundResponse,
     409: ConflictResponse,
-    429: RateLimitedResponse,
+    500: InternalServerErrorResponse,
   },
 } satisfies FastifySchema;
 
@@ -87,35 +63,36 @@ export const DeleteUserSchema = {
   description: 'Soft deletes the account. The account can be recovered by logging in within 7 days.',
   tags: ['Users'],
   security: [{ session: [] }],
-  body: revalidateIdentity,
+  body: IdentityProof,
   response: {
-    200: InternalUser,
+    200: UserClientSafe,
     401: UnauthorizedResponse,
-    429: RateLimitedResponse,
+    404: NotFoundResponse,
+    500: InternalServerErrorResponse,
   },
 } satisfies FastifySchema;
 
 export const GetUserSchema = {
-  summary: 'Get a user\'s public profile',
+  summary: 'Get a user\'s public data',
   tags: ['Users'],
   params: Type.Object({
     userId: Type.String(),
   }),
   response: {
-    200: PublicProfile,
+    200: UserPublicSafe,
     404: NotFoundResponse,
-    429: RateLimitedResponse,
+    500: InternalServerErrorResponse,
   },
 } satisfies FastifySchema;
 
 export const UserSearchSchema = {
   summary: 'User discovery endpoint',
-  description: 'Search for users by name, by interest (a tag on their published posts), or both',
+  description: 'Search for users by name and/or interests (tags on their published posts)',
   tags: ['Users'],
   querystring: Type.Object(
     {
-      name: Type.Optional(Type.String({ minLength: 1, maxLength: 100, pattern: '\\S' })),
-      interest: Type.Optional(Type.String({ minLength: 1, maxLength: 50, pattern: '\\S' })),
+      name: Type.Optional(NameInput),
+      interest: Type.Optional(Type.Array(NameInput)),
       cursor: Type.Optional(Type.String()),
       limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 20 })),
     },
@@ -124,10 +101,10 @@ export const UserSearchSchema = {
   ),
   response: {
     200: Type.Object({
-      users: Type.Array(PublicProfile),
+      users: Type.Array(UserPublicSafe),
       nextCursor: Type.Union([Type.String(), Type.Null()]),
     }),
     404: NotFoundResponse,
-    429: RateLimitedResponse,
+    500: InternalServerErrorResponse,
   },
 } satisfies FastifySchema;

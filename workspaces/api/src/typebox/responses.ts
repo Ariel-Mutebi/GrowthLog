@@ -29,6 +29,11 @@ export const LockedResponse = Type.Object({
 });
 
 export const RateLimitedResponse = Type.Object({
-  error: Type.String(),
+  error: Type.Literal('RateLimited'),
+  message: Type.String(),
+});
+
+export const InternalServerErrorResponse = Type.Object({
+  error: Type.Literal('InternalServerError'),
   message: Type.String(),
 });

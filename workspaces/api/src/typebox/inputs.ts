@@ -1,14 +1,6 @@
 import { Type } from '@sinclair/typebox';
 
-export const Password = Type.String({ minLength: 12 });
-
-export const NonEmptyString = Type.String({
-  pattern: '\\S',
-});
-
-export const LettersOnlyString = Type.String({
-  pattern: '^[A-Za-z]+$',
-});
+export const NameInput = Type.String({ pattern: '^[A-Za-z]+$' });
 
 /**
  * Username validation regex rationale:
@@ -27,6 +19,4 @@ export const Username = Type.String({
   pattern: '^[a-z0-9](?:[a-z0-9]|[-._](?=[a-z0-9])){1,28}[a-z0-9]$',
 });
 
-export const Email = Type.String({
-  format: 'email',
-});
+export const Email = Type.String({ format: 'email' });
