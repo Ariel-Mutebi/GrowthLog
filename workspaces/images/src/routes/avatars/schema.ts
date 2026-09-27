@@ -13,7 +13,6 @@ import { ImageModel } from '../../typebox/models.js';
 
 export const RequestUpload = {
   body: Type.Object({
-    token: Type.String(),
     mimeType: Type.Union([
       Type.Literal('image/jpeg'),
       Type.Literal('image/png'),
@@ -35,9 +34,6 @@ export const RequestUpload = {
 export const Confirm = {
   params: Type.Object({
     id: Type.String(),
-  }),
-  body: Type.Object({
-    token: Type.String(),
   }),
   response: {
     200: ImageModel,

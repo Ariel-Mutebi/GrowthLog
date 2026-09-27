@@ -94,9 +94,11 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
+      app.log.error(error);
+
       return res.code(500).send({
         error: 'InternalServerError',
-        message: 'Something went wrong, please retry the request',
+        message: 'Something went wrong. Please try again',
       });
     }
   });
