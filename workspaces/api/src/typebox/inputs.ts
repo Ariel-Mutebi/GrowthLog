@@ -1,6 +1,15 @@
 import { Type } from '@sinclair/typebox';
 
-export const NameInput = Type.String({ pattern: '^[A-Za-z]+$' });
+export const NameInput = Type.String({
+  pattern: '^[A-Za-z]+$',
+  minLength: 2,
+  maxLength: 10,
+});
+
+export const BioInput = Type.String({
+  minLength: 2,
+  maxLength: 200,
+});
 
 /**
  * Username validation regex rationale:
@@ -12,11 +21,11 @@ export const NameInput = Type.String({ pattern: '^[A-Za-z]+$' });
  *    alphanumeric character. Prevents issues with URL parsing (e.g., handles like "_john").
  * 4. No Consecutive Symbols (?=[a-z0-9]): Lookahead ensures a symbol is always followed 
  *    by an alphanumeric character. Blocks confusing duplicates like "john__doe" or "john..doe".
- * 5. Length Boundaries ({1,28}): Combined with the start and end characters, this strictly 
- *    enforces a minimum length of 3 and a maximum length of 30 characters.
+ * 5. Length Boundaries ({1,18}): Combined with the start and end characters, this strictly 
+ *    enforces a minimum length of 2 and a maximum length of 20 characters.
  */
 export const Username = Type.String({
-  pattern: '^[a-z0-9](?:[a-z0-9]|[-._](?=[a-z0-9])){1,28}[a-z0-9]$',
+  pattern: '^[a-z0-9](?:[a-z0-9]|[-._](?=[a-z0-9])){0,18}[a-z0-9]$',
 });
 
 export const Email = Type.String({ format: 'email' });

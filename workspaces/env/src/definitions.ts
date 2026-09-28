@@ -18,13 +18,14 @@ export const envDefinitions = {
   REDIS_URL: z.url().regex(/^redis(s)?:\/\/\S+/),
   DATABASE_URL: z.url().regex(/^postgres(ql)?:\/\/\S+/),
 
-  MINIO_INTERNAL_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
-  MINIO_PUBLIC_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
+  MINIO_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
   MINIO_ROOT_USER: hexSecret(64),
   MINIO_ROOT_PASSWORD: hexSecret(64),
-  MINIO_AVATAR_BUCKET: z.string(),
-  MAX_AVATAR_SIZE_BYTES: positive,
   PRESIGNED_URL_EXPIRY_SECONDS: positive,
+
+  PUBLIC_AVATAR_BUCKET: z.string(),
+  PUBLIC_MAX_AVATAR_SIZE_BYTES: positive,
+  PUBLIC_MINIO_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
 } satisfies Record<string, z.ZodType>;
 
 export type EnvKey = keyof typeof envDefinitions;

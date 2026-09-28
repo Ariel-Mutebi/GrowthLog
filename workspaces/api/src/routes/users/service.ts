@@ -104,7 +104,7 @@ export class UserService {
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       const suffix = attempt > 0 ? `-${attempt}` : '';
-      const derived = `${forename}-${surname}${suffix}`;
+      const derived = `${forename.toLocaleLowerCase()}-${surname.toLocaleLowerCase()}${suffix}`;
       
       try {
         return await this.prisma.user.create({

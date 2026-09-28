@@ -8,14 +8,14 @@ export const minioPlugin  = fp(async (app) => {
   };
 
   const minio = new S3Client({
-    endpoint: app.config.MINIO_INTERNAL_ENDPOINT,
+    endpoint: app.config.MINIO_ENDPOINT,
     forcePathStyle: true,
     region: 'us-east-1',
     credentials,
   });
 
   const minioPresign = new S3Client({
-    endpoint: app.config.MINIO_PUBLIC_ENDPOINT,
+    endpoint: app.config.PUBLIC_MINIO_ENDPOINT,
     forcePathStyle: true,
     region: 'us-east-1',
     credentials,

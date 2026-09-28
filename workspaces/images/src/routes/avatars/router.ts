@@ -15,13 +15,13 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     prisma: app.prisma,
     minio: app.minio,
     presigner: app.minioPresign,
-    bucket: app.config.MINIO_AVATAR_BUCKET,
-    maxSizeBytes: app.config.MAX_AVATAR_SIZE_BYTES,
+    bucket: app.config.PUBLIC_AVATAR_BUCKET,
+    maxSizeBytes: app.config.PUBLIC_MAX_AVATAR_SIZE_BYTES,
     presignedUrlExpirySeconds: app.config.PRESIGNED_URL_EXPIRY_SECONDS,
-    logError: req.log.error,
+    logError: app.log.error,
   });
 
-  const maxSizeMegabytes = app.config.MAX_AVATAR_SIZE_BYTES / 1024 ** 2;
+  const mb = app.config.PUBLIC_MAX_AVATAR_SIZE_BYTES / 1024 ** 2;
 
   app.post('request-upload', {
     schema: RequestUpload,
@@ -38,7 +38,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       if (error instanceof FileTooLargeError) {
         return res.code(400).send({
           error: 'BadRequest',
-          message: `Max avatar size is ${maxSizeMegabytes}MB`,
+          message: `Max avatar size is ${mb} MB`,
         });
       }
 
@@ -83,7 +83,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       if (error instanceof FileTooLargeError) {
         return res.code(413).send({
           error: 'PayloadTooLarge',
-          message: `Max avatar size is ${maxSizeMegabytes}MB`,
+          message: `Max avatar size is ${mb} MB`,
         });
       }
 

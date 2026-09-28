@@ -1,23 +1,24 @@
 import z from 'zod';
 import zxcvbn from 'zxcvbn-ts';
 
-const lettersOnly = /^[\p{L}]+$/u;
+const lettersOnly = /^[A-Za-z]+$/;
 
-export const schema = z.object({
+export const SignUpSchema = z.object({
   forename: z
     .string()
     .trim()
     .min(1, 'First name is required')
+    .max(10, 'First name should be shorter than 10 characters')
     .regex(lettersOnly, 'First name must contain letters only'),
 
   surname: z
     .string()
     .trim()
     .min(1, 'Last name is required')
+    .max(10, 'Last name must be shorter than 10 characters')
     .regex(lettersOnly, 'Last name must contain letters only'),
 
   email: z.email('Please enter a valid email'),
-
   password: z.string().min(8, 'Password must be at least 8 characters'),
 }).superRefine(({ forename, surname, email, password }, context) => {
   if (!password) return;
@@ -36,4 +37,4 @@ export const schema = z.object({
   }
 });
 
-export type SignUpData = z.infer<typeof schema>;
+export type SignUpData = z.infer<typeof SignUpSchema>;

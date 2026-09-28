@@ -1,8 +1,8 @@
 <script lang="ts">
   import { createForm } from 'felte';
-  import { toast } from 'svelte-sonner';
-  import { client } from '../../api/client.ts';
   import { navigate } from 'astro:transitions/client';
+  import { client } from '../../api/client.ts';
+  import { HTTPError, toastError } from '../errorHandling.ts';
 
   import Field from './Field.svelte';
   import Password from './Password.svelte';
@@ -10,27 +10,19 @@
   import Link from "./Link.svelte";
   import Toaster from '../Toaster.svelte';
 
-  interface Data {
+  interface Credentials {
     email: string;
     password: string;
   }
 
-  const { form } = createForm<Data>({
+  const { form } = createForm<Credentials>({
     onSubmit: async (body)  => {
-      try {
-        const { data, error } = await client.POST('/api/sessions', { body });
-
-        if (error) {
-          return toast.error(error.error, { description: error.message });
-        }
-
-        if (data) {
-          return navigate('/');
-        }
-      } catch (error) {
-        toast.error(String(error));
-      }
-    }
+      const { data: user, error } = await client.POST('/api/sessions', { body });
+      if (error) throw new HTTPError(error);
+      return user;
+    },
+    onSuccess: () => navigate('/'),
+    onError: toastError,
   })
 </script>
 

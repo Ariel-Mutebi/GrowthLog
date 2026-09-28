@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { toast } from 'svelte-sonner';
   import { createForm } from 'felte';
   import Field from './Field.svelte';
   import Link from './Link.svelte';
@@ -10,26 +9,19 @@
   import { validator } from '@felte/validator-zod';
   import FieldWrapper from './FieldWrapper.svelte';
   import { navigate } from 'astro:transitions/client';
-  import { schema, type SignUpData } from './schema.ts';
+  import { SignUpSchema, type SignUpData } from './SignUpSchema.ts';
+  import { HTTPError, toastError } from '../errorHandling.ts';
   import PasswordStrengthMeter from './PasswordStrengthMeter.svelte';
 
   const { form, data, errors } = createForm<SignUpData>({
-    extend: validator({ schema }),
+    extend: validator({ schema: SignUpSchema }),
     onSubmit: async (body) => {
-      try {
-        const { data, error } = await client.POST('/api/users', { body });
-
-        if (error) {
-          return toast.error(error.error, { description: error.message });
-        }
-
-        if (data) {
-          return navigate('/');
-        }
-      } catch (error) {
-        toast.error(String(error));
-      }
+      const { data: user, error } = await client.POST('/api/users', { body });
+      if (error) throw new HTTPError(error);
+      return user;
     },
+    onSuccess: () => navigate('/'),
+    onError: toastError,
   });
 </script>
 

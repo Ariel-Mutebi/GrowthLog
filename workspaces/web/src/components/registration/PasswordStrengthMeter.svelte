@@ -1,6 +1,6 @@
 <script lang="ts">
   import zxcvbn from 'zxcvbn-ts';
-  import type { SignUpData } from './schema.ts';
+  import type { SignUpData } from './SignUpSchema.ts';
 
   const { forename, surname, email, password }: Partial<SignUpData> = $props();
   const filter = (string: string | undefined): string is string => string !== undefined;

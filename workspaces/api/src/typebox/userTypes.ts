@@ -1,6 +1,6 @@
 import { Type, type TSchema } from '@sinclair/typebox';
 import { SerializableDate } from './date.js';
-import { NameInput, Username, Email } from './inputs.js';
+import { NameInput, Username, Email, BioInput } from './inputs.js';
 
 import type { User } from '@growthlog/db';
 import type { TypeBoxModel } from './mapping.js';
@@ -16,7 +16,7 @@ const PublicSafeBase = {
   username: Username,
   createdAt: SerializableDate,
   avatarId: Type.Union([Type.String(), Type.Null()]),
-  bio: Type.Union([Type.String({ minLength: 3 }), Type.Null()]),
+  bio: Type.Union([BioInput, Type.Null()]),
 } satisfies TypeBoxModel<UserPublicSafeType>;
 export const UserPublicSafe = Type.Object(PublicSafeBase);
 
@@ -38,5 +38,5 @@ export const UserDeclaredFields = Type.Object({
   email: Email,
   password: Type.String(),
   avatarId: Type.Optional(Type.String()),
-  bio: Type.Optional(Type.String({ minLength: 3 })),
+  bio: Type.Optional(BioInput),
 } satisfies Partial<Record<keyof User, TSchema>>);
