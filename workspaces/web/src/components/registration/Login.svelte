@@ -26,7 +26,7 @@
   })
 </script>
 
-<form use:form class="flex flex-col gap-8 lg:px-8">
+<form use:form class="flex flex-col gap-4 sm:gap-8 p-4 sm:p-8 lg:px-16">
   <Field label="Email" name="email" type="email" />
   <Password />
   <Submit text="Log in" isSubmitting={$isSubmitting} />

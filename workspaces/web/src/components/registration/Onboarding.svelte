@@ -1,17 +1,24 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { createForm } from 'felte';
   import { validator } from '@felte/validator-zod';
   import { navigate } from 'astro:transitions/client';
 
   import { toastError } from '../errorHandling.ts';
-  import { getUserContext } from '../userContext.ts';
   import {
     ACCEPTED_TYPES,
     OnboardingSchema,
     type OnboardingData,
   } from './OnboardingSchema.ts';
   import Error from './Error.svelte';
+  import { getCurrentUser, type User } from '../currentUser.ts';
   import { handleOnboardingSubmit } from './onboardingSubmit.ts';
+
+  let user = $state<User>();
+
+  onMount(async () => {
+    user = await getCurrentUser();
+  });
 
   const { form, data, errors, isSubmitting } = createForm<OnboardingData>({
     extend: validator({ schema: OnboardingSchema }),
@@ -35,8 +42,6 @@
 
     return () => URL.revokeObjectURL(url);
   });
-
-  const { user } = getUserContext();
 </script>
 
 <form use:form>
@@ -71,7 +76,9 @@
     </div>
     <div>
       <label for="bio">Bio</label>
-      <p>{$data.bio.length}/200</p>
+      {#if $data.bio}
+        <p>{$data.bio.length}/200</p>        
+      {/if}
       <textarea name="bio" id="bio" rows="4"></textarea>
       {#if $errors.bio}
         <Error errors={$errors.bio} />

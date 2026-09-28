@@ -16,7 +16,8 @@ const { title, CTA, bgLight, bgDark } = Astro.props;
 
 <HeadLayout {title}>
   <div
-    class="w-dvw min-h-dvh bg-orange-50 dark:bg-red-950 flex flex-col sm:grid grid-cols-5"
+    class="w-dvw min-h-dvh bg-orange-50 dark:bg-red-950 flex flex-col
+      sm:grid grid-cols-5 grid-rows-[min-content_1fr]"
   >
     <div class="col-span-3 col-start-3 p-4">
       <Navbar {title} />
