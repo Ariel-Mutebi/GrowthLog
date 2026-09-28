@@ -31,7 +31,7 @@ export function buildApp(overrides?: Overrides) {
 
   const config = loadEnv(
     [
-      'PUBLIC_API_PORT',
+      'API_PORT',
       'NODE_ENV',
       'REDIS_URL',
       'SESSION_SECRET',

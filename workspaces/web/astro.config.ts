@@ -1,4 +1,4 @@
-import { defineConfig, fontProviders } from 'astro/config';
+import { defineConfig, fontProviders, envField } from 'astro/config';
 import svelte from '@astrojs/svelte';
 import node from '@astrojs/node';
 import tailwindcss from '@tailwindcss/vite';
@@ -11,6 +11,38 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    envDir: '../../',
+  },
+
+  env: {
+    schema: {
+      PUBLIC_API_URL: envField.string({
+        context: 'client',
+        access: 'public',
+        url: true,
+      }),
+      PUBLIC_IMAGES_URL: envField.string({
+        context: 'client',
+        access: 'public',
+        url: true,
+      }),
+      PUBLIC_MINIO_ENDPOINT: envField.string({
+        context: 'client',
+        access: 'public',
+        url: true,
+      }),
+      PUBLIC_AVATAR_BUCKET: envField.string({
+        context: 'client',
+        access: 'public',
+        min: 1,
+      }),
+      PUBLIC_MAX_AVATAR_SIZE_BYTES: envField.number({
+        context: 'client',
+        access: 'public',
+        int: true,
+        gt: 0,
+      }),
+    },
   },
 
   fonts: [

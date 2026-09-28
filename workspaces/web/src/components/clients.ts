@@ -1,14 +1,13 @@
 import createClient from 'openapi-fetch';
+import { PUBLIC_API_URL, PUBLIC_IMAGES_URL } from 'astro:env/client';
 import type { paths as apiPaths } from '@growthlog/api';
 import type { paths as imagesPaths } from '@growthlog/images';
 
-const DOMAIN = import.meta.env.PUBLIC_DOMAIN;
-
 export const apiClient = createClient<apiPaths>({
-  baseUrl: `${DOMAIN}:${import.meta.env.PUBLIC_API_PORT}`,
+  baseUrl: PUBLIC_API_URL,
   credentials: 'include',
 });
 
 export const imagesClient = createClient<imagesPaths>({
-  baseUrl: `${DOMAIN}:${import.meta.env.PUBLIC_IMAGES_PORT}`,
+  baseUrl: PUBLIC_IMAGES_URL,
 });

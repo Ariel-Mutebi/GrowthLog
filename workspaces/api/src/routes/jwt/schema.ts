@@ -8,7 +8,9 @@ export const GetJWTSchema = {
   tags: ['Microservices'],
   security: [{ session: [] }],
   response: {
-    200: Type.String(),
+    200: Type.Object({
+      token: Type.String(),
+    }),
     429: RateLimitedResponse,
   },
 } satisfies FastifySchema;

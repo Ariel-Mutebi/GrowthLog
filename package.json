@@ -6,6 +6,7 @@
   "scripts": {
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
+    "predev": "pnpm run docker:up",
     "dev": "pnpm --parallel --filter api --filter web --filter images dev",
     "prepare": "husky"
   },

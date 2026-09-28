@@ -10,9 +10,12 @@
     OnboardingSchema,
     type OnboardingData,
   } from './OnboardingSchema.ts';
-  import Error from './Error.svelte';
   import { getCurrentUser, type User } from '../currentUser.ts';
   import { handleOnboardingSubmit } from './onboardingSubmit.ts';
+
+  import Error from './Error.svelte';
+  import Submit from './Submit.svelte';
+  import Toaster from '../Toaster.svelte';
 
   let user = $state<User>();
 
@@ -85,4 +88,8 @@
       {/if}
     </div>
   </div>
+
+  <Submit text="Done" isSubmitting={$isSubmitting} />
 </form>
+
+<Toaster />

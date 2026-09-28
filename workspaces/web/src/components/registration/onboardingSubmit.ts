@@ -4,11 +4,11 @@ import type { OnboardingData, ACCEPTED_TYPE } from './OnboardingSchema.ts';
 
 export async function handleOnboardingSubmit({ username, bio, avatar }: OnboardingData) {
   const {
-    data: jwt,
+    data: handoff,
     error: jwtError,
   } = await apiClient.GET('/api/jwt');
 
-  if (!jwt) {
+  if (!handoff) {
     throw new HTTPError(jwtError!);
   }
 
@@ -17,7 +17,7 @@ export async function handleOnboardingSubmit({ username, bio, avatar }: Onboardi
     error: requestUploadError,
   } = await imagesClient.POST('/images/avatars/request-upload', {
     headers: {
-      Authorization: `Bearer ${jwt}`,
+      Authorization: `Bearer ${handoff.token}`,
     },
     body: {
       mimeType: avatar.type as ACCEPTED_TYPE,

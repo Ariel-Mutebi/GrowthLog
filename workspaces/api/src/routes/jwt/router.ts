@@ -18,7 +18,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       { expiresIn: '5m' },
     );
 
-    return res.send(token);
+    return res.send({ token });
   });
 };
 

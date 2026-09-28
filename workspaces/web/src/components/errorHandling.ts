@@ -17,6 +17,8 @@ export class HTTPError extends Error {
 }
 
 export function toastError(error: unknown) {
+  console.error(error);
+
   if (error instanceof HTTPError) {
     toast.error(error.error, {
       description: error.message,

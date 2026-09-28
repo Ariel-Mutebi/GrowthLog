@@ -4,7 +4,6 @@
   "type": "module",
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
-    "predev": "pnpm -w run docker:up",
     "dev": "tsx watch src/server.ts",
     "pretest": "pnpm -w run docker:up",
     "test": "tsx tests/setup.ts",
