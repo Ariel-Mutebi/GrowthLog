@@ -2,13 +2,13 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import autoload from '@fastify/autoload';
+import fastifyJwt from '@fastify/jwt';
 import fastifyHelmet from '@fastify/helmet';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import { loadEnv } from '@growthlog/env';
 import { prismaPlugin } from './plugins/prisma.js';
 import { minioPlugin } from './plugins/minio.js';
-import { authPlugin } from './plugins/auth.js';
 import { swaggerPlugin } from './plugins/swagger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -16,7 +16,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export function buildApp() {
   const app = Fastify({
     logger: {
-      level: 'info',
+      level: 'warn',
     },
     trustProxy: true,
     routerOptions: {
@@ -42,8 +42,11 @@ export function buildApp() {
   app.register(fastifyHelmet);
   app.register(prismaPlugin);
   app.register(minioPlugin);
-  app.register(authPlugin);
   app.register(swaggerPlugin);
+
+  app.register(fastifyJwt, {
+    secret: app.config.JWT_SECRET,
+  });
 
   app.register(autoload, {
     dir: join(__dirname, 'routes'),

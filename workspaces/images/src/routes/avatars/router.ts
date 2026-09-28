@@ -29,7 +29,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   }, async (req, res) => {
     try {
       const response = await service.requestUpload(
-        req.jwt.sub,
+        req.user.sub,
         req.body.mimeType,
         req.body.sizeBytes,
       );
@@ -56,7 +56,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     preHandler: verifyJWT,
   }, async (req, res) => {
     try {
-      const image = await service.confirmUpload(req.params.id, req.jwt.sub);
+      const image = await service.confirmUpload(req.params.id, req.user.sub);
       return res.code(200).send(image);
     } catch (error) {
       if (error instanceof ImageNotFoundError) {

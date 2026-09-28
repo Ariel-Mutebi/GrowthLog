@@ -16,3 +16,12 @@ declare module 'fastify' {
     jwt: JWTPayload;
   }
 }
+
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    user: {
+      sub: string;
+      name: string;
+    };
+  }
+}
