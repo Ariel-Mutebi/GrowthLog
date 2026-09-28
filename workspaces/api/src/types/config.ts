@@ -1,5 +1,5 @@
 export interface Config {
-  API_PORT: number;
+  PUBLIC_API_PORT: number;
   REDIS_URL: string;
   DATABASE_URL: string;
   JWT_SECRET: string;

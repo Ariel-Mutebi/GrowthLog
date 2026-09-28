@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import * as Y from 'yjs';
   import { onMount, onDestroy } from 'svelte';
   import { Editor } from '@tiptap/core';
@@ -7,8 +7,6 @@
   import { Collaboration } from '@tiptap/extension-collaboration';
   import { CollaborationCaret } from '@tiptap/extension-collaboration-caret';
 
-  import { client } from '../../api/client.ts';
-  import { getCurrentUser } from '../helpers/getCurrentUser.ts';
   import { assignCursorColor } from './assignCursorColor.ts';
 
   interface Props {
@@ -65,4 +63,4 @@
   });
 </script>
 
-<div bind:this={element}></div>
+<div bind:this={element}></div> -->

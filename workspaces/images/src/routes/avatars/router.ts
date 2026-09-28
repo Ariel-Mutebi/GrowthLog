@@ -23,7 +23,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
 
   const mb = app.config.PUBLIC_MAX_AVATAR_SIZE_BYTES / 1024 ** 2;
 
-  app.post('request-upload', {
+  app.post('/request-upload', {
     schema: RequestUpload,
     preHandler: verifyJWT,
   }, async (req, res) => {
@@ -51,7 +51,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.post(':id/confirm', {
+  app.post('/:id/confirm', {
     schema: Confirm,
     preHandler: verifyJWT,
   }, async (req, res) => {

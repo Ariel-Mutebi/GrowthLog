@@ -6,7 +6,7 @@
   "scripts": {
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "dev": "pnpm --parallel --filter api --filter web dev",
+    "dev": "pnpm --parallel --filter api --filter web --filter images dev",
     "dev:api": "pnpm --filter api dev",
     "dev:web": "pnpm --filter web dev",
     "prepare": "husky"
@@ -20,10 +20,7 @@
     "typescript-eslint": "^8.70.1"
   },
   "lint-staged": {
-    "api/src/**/*.ts": [
-      "eslint --fix"
-    ],
-    "web/src/**/*.ts": [
+    "workspaces/**/*.ts": [
       "eslint --fix"
     ]
   }

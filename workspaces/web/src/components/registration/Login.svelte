@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createForm } from 'felte';
   import { navigate } from 'astro:transitions/client';
-  import { client } from '../../api/client.ts';
+  import { apiClient } from '../clients.ts';
   import { HTTPError, toastError } from '../errorHandling.ts';
 
   import Field from './Field.svelte';
@@ -15,9 +15,9 @@
     password: string;
   }
 
-  const { form } = createForm<Credentials>({
+  const { form, isSubmitting } = createForm<Credentials>({
     onSubmit: async (body)  => {
-      const { data: user, error } = await client.POST('/api/sessions', { body });
+      const { data: user, error } = await apiClient.POST('/api/sessions', { body });
       if (error) throw new HTTPError(error);
       return user;
     },
@@ -29,7 +29,7 @@
 <form use:form class="flex flex-col gap-8 lg:px-8">
   <Field label="Email" name="email" type="email" />
   <Password />
-  <Submit text="Log in" />
+  <Submit text="Log in" isSubmitting={$isSubmitting} />
   <Link href="/sign-up" text="Don't have an account? Sign up!" />
 </form>
 

@@ -8,9 +8,9 @@ const port = z.coerce.number().int().min(0).max(65535);
 const positive = z.coerce.number().positive();
 
 export const envDefinitions = {
-  API_PORT: port,
-  DOCS_PORT: port,
-  IMAGES_PORT: port,
+  PUBLIC_API_PORT: port,
+  PUBLIC_DOCS_PORT: port,
+  PUBLIC_IMAGES_PORT: port,
   NODE_ENV: z.enum(['development', 'production', 'test']),
 
   SESSION_SECRET: hexSecret(64),

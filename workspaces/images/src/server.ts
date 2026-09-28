@@ -6,7 +6,7 @@ const shutdown = async () => {
   try {
     await app.close();
   } catch (error) {
-    req.log.error(error);
+    app.log.error(error);
   }
 };
 
@@ -14,7 +14,7 @@ process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
 try {
-  await app.listen({ port: app.config.IMAGES_PORT, host: '0.0.0.0' });
+  await app.listen({ port: app.config.PUBLIC_IMAGES_PORT, host: '0.0.0.0' });
 } catch (error) {
-  req.log.error(error);
+  app.log.error(error);
 }

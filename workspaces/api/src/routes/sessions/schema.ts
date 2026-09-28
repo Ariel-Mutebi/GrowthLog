@@ -1,8 +1,8 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import { Email } from '../../typebox/inputs.js';
-import { InternalUser } from '../../typebox/profiles.js';
-import { UnauthorizedResponse, RateLimitedResponse } from '../../typebox/responses.js';
+import { UserClientSafe } from '../../typebox/userTypes.js';
+import { UnauthorizedResponse } from '../../typebox/responses.js';
 
 const credentials = Type.Object({
   email: Email,
@@ -15,9 +15,8 @@ export const CreateSessionSchema = {
   tags: ['Sessions'],
   body: credentials,
   response: {
-    200: InternalUser,
+    200: UserClientSafe,
     401: UnauthorizedResponse,
-    429: RateLimitedResponse,
   },
 } satisfies FastifySchema;
 
@@ -28,6 +27,5 @@ export const DeleteSessionSchema = {
   security: [{ session: [] }],
   response: {
     204: Type.Null(),
-    429: RateLimitedResponse,
   },
 } satisfies FastifySchema;

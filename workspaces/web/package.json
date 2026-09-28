@@ -15,6 +15,7 @@
     "@astrojs/svelte": "^9.0.1",
     "@felte/validator-zod": "^1.0.18",
     "@growthlog/api": "workspace:*",
+    "@growthlog/images": "workspace:*",
     "@hocuspocus/provider": "^4.7.0",
     "@lucide/svelte": "^1.48.0",
     "@tailwindcss/vite": "^4.3.3",

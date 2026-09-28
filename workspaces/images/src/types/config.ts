@@ -1,5 +1,5 @@
 export interface Config {
-  IMAGES_PORT: number;
+  PUBLIC_IMAGES_PORT: number;
   DATABASE_URL: string;
   JWT_SECRET: string;
   MINIO_ENDPOINT: string;

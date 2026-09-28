@@ -34,7 +34,7 @@ export const FullUser = Type.Object({
 export const UserDeclaredFields = Type.Object({
   forename: NameInput,
   surname: NameInput,
-  username: Username,
+  username: Type.Optional(Username),
   email: Email,
   password: Type.String(),
   avatarId: Type.Optional(Type.String()),

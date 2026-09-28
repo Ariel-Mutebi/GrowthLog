@@ -1,26 +1,28 @@
 <script lang="ts">
   import { createForm } from 'felte';
-  import Field from './Field.svelte';
+  import { validator } from '@felte/validator-zod';
+  import { navigate } from 'astro:transitions/client';
+
+  import { apiClient } from '../clients.ts';
+  import { HTTPError, toastError } from '../errorHandling.ts';
+  import { SignUpSchema, type SignUpData } from './SignUpSchema.ts';
+
   import Link from './Link.svelte';
+  import Field from './Field.svelte';
   import Submit from './Submit.svelte';
   import Password from './Password.svelte';
   import Toaster from '../Toaster.svelte';
-  import { client } from '../../api/client.ts';
-  import { validator } from '@felte/validator-zod';
   import FieldWrapper from './FieldWrapper.svelte';
-  import { navigate } from 'astro:transitions/client';
-  import { SignUpSchema, type SignUpData } from './SignUpSchema.ts';
-  import { HTTPError, toastError } from '../errorHandling.ts';
   import PasswordStrengthMeter from './PasswordStrengthMeter.svelte';
 
-  const { form, data, errors } = createForm<SignUpData>({
+  const { form, data, errors, isSubmitting } = createForm<SignUpData>({
     extend: validator({ schema: SignUpSchema }),
     onSubmit: async (body) => {
-      const { data: user, error } = await client.POST('/api/users', { body });
+      const { data: user, error } = await apiClient.POST('/api/users', { body });
       if (error) throw new HTTPError(error);
       return user;
     },
-    onSuccess: () => navigate('/'),
+    onSuccess: () => navigate('/my-profile'),
     onError: toastError,
   });
 </script>
@@ -38,8 +40,7 @@
     <PasswordStrengthMeter {...$data} />
   </FieldWrapper>
   
-  <Submit text="Sign up" />
-
+  <Submit text="Sign up" isSubmitting={$isSubmitting} />
   <Link href="/login" text="Already have an account? Log in." />
 </form>
 
