@@ -56,6 +56,9 @@ export async function handleOnboardingSubmit({ username, bio, avatar }: Onboardi
   }
 
   const { error: confirmError } = await imagesClient.POST('/images/avatars/{id}/confirm', {
+    headers: {
+      Authorization: `Bearer ${handoff.token}`,
+    },
     params: {
       path: {
         id: permission.imageId,
