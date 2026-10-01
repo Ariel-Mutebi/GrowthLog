@@ -15,7 +15,8 @@
   inset-shadow-stone-800/25 dark:inset-shadow-lime-100/25 text-shadow-[2px_2px_0]
   text-shadow-stone-800/25 dark:text-shadow-lime-100/25 hover:inset-shadow-none
   hover:text-shadow-none focus:inset-shadow-none focus:text-shadow-none focus:outline-none
-  active:bg-lime-200 dark:active:bg-emerald-800"
+  active:bg-lime-200 dark:active:bg-emerald-800 disabled:bg-stone-200 disabled:text-stone-600
+  disabled:dark:bg-stone-600 disabled:dark:text-stone-200"
 >
   {text}
 </button>

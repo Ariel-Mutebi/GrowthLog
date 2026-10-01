@@ -2,7 +2,7 @@
 import RegistrationLayout from "../layouts/RegistrationLayout.astro";
 import catsCuddling from "../assets/cats-cuddling.jpg";
 import dogThinking from "../assets/dog-thinking.jpg";
-import Onboarding from "../components/registration/Onboarding.svelte";
+import Onboarding from "../components/onboarding/Onboarding.svelte";
 ---
 
 <RegistrationLayout
@@ -10,6 +10,7 @@ import Onboarding from "../components/registration/Onboarding.svelte";
   CTA="Make GrowthLog your own"
   bgLight={catsCuddling}
   bgDark={dogThinking}
+  blend={true}
 >
   <Onboarding client:load />
 </RegistrationLayout>

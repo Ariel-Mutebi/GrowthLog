@@ -12,7 +12,7 @@
   import Submit from './Submit.svelte';
   import Password from './Password.svelte';
   import Toaster from '../Toaster.svelte';
-  import FieldWrapper from './FieldWrapper.svelte';
+  import FieldWrapper from '../FieldWrapper.svelte';
   import PasswordStrengthMeter from './PasswordStrengthMeter.svelte';
 
   const { form, data, errors, isSubmitting } = createForm<SignUpData>({
