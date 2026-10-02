@@ -16,6 +16,7 @@
   import Label from '../Label.svelte';
   import Toaster from '../Toaster.svelte';
   import Textarea from '../Textarea.svelte';
+  import Error from '../registration/Error.svelte';
   import FieldWrapper from '../FieldWrapper.svelte';
   import AvatarPicker from './AvatarPicker.svelte';
   import Submit from '../registration/Submit.svelte';
@@ -36,12 +37,15 @@
 
 <form use:form class="flex flex-col gap-8 p-4 sm:p-8 lg:px-16">
   <div class="flex gap-4 sm:gap-8">
-    <AvatarPicker avatar={$data.avatar} />
+    <AvatarPicker avatar={$data.avatar} errors={$errors.avatar} />
 
     <div class="grid gap-4 w-full">
       <FieldWrapper>
         <Label name="username" label="Username" variant="light" />
         <Input name="username" padded={false} variant="header" />
+        {#if $errors.username}
+          <Error errors={$errors.username} />          
+        {/if}
       </FieldWrapper>
 
       <FieldWrapper>
@@ -52,6 +56,9 @@
           {/if}
         </div>
         <Textarea name="bio" />
+        {#if $errors.bio}
+          <Error errors={$errors.bio} />          
+        {/if}
       </FieldWrapper>
     </div>
   </div>

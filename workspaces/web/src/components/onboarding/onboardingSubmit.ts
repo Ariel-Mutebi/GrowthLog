@@ -2,7 +2,7 @@ import { HTTPError } from '../errorHandling.ts';
 import { apiClient, imagesClient } from '../clients.ts';
 import type { OnboardingData, ACCEPTED_TYPE } from './OnboardingSchema.ts';
 
-export async function handleOnboardingSubmit({ username, bio, avatar }: OnboardingData) {
+async function uploadAvatar(avatar: File) {
   const {
     data: handoff,
     error: jwtError,
@@ -70,11 +70,17 @@ export async function handleOnboardingSubmit({ username, bio, avatar }: Onboardi
     throw new HTTPError(confirmError);
   }
 
+  return permission.imageId;
+}
+
+export async function handleOnboardingSubmit({ username, bio, avatar }: OnboardingData) {
+  const avatarId = avatar ? await uploadAvatar(avatar) : undefined;
+
   const { error: updateError } = await apiClient.PATCH('/api/users', {
     body: {
       username,
       bio,
-      avatarId: permission.imageId,
+      avatarId,
     },
   });
 

@@ -1,6 +1,6 @@
 import z from 'zod';
+import { PUBLIC_MAX_AVATAR_SIZE_BYTES } from 'astro:env/client';
 
-const MAX_AVATAR_BYTES = Number(import.meta.env.PUBLIC_MAX_AVATAR_SIZE_BYTES);
 export const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 export type ACCEPTED_TYPE = typeof ACCEPTED_TYPES[number];
 
@@ -8,13 +8,14 @@ export const OnboardingSchema = z.object({
   avatar: z
     .instanceof(File, { error: 'Please chose a profile picture' })
     .refine(
-      (file) => file.size <= MAX_AVATAR_BYTES,
-      `Please upload an image under ${MAX_AVATAR_BYTES / 1024 ** 2} MB`,
+      (file) => file.size <= PUBLIC_MAX_AVATAR_SIZE_BYTES,
+      `Please upload an image under ${PUBLIC_MAX_AVATAR_SIZE_BYTES / 1024 ** 2} MB`,
     )
     .refine(
       (file) => ACCEPTED_TYPES.includes(file.type as ACCEPTED_TYPE),
       'Please use a JPG, PNG, or WebP image',
-    ),
+    )
+    .optional(),
 
   username: z
     .string()

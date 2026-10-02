@@ -26,6 +26,11 @@ export default defineConfig({
         access: 'public',
         url: true,
       }),
+      PUBLIC_DOCS_URL: envField.string({
+        context: 'client',
+        access: 'public',
+        url: true,
+      }),
       PUBLIC_MINIO_ENDPOINT: envField.string({
         context: 'client',
         access: 'public',

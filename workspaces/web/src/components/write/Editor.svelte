@@ -1,12 +1,15 @@
-<!-- <script lang="ts">
+<script lang="ts">
   import * as Y from 'yjs';
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import { Editor } from '@tiptap/core';
-  import { StarterKit } from '@tiptap/starter-kit';
+  import StarterKit from '@tiptap/starter-kit';
+  import Collaboration from '@tiptap/extension-collaboration';
+  import CollaborationCaret from '@tiptap/extension-collaboration-caret';
+  import { PUBLIC_DOCS_URL } from 'astro:env/client';
   import { HocuspocusProvider } from '@hocuspocus/provider';
-  import { Collaboration } from '@tiptap/extension-collaboration';
-  import { CollaborationCaret } from '@tiptap/extension-collaboration-caret';
 
+  import { apiClient } from '../clients.ts';
+  import { getCurrentUser } from '../currentUser.ts';
   import { assignCursorColor } from './assignCursorColor.ts';
 
   interface Props {
@@ -26,15 +29,16 @@
   onMount(async () => {
     try {
       const currentUser = await getCurrentUser();
-      const { data: token } = await client.GET('/api/collab');
-      if (!currentUser || !token) throw new Error('Unauthenticated');
+      const { data } = await apiClient.GET('/api/jwt');
+      if (!currentUser || !data) throw new Error('Unauthenticated');
 
       ydoc = new Y.Doc();
 
       provider = new HocuspocusProvider({
-        url: String(import.meta.env.PUBLIC_COLLAB_WS_URL),
+        url: PUBLIC_DOCS_URL,
         name: postId,
         document: ydoc,
+        token: data.token,
         onAuthenticationFailed() {
           status = 'error';
         }
@@ -63,4 +67,4 @@
   });
 </script>
 
-<div bind:this={element}></div> -->
+<div bind:this={element}></div>

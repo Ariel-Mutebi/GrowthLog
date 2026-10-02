@@ -1,4 +1,11 @@
 ---
+import Navbar from "../components/Navbar.astro";
+import HeadLayout from "../layouts/HeadLayout.astro";
 ---
 
-<h1>Hello, world!</h1>
+<HeadLayout title="Index">
+  <div class="w-dvw grid">
+    <Navbar />
+    <h1>Hello, world!</h1>
+  </div>
+</HeadLayout>

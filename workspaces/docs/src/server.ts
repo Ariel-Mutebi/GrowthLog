@@ -72,7 +72,7 @@ const server = new Server({
         id: documentName,
       },
       data: {
-        content: Buffer.from(state),
+        draftContent: Buffer.from(state),
       },
     });
   },

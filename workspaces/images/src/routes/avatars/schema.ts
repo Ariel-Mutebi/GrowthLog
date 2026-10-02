@@ -12,6 +12,9 @@ import {
 import { ImageModel } from '../../typebox/models.js';
 
 export const RequestUpload = {
+  headers: Type.Object({
+    Authorization: Type.String(),
+  }),
   body: Type.Object({
     mimeType: Type.Union([
       Type.Literal('image/jpeg'),
@@ -32,6 +35,9 @@ export const RequestUpload = {
 } satisfies FastifySchema;
 
 export const Confirm = {
+  headers: Type.Object({
+    Authorization: Type.String(),
+  }),
   params: Type.Object({
     id: Type.String(),
   }),

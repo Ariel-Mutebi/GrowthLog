@@ -1,0 +1,13 @@
+---
+import Logo from './Logo.astro';
+import Theme from './Theme.svelte';
+import Avatar from './Avatar.svelte';
+---
+
+<nav class="flex justify-between py-2 px-3 sm:px-0">
+  <Logo />
+  <div class="flex gap-2 sm:gap-6 items-center px-2">
+    <Theme client:load />
+    <Avatar client:load />
+  </div>
+</nav>

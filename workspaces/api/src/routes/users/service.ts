@@ -2,10 +2,11 @@ import { zxcvbn } from 'zxcvbn-ts';
 import { hash, compare } from 'bcrypt';
 import { extractConflictColumns } from '../../utils/extractors.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { clientSafeSelect, publicSafeSelect, flattenAvatarKey } from '../../utils/userSelectors.js';
 
 import type { IdentityProof } from './schema.js';
 import type { PrismaClient, UserFindManyArgs, UserWhereInput } from '@growthlog/db';
-import type { UserClientSafeType, UserPublicSafeType } from '../../typebox/userTypes.js';
+import type { UserClientSafe, UserPublicSafe } from '../../typebox/userTypes.js';
 
 const HASHING_ROUNDS = 10;
 const MAX_RETRIES = 100;
@@ -42,7 +43,7 @@ interface SearchParams {
 }
 
 interface SearchResult {
-  users: UserPublicSafeType[];
+  users: UserPublicSafe[];
   nextCursor: string | null;
 }
 
@@ -51,7 +52,7 @@ export class UserService {
     private readonly prisma: PrismaClient,
   ) {}
 
-  public async create(data: UserDeclaredFields): Promise<UserClientSafeType> {
+  public async create(data: UserDeclaredFields): Promise<UserClientSafe> {
     const { password, username, ...rest } = data;
 
     this.passwordCheck(password);
@@ -71,7 +72,7 @@ export class UserService {
     });
   }
 
-  private passwordCheck(password: string) {
+  private passwordCheck(password: string): void {
     const { score, feedback } = zxcvbn(password);
 
     if (score < 3) {
@@ -79,17 +80,14 @@ export class UserService {
     }
   }
 
-  private async simpleCreate(data: UserDeclaredFields & { username: string }) {
+  private async simpleCreate(data: UserDeclaredFields & { username: string }): Promise<UserClientSafe> {
     try {
       const user = await this.prisma.user.create({
         data,
-        omit: {
-          password: true,
-          deletedAt: true,
-        },
+        select: clientSafeSelect,
       });
 
-      return user;
+      return flattenAvatarKey(user);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code == 'P2002') {
         throw new UserConflictError();
@@ -99,7 +97,7 @@ export class UserService {
     }
   }
 
-  private async createWithDerivedUsername(data: UserDeclaredFields) {
+  private async createWithDerivedUsername(data: UserDeclaredFields): Promise<UserClientSafe> {
     const { forename, surname, ...rest } = data;
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -107,18 +105,17 @@ export class UserService {
       const derived = `${forename.toLocaleLowerCase()}-${surname.toLocaleLowerCase()}${suffix}`;
       
       try {
-        return await this.prisma.user.create({
+        const newUser = await this.prisma.user.create({
           data: {
             username: derived,
             forename,
             surname,
             ...rest,
           },
-          omit: {
-            password: true,
-            deletedAt: true,
-          },
+          select: clientSafeSelect,
         });
+        
+        return flattenAvatarKey(newUser);
       } catch (error) {
         if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
           if (extractConflictColumns(error.meta).includes('username')) {
@@ -138,15 +135,14 @@ export class UserService {
     throw new Error();
   }
 
-  public async getSelf(id: string): Promise<UserClientSafeType> {
+  public async getSelf(id: string): Promise<UserClientSafe> {
     try {
-      return await this.prisma.user.findUniqueOrThrow({
+      const self = await this.prisma.user.findUniqueOrThrow({
         where: { id },
-        omit: {
-          password: true,
-          deletedAt: true,
-        },
+        select: clientSafeSelect,
       });
+
+      return flattenAvatarKey(self);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
         throw new UserNotFoundError();
@@ -155,16 +151,14 @@ export class UserService {
     }
   }
 
-  public async getOther(id: string): Promise<UserPublicSafeType> {
+  public async getOther(id: string): Promise<UserPublicSafe> {
     try {
-      return await this.prisma.user.findUniqueOrThrow({
+      const other = await this.prisma.user.findUniqueOrThrow({
         where: { id },
-        omit: {
-          email: true,
-          password: true,
-          deletedAt: true,
-        },
+        select: publicSafeSelect,
       });
+
+      return flattenAvatarKey(other);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
         throw new UserNotFoundError();
@@ -220,11 +214,6 @@ export class UserService {
         createdAt: 'desc',
       },
       take: limit + 1,
-      omit: {
-        email: true,
-        password: true,
-        deletedAt: true,
-      },
     };
 
     if (cursor) {
@@ -232,11 +221,15 @@ export class UserService {
       findManyArgs.skip = 1;
     }
 
-    const rows = await this.prisma.user.findMany(findManyArgs);
-    const users = rows.length > limit ? rows.slice(0, limit): rows;
+    const rows = await this.prisma.user.findMany({
+      ...findManyArgs,
+      select: publicSafeSelect,
+    });
+    const flat = rows.map(user => flattenAvatarKey(user));
+    const users = flat.length > limit ? flat.slice(0, limit): flat;
 
     if (!users.length) throw new UserNotFoundError();
-    const nextCursor = rows.length > limit ? users.at(-1)!.id : null;
+    const nextCursor = flat.length > limit ? users.at(-1)!.id : null;
 
     return { users, nextCursor };
   }
@@ -244,7 +237,7 @@ export class UserService {
   public async update(
     userId: string,
     data: Partial<UserDeclaredFields> & Partial<IdentityProof>,
-  ): Promise<UserClientSafeType> {
+  ): Promise<UserClientSafe> {
     const { currentPassword, ...updateData } = data;
 
     if (updateData.email || updateData.password) {
@@ -263,13 +256,10 @@ export class UserService {
           deletedAt: null,
         },
         data: updateData,
-        omit: {
-          password: true,
-          deletedAt: true,
-        },
+        select: clientSafeSelect,
       });
 
-      return updatedUser;
+      return flattenAvatarKey(updatedUser);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new UserConflictError();
@@ -303,21 +293,24 @@ export class UserService {
   public async softDelete(
     userId: string,
     currentPassword: string,
-  ): Promise<UserClientSafeType & { deletedAt: Date | null }> {
+  ): Promise<UserClientSafe & { deletedAt: Date | null }> {
     await this.requireCurrentPassword(userId, currentPassword);
 
     try {
-      return await this.prisma.user.update({
+      const deleted = await this.prisma.user.update({
         where: {
           id: userId,
         },
         data: {
           deletedAt: new Date(),
         },
-        omit: {
-          password: true,
+        select: {
+          ...clientSafeSelect,
+          deletedAt: true,
         },
       });
+
+      return flattenAvatarKey(deleted);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
         throw new UserNotFoundError();

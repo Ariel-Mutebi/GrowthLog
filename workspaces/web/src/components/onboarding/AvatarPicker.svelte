@@ -1,14 +1,17 @@
 <script lang="ts">
+  import { toast } from 'svelte-sonner';
   import Plus from '@lucide/svelte/icons/plus';
   import FileImage from '@lucide/svelte/icons/file-image';
   import { ACCEPTED_TYPES } from './OnboardingSchema.ts';
+
   import Label from '../Label.svelte';
 
   interface Props {
     avatar?: File;
+    errors?: string[] | null;
   }
 
-  const { avatar }: Props = $props();
+  const { avatar, errors }: Props = $props();
   let previewUrl = $state<string>();
 
   $effect(() => {
@@ -23,6 +26,13 @@
     return () => URL.revokeObjectURL(url);
   });
 
+  $effect(() => {
+    const avatarError = errors?.[0];
+
+    if (avatarError) {
+      toast.error('Avatar Error', { description: avatarError });
+    }
+  });
 </script>
 
 <div class="flex flex-col gap-2">

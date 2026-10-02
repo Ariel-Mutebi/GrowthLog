@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@growthlog/db';
-import type { UserPublicSafeType } from '../../typebox/userTypes.js';
+import type { UserPublicSafe } from '../../typebox/userTypes.js';
+import { flattenAvatarKey, publicSafeSelect } from '../../utils/userSelectors.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 export class FollowerService {
@@ -7,42 +8,34 @@ export class FollowerService {
     private readonly prisma: PrismaClient,
   ) {}
 
-  public async getFollowers(userId: string): Promise<UserPublicSafeType[]> {
+  public async getFollowers(userId: string): Promise<UserPublicSafe[]> {
     const rows = await this.prisma.follow.findMany({
       where: {
         followingId: userId,
       },
       select: {
         follower: {
-          omit: {
-            email: true,
-            password: true,
-            deletedAt: true,
-          },
+          select: publicSafeSelect,
         },
       },
     });
 
-    return rows.map(row => row.follower);
+    return rows.map(row => flattenAvatarKey(row.follower));
   }
 
-  public async getFollowing(userId: string): Promise<UserPublicSafeType[]> {
+  public async getFollowing(userId: string): Promise<UserPublicSafe[]> {
     const rows = await this.prisma.follow.findMany({
       where: {
         followerId: userId,
       },
       select: {
         following: {
-          omit: {
-            email: true,
-            password: true,
-            deletedAt: true,
-          },
+          select: publicSafeSelect,
         },
       },
     });
 
-    return rows.map(row => row.following);
+    return rows.map(row => flattenAvatarKey(row.following));
   }
 
   public async follow(followerId: string, followingId: string) {

@@ -5,9 +5,12 @@ import { NameInput, Username, Email, BioInput } from './inputs.js';
 import type { User } from '@growthlog/db';
 import type { TypeBoxModel } from './mapping.js';
 
-export type FullUserType = Omit<User, 'deletedAt'>;
-export type UserClientSafeType = Omit<FullUserType, 'password'>;
-export type UserPublicSafeType = Omit<UserClientSafeType, 'email'>;
+type FullUser = Omit<User, 'deletedAt' | 'avatarId'> & {
+  avatarKey: string | null; // transformed from avatarId
+}
+
+export type UserClientSafe = Omit<FullUser, 'password'>;
+export type UserPublicSafe = Omit<UserClientSafe, 'email'>;
 
 const PublicSafeBase = {
   id: Type.String(),
@@ -15,21 +18,21 @@ const PublicSafeBase = {
   surname: NameInput,
   username: Username,
   createdAt: SerializableDate,
-  avatarId: Type.Union([Type.String(), Type.Null()]),
+  avatarKey: Type.Union([Type.String(), Type.Null()]),
   bio: Type.Union([BioInput, Type.Null()]),
-} satisfies TypeBoxModel<UserPublicSafeType>;
+} satisfies TypeBoxModel<UserPublicSafe>;
 export const UserPublicSafe = Type.Object(PublicSafeBase);
 
 const ClientSafeBase = {
   ...PublicSafeBase,
   email: Email,
-} satisfies TypeBoxModel<UserClientSafeType>;
+} satisfies TypeBoxModel<UserClientSafe>;
 export const UserClientSafe = Type.Object(ClientSafeBase);
 
 export const FullUser = Type.Object({
   ...ClientSafeBase,
   password: Type.String(),
-} satisfies TypeBoxModel<FullUserType>);
+} satisfies TypeBoxModel<FullUser>);
 
 export const UserDeclaredFields = Type.Object({
   forename: NameInput,
