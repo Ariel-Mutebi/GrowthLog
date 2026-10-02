@@ -1,4 +1,19 @@
-<picture>
-  <source media="(min-width: 768px)" srcset="/logo-64.png">
-  <img src="/logo-32.png" class="h-8 w-8 md:h-16 md:w-16" alt="The GrowthLog logo">
+<!-- Light mode -->
+<picture class="dark:hidden">
+  <source media="(min-width: 768px)" srcset="/logo-64.png" />
+  <img
+    src="/logo-32.png"
+    alt="The GrowthLog logo"
+    class="h-8 w-8 md:h-16 md:w-16"
+  />
+</picture>
+
+<!-- Dark mode -->
+<picture class="hidden dark:block">
+  <source media="(min-width: 768px)" srcset="/logo-dark-64.png" />
+  <img
+    src="/logo-dark-32.png"
+    alt="The GrowthLog logo"
+    class="h-8 w-8 md:h-16 md:w-16"
+  />
 </picture>
