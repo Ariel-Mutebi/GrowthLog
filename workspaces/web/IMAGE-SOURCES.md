@@ -1,0 +1,9 @@
+# Image Sources
+All photos are from Unsplash, under the free license.
+
+* <a href="https://unsplash.com/photos/lone-tree-in-backlit-grass-field-Qr58fNY8lwU">default-avatar.jpg</a>
+* <a href="https://unsplash.com/photos/city-buildings-with-lights-on-under-grey-cloudy-night-sky-Fbz25-q9Jic">community-dawn.jpg</a>
+* <a href="https://unsplash.com/photos/a-view-of-a-city-from-a-hill-BDENourXBxo">community-afternoon.jpg</a>
+* <a href="https://unsplash.com/photos/brown-short-coated-dog-on-black-and-white-textile-OyHG2U_Efus">dog-thinking.jpg</a>
+* <a href="https://unsplash.com/photos/two-cats-lying-on-a-couch-ul-zgarqBLE">cats-cuddling.jpg</a>
+* <a href="https://unsplash.com/photos/map-9TViXB_73ww">leaf-midrib.jpg</a>

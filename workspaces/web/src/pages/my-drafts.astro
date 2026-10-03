@@ -1,0 +1,32 @@
+---
+import { Image } from "astro:assets";
+import HeadLayout from "../layouts/HeadLayout.astro";
+import Navbar from "../components/Navbar.astro";
+import leafMidrib from "../assets/leaf-midrib.jpg";
+import CreateButton from "../components/write/CreateButton.svelte";
+---
+
+<HeadLayout title="My Drafts | GrowthLog">
+  <div class="w-dvw min-h-dvh bg-stone-50 dark:bg-stone-950">
+    <Navbar />
+    <header class="flex gap-2 sm:gap-4 items-end">
+      <Image
+        src={leafMidrib}
+        alt="Leaf midrib"
+        format="webp"
+        sizes="30dvw"
+        widths={[320, 480, 768, 1152]}
+        class="w-[30dvw] h-50 sm:h-60 object-cover"
+      />
+      <hgroup class="grid gap-3">
+        <h1
+          class="font-serif text-6xl sm:text-8xl font-semibold text-nowrap text-stone-50
+            mix-blend-difference display-heading -translate-x-22 sm:-translate-x-36"
+        >
+          My Drafts
+        </h1>
+        <CreateButton />
+      </hgroup>
+    </header>
+  </div>
+</HeadLayout>

@@ -3,15 +3,13 @@
   import { apiClient } from './clients.ts';
   import { PUBLIC_MINIO_ENDPOINT, PUBLIC_AVATAR_BUCKET } from 'astro:env/client';
 
-  let src = $state<string>();
+  let src = $state('default-avatar.jpg');
 
   onMount(async () => {
     const { data } = await apiClient.GET('/api/users');
 
     if (data?.avatarKey) {
       src = `${PUBLIC_MINIO_ENDPOINT}/${PUBLIC_AVATAR_BUCKET}/${data.avatarKey}`;
-    } else {
-      src = 'default-avatar.jpg';
     }
   });
 </script>
