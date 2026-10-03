@@ -1,6 +1,7 @@
 <script lang="ts">
   import * as Y from 'yjs';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
+  import debounce from 'debounce';
   import { Editor } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
   import Collaboration from '@tiptap/extension-collaboration';
@@ -9,23 +10,25 @@
   import { HocuspocusProvider } from '@hocuspocus/provider';
 
   import { apiClient } from '../clients.ts';
-  import { assignCursorColor } from './assignCursorColor.ts';
+  import { assignCursorColor } from './cursor.ts';
   import type { User } from '../../types/user.ts';
 
   interface Props {
-    postId: string;
     user: User;
+    postId: string;
+    initialTitle: string;
   }
 
-  const { postId, user }: Props = $props();
+  const { postId, user, initialTitle }: Props = $props();
 
   let ydoc: Y.Doc;
   let editor: Editor;
   let element: HTMLDivElement;
   let provider: HocuspocusProvider;
 
-  type states = 'connecting' | 'connected' | 'error';
-  let status = $state<states>('connecting');
+  // svelte-ignore state_referenced_locally
+  let title = $state(initialTitle);
+  let status = $state<'connecting' | 'connected' | 'error'>('connecting');
 
   onMount(async () => {
     try {
@@ -39,6 +42,9 @@
         name: postId,
         document: ydoc,
         token: data.token,
+        onSynced() {
+          status = 'connected';
+        },
         onAuthenticationFailed() {
           status = 'error';
         }
@@ -58,13 +64,37 @@
           }),
         ],
       });
-
-      status = 'connected';
     } catch (error) {
       console.error(error);
       status = 'error';
     }
   });
+
+  onDestroy(() => {
+    editor?.destroy();
+    provider?.destroy();
+    ydoc?.destroy();
+  });
+
+  const saveTitle = debounce(async (value: string) => {
+    await apiClient.PATCH('/api/posts/{id}', {
+      params: { path: { id: postId } },
+      body: { title: value },
+    });
+  }, 1000);
 </script>
+
+{#if status === 'error'}
+  <p>Couldn't connect to the editor. Try refreshing.</p>
+{/if}
+
+<input
+  type="text"
+  placeholder="Title"
+  value={title != 'Untitled' ? title : ''}
+  oninput={(event) => {
+    saveTitle(event.currentTarget.value);
+  }}
+>
 
 <div bind:this={element}></div>
