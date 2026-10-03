@@ -26,5 +26,5 @@ if (!post) {
 ---
 
 <HeadLayout title={post.title}>
-  <Editor {user} {postId} initialTitle={post.title} />
+  <Editor {user} {postId} initialTitle={post.title} client:only="svelte" />
 </HeadLayout>

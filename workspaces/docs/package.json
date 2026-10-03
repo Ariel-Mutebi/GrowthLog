@@ -4,9 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -b",
-    "predev": "pnpm -w run docker:up",
-    "dev": "tsx watch src/server.ts",
-    "start": "node dist/server.js"
+    "dev": "tsx watch src/server.ts"
   },
   "dependencies": {
     "@growthlog/db": "workspace:*",
