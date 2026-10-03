@@ -11,7 +11,7 @@
     unstyled: true,
     classes: {
       toast: 'text-neutral-900 bg-neutral-100 dark:text-neutral-50 dark:bg-neutral-800\
-        text-sm font-mono px-2 py-2 flex gap-2 items-center min-w-50',
+        text-sm font-mono px-2 py-2 flex gap-2 items-center min-w-50 rounded-2xl shadow-lg',
     },
   }}
 >
