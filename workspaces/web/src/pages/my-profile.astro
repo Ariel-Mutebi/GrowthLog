@@ -3,6 +3,12 @@ import RegistrationLayout from "../layouts/RegistrationLayout.astro";
 import catsCuddling from "../assets/cats-cuddling.jpg";
 import dogThinking from "../assets/dog-thinking.jpg";
 import Onboarding from "../components/onboarding/Onboarding.svelte";
+
+const { user } = Astro.locals;
+
+if (!user) {
+  return Astro.redirect('/login', 302);
+}
 ---
 
 <RegistrationLayout
@@ -12,5 +18,5 @@ import Onboarding from "../components/onboarding/Onboarding.svelte";
   bgDark={dogThinking}
   blend={true}
 >
-  <Onboarding client:load />
+  <Onboarding username={user.username} client:load />
 </RegistrationLayout>

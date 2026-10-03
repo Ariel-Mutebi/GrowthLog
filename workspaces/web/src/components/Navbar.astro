@@ -1,13 +1,19 @@
 ---
-import Logo from './Logo.astro';
-import Theme from './Theme.svelte';
-import Avatar from './Avatar.svelte';
+import Logo from "./Logo.astro";
+import Theme from "./Theme.svelte";
+import Avatar from "./Avatar.svelte";
+
+interface Props {
+  avatarKey: string | null;
+}
+
+const { avatarKey } = Astro.props;
 ---
 
 <nav class="w-full flex justify-between py-2 px-3 sm:px-0">
   <Logo />
   <div class="flex gap-2 sm:gap-6 items-center px-2">
     <Theme client:load />
-    <Avatar client:load />
+    <Avatar {avatarKey} />
   </div>
 </nav>

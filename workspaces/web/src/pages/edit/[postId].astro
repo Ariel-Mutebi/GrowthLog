@@ -1,0 +1,7 @@
+---
+import { createApiClient } from '../../server/clients.ts';
+
+const apiClient = createApiClient(Astro.request.headers.get('cookie'));
+
+const { postId } = Astro.params;
+---

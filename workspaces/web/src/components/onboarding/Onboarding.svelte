@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { createForm } from 'felte';
   import { validator } from '@felte/validator-zod';
   import { navigate } from 'astro:transitions/client';
@@ -9,7 +8,6 @@
     OnboardingSchema,
     type OnboardingData,
   } from './OnboardingSchema.ts';
-  import { getCurrentUser } from '../currentUser.ts';
   import { handleOnboardingSubmit } from './onboardingSubmit.ts';
 
   import Input from '../Input.svelte';
@@ -22,16 +20,19 @@
   import Submit from '../registration/Submit.svelte';
   import CharacterCount from '../CharacterCount.svelte';
 
+  interface Props {
+    username: string;
+  }
+
+  const { username }: Props = $props();
+
   const { form, data, errors, isSubmitting } = createForm<OnboardingData>({
     extend: validator({ schema: OnboardingSchema }),
     onSubmit: handleOnboardingSubmit,
     onSuccess: () => navigate('/'),
     onError: toastError,
-  });
-
-  onMount(async () => {
-    const { username } = await getCurrentUser();
-    data.update((current) => ({ ...current, username }));
+    // svelte-ignore state_referenced_locally
+    initialValues: { username },
   });
 </script>
 

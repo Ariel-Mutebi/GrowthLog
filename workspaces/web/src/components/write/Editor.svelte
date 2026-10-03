@@ -9,14 +9,15 @@
   import { HocuspocusProvider } from '@hocuspocus/provider';
 
   import { apiClient } from '../clients.ts';
-  import { getCurrentUser } from '../currentUser.ts';
   import { assignCursorColor } from './assignCursorColor.ts';
+  import type { User } from '../../types/user.ts';
 
   interface Props {
     postId: string;
+    user: User;
   }
 
-  const { postId }: Props = $props();
+  const { postId, user }: Props = $props();
 
   let ydoc: Y.Doc;
   let editor: Editor;
@@ -28,9 +29,8 @@
 
   onMount(async () => {
     try {
-      const currentUser = await getCurrentUser();
       const { data } = await apiClient.GET('/api/jwt');
-      if (!currentUser || !data) throw new Error('Unauthenticated');
+      if (!data) throw new Error('Unauthenticated');
 
       ydoc = new Y.Doc();
 
@@ -52,8 +52,8 @@
           CollaborationCaret.configure({
             provider,
             user: {
-              name: `${currentUser.forename} ${currentUser.surname}`,
-              color: assignCursorColor(currentUser.id),
+              name: `${user.forename} ${user.surname}`,
+              color: assignCursorColor(user.id),
             }
           }),
         ],
