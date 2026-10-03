@@ -3,9 +3,9 @@ import { NameInput } from '../../typebox/inputs.js';
 import {
   BadRequest,
   ConflictResponse,
-  InternalServerErrorResponse,
   NotFoundResponse,
   UnauthorizedResponse,
+  generalErrorResponses,
 } from '../../typebox/responses.js';
 import {
   UserClientSafe,
@@ -27,7 +27,7 @@ export const CreateUserSchema = {
     201: UserClientSafe,
     400: BadRequest,
     409: ConflictResponse,
-    500: InternalServerErrorResponse,
+    ...generalErrorResponses,
   },
 } satisfies FastifySchema;
 
@@ -37,12 +37,13 @@ export const GetSelfSchema = {
   security: [{ session: [] }],
   response: {
     200: UserClientSafe,
+    401: UnauthorizedResponse,
     404: NotFoundResponse,
-    500: InternalServerErrorResponse,
+    ...generalErrorResponses,
   },
 } satisfies FastifySchema;
 
-export const UpdateUserSchema = {
+export const UpdateSelfSchema = {
   summary: 'Update current user',
   description: 'Updating email or password requires `currentPassword` to be provided.',
   tags: ['Users'],
@@ -54,11 +55,11 @@ export const UpdateUserSchema = {
     401: UnauthorizedResponse,
     404: NotFoundResponse,
     409: ConflictResponse,
-    500: InternalServerErrorResponse,
+    ...generalErrorResponses,
   },
 } satisfies FastifySchema;
 
-export const DeleteUserSchema = {
+export const DeleteSelfSchema = {
   summary: 'Delete current user',
   description: 'Soft deletes the account. The account can be recovered by logging in within 7 days.',
   tags: ['Users'],
@@ -68,7 +69,7 @@ export const DeleteUserSchema = {
     200: UserClientSafe,
     401: UnauthorizedResponse,
     404: NotFoundResponse,
-    500: InternalServerErrorResponse,
+    ...generalErrorResponses,
   },
 } satisfies FastifySchema;
 
@@ -80,8 +81,9 @@ export const GetUserSchema = {
   }),
   response: {
     200: UserPublicSafe,
+    401: UnauthorizedResponse,
     404: NotFoundResponse,
-    500: InternalServerErrorResponse,
+    ...generalErrorResponses,
   },
 } satisfies FastifySchema;
 
@@ -105,6 +107,6 @@ export const UserSearchSchema = {
       nextCursor: Type.Union([Type.String(), Type.Null()]),
     }),
     404: NotFoundResponse,
-    500: InternalServerErrorResponse,
+    ...generalErrorResponses,
   },
 } satisfies FastifySchema;

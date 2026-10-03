@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import { UserPublicSafe } from '../../typebox/userTypes.js';
-import { InternalServerErrorResponse } from '../../typebox/responses.js';
+import { UnauthorizedResponse, generalErrorResponses } from '../../typebox/responses.js';
 
 const FollowersMutationSchema = {
   tags: ['Followers'],
@@ -11,40 +11,43 @@ const FollowersMutationSchema = {
   }),
   response: {
     204: Type.Null(),
-    500: InternalServerErrorResponse,
+    401: UnauthorizedResponse,
+    ...generalErrorResponses,
   },
 } satisfies FastifySchema;
 
 export const Follow = {
   summary: 'Follow',
-  description: 'The caller followers the user with the given userId; done idempotently',
+  description: 'The caller followers the user with the given userId',
   ...FollowersMutationSchema,
 } satisfies FastifySchema;
 
 export const Unfollow = {
   summary: 'Unfollow',
-  description: 'The caller unfollows the user with the given userId; no-op if not following to begin with',
+  description: 'The caller unfollows the user with the given userId',
   ...FollowersMutationSchema,
 } satisfies FastifySchema;
 
 const FollowersQuerySchema = {
   tags: ['Followers'],
-  security: [{ session: [] }],
   response: {
     200: Type.Array(UserPublicSafe),
-    500: InternalServerErrorResponse,
+    401: UnauthorizedResponse,
+    ...generalErrorResponses,
   },
 } satisfies FastifySchema;
 
 export const MyFollowers = {
   summary: 'See your followers',
   description: 'Get your followers\' ids and usernames',
+  security: [{ session: [] }],
   ...FollowersQuerySchema,
 } satisfies FastifySchema;
 
 export const WhoIFollow = {
   summary: 'See who you follow',
   description: 'Get the ids and usernames of the accounts you follow',
+  security: [{ session: [] }],
   ...FollowersQuerySchema,
 } satisfies FastifySchema;
 

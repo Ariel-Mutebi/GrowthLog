@@ -1,61 +1,30 @@
 import { Type } from '@sinclair/typebox';
+import type { Post } from '@growthlog/db';
 import type { FastifySchema } from 'fastify';
-import { ConflictResponse, NotFoundResponse, RateLimitedResponse } from '../../typebox/responses.js';
+import type { TypeBoxModel } from '../../typebox/mapping.js';
+import { UnauthorizedResponse, generalErrorResponses } from '../../typebox/responses.js';
 import { OptionalDate, SerializableDate } from '../../typebox/date.js';
 
-const DraftMeta = Type.Object({
-  title: Type.String(),
-  slug: Type.String(),
+export type PostMetadata = Omit<Post, 'draftContent' | 'publishedHtml' | 'deletedAt'>;
+
+const PostMetadata = Type.Object({
   id: Type.String(),
   authorId: Type.String(),
+  title: Type.String(),
+  slug: Type.Union([Type.String(), Type.Null()]),
   publishedAt: OptionalDate,
   createdAt: SerializableDate,
   updatedAt: SerializableDate,
-  deletedAt: OptionalDate,
-});
+} satisfies TypeBoxModel<PostMetadata>);
 
-export const GetMyPostsSchema = {
-  summary: 'Get all your posts',
-  description: 'Get the metadata for all of your posts (content excluded)',
-  security: [{ session: [] }],
+export const CreateBlankPost = {
+  summary: 'Create',
+  description: 'Creates a blank post',
   tags: ['Posts'],
+  security: [{ session: [] }],
   response: {
-    200: Type.Array(DraftMeta),
-    429: RateLimitedResponse,
+    201: PostMetadata,
+    401: UnauthorizedResponse,
+    ...generalErrorResponses,
   },
 } satisfies FastifySchema;
-
-export const CreateDraftSchema = {
-  summary: 'Create a new blog post draft',
-  description: 'Create an empty blog post draft with a title and slug (slug is derived from title if absent)',
-  security: [{ session: [] }],
-  tags: ['Posts'],
-  body: Type.Object({
-    title: Type.String(),
-    slug: Type.String(),
-  }),
-  response: {
-    201: DraftMeta,
-    429: RateLimitedResponse,
-  },
-} satisfies FastifySchema;
-
-export const UpdatePostMetadata = {
-  summary: 'Update a post\'s metadata',
-  description: 'Update the title and slug of a post',
-  security: [{ session: [] }],
-  tags: ['Posts'],
-  params: Type.Object({
-    postId: Type.String(),
-  }),
-  body: Type.Partial(Type.Object({
-    title: Type.String(),
-    slug: Type.String(),
-  })),
-  response: {
-    200: DraftMeta,
-    404: NotFoundResponse,
-    409: ConflictResponse,
-    429: RateLimitedResponse,
-  },
-};

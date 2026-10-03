@@ -2,8 +2,8 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
 import {
   CreateUserSchema,
-  UpdateUserSchema,
-  DeleteUserSchema,
+  UpdateSelfSchema,
+  DeleteSelfSchema,
   GetUserSchema,
   GetSelfSchema,
   UserSearchSchema,
@@ -147,7 +147,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
 
   app.patch('/', {
     preHandler: isLoggedIn,
-    schema: UpdateUserSchema,
+    schema: UpdateSelfSchema,
   }, async (req, res) => {
     assertIsLoggedIn(req);
 
@@ -190,7 +190,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
 
   app.delete('/', {
     preHandler: isLoggedIn,
-    schema: DeleteUserSchema,
+    schema: DeleteSelfSchema,
   }, async (req, res) => {
     assertIsLoggedIn(req);
 
