@@ -1,55 +1,31 @@
-import assert from 'node:assert/strict';
-import type { TestEnv } from '../../harness.js';
-import { extractSessionCookie } from '../../cookies.js';
+import { expect } from 'vitest';
+import type { TestEnv } from '../../test-env.js';
+import type { Device } from '../../device.js';
 
+export const SESSION = 'sessionId';
 export const STRONG_PASSWORD = 'correct-horse-battery-staple-92';
+export const WRONG_PASSWORD = 'atrociously-wrong-password-here-123';
+export const ADA_LOGIN = { email: 'ada@example.com', password: STRONG_PASSWORD };
 
 export const newUser = (over: Partial<Record<string, string>> = {}) => ({
   forename: 'Ada',
   surname: 'Lovelace',
   username: 'ada-lovelace',
-  email: 'ada@example.com',
-  password: STRONG_PASSWORD,
+  ...ADA_LOGIN,
   ...over,
 });
 
-export async function register(
-  env: TestEnv,
-  over: Partial<Record<string, string>> = {},
-  ip = '10.0.0.1',
-) {
-  const res = await env.app.inject({
-    method: 'POST',
-    url: '/api/users',
-    payload: newUser(over),
-    headers: { 'x-forwarded-for': ip },
-  });
-  return { res, id: res.json().id, cookie: extractSessionCookie(res) };
+/** Registers a user, asserting success, and returns the new user's id. */
+export async function register(device: Device, over: Partial<Record<string, string>> = {}): Promise<string> {
+  const res = await device.post('/api/users', newUser(over));
+  expect(res.statusCode, `registration failed: ${res.body}`).toBe(201);
+  return res.json().id;
 }
 
-export async function login(
-  env: TestEnv,
-  email: string,
-  password: string,
-  ip = '10.0.0.1',
-) {
-  const res = await env.app.inject({
-    method: 'POST',
-    url: '/api/sessions',
-    payload: { email, password },
-    headers: { 'x-forwarded-for': ip },
-  });
-  return { res, cookie: extractSessionCookie(res) };
-}
-
-/** Registers and immediately logs in, returning the user id and session cookie. */
-export async function authenticatedSession(
-  env: TestEnv,
-  over: Partial<Record<string, string>> = {},
-  ip = '10.0.0.1',
-) {
-  const { id } = await register(env, over, ip);
-  const { cookie } = await login(env, over.email ?? 'ada@example.com', STRONG_PASSWORD, ip);
-  assert.ok(cookie, 'session cookie required for authenticated helpers');
-  return { id, cookie: cookie! };
+/** Registers a user on a fresh device. Registration opens a session, so the device is signed in. */
+export async function signedInDevice(env: TestEnv, over: Partial<Record<string, string>> = {}) {
+  const device = env.device();
+  const id = await register(device, over);
+  expect(device.cookies.has(SESSION), 'registration should open a session').toBe(true);
+  return { device, id };
 }

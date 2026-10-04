@@ -1,43 +1,12 @@
-import type { PrismaClient } from '@growthlog/db';
-import type { RedisClientType } from 'redis';
 import { Strategy } from 'passport-local';
-import { compare, hashSync } from 'bcrypt';
+import type { AuthService } from './authService.js';
 
-/**
- * Timing attack hardening: always run compare — even when no user is found — so
- * response time is consistent, regardless of whether the email is registered.
- */
-const ROUNDS = 10;
-const DUMMY_HASH = hashSync('invalid', ROUNDS);
-
-export function buildLocalStrategy(
-  prisma: PrismaClient,
-  redis: RedisClientType,
-  prefix?: string,
-) {
+export function buildLocalStrategy(authService: AuthService) {
   return new Strategy({ usernameField: 'email' }, async (email, password, done) => {
     try {
-      // Distributed brute force hardening: maximum of 5 login attempts per email in 15 minutes.
-      const key = `${prefix}failed_login:${email}`;
-      const attempts = Number(await redis.get(key));
-
-      if (attempts >= 5) {
-        return done(null, false, { message: 'Account temporarily locked' });
-      }
-
-      const user = await prisma.user.findUnique({ where: { email } });
-      const match = await compare(password, user?.password ?? DUMMY_HASH);
-
-      if (!user || !match) {
-        const newAttempts = await redis.incr(key);
-        if (newAttempts === 1) {
-          await redis.expire(key, 15 * 60);
-        }
-        return done(null, false, { message: 'Invalid email or password' });
-      }
-
-      await redis.del(key);
-      return done(null, user);
+      const result = await authService.login(email, password);
+      if (result.status === 'ok') return done(null, result.user);
+      return done(null, false, { message: result.status });
     } catch (error) {
       return done(error);
     }

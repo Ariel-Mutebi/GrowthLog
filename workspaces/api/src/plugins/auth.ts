@@ -3,6 +3,7 @@ import { Authenticator } from '@fastify/passport';
 import { serializeUser } from '../auth/serializeUser.js';
 import { buildDeserializeUser } from '../auth/deserializeUser.js';
 import { buildLocalStrategy } from '../auth/localStrategy.js';
+import { buildAuthService } from '../auth/authService.js';
 
 export const authPlugin = fp(async (app) => {
   const auth = new Authenticator();
@@ -10,7 +11,11 @@ export const authPlugin = fp(async (app) => {
   app.register(auth.initialize());
   app.register(auth.secureSession());
 
-  auth.use(buildLocalStrategy(app.prisma, app.redis, app.config.REDIS_KEY_PREFIX));
+  auth.use(buildLocalStrategy(buildAuthService(
+    app.prisma,
+    app.redis,
+    app.config.REDIS_KEY_PREFIX,
+  )));
 
   auth.registerUserSerializer(serializeUser);
   auth.registerUserDeserializer(buildDeserializeUser(app.prisma));

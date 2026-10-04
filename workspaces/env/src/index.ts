@@ -29,5 +29,5 @@ export function loadEnv<K extends EnvKey, O extends Record<string, string> = Rec
     Object.entries(overrides).filter(([key]) => !(key in subset)),
   );
 
-  return { ...validated, complement } as EnvValues<K> & O;
+  return { ...validated, ...complement } as EnvValues<K> & O;
 }

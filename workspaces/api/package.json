@@ -5,9 +5,7 @@
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
     "dev": "tsx watch src/server.ts",
-    "pretest": "pnpm -w run docker:up",
-    "test": "tsx tests/setup.ts",
-    "posttest": "pnpm -w run docker:down",
+    "test": "vitest run",
     "gen:types": "tsx openapi/generate.ts"
   },
   "exports": {
@@ -38,8 +36,10 @@
     "jsonwebtoken": "^9.0.3",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
+    "pg": "^8.23.0",
     "redis": "^6.2.1",
     "slugify": "^1.6.9",
+    "vitest": "^5.0.3",
     "zxcvbn-ts": "^2.4.0"
   },
   "devDependencies": {
