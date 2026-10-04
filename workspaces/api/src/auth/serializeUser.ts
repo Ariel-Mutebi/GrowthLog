@@ -5,5 +5,6 @@ export async function serializeUser(user: User) {
   return {
     id: user.id,
     username: user.username,
+    issuedAt: Date.now(),
   } satisfies PassportUser;
 };

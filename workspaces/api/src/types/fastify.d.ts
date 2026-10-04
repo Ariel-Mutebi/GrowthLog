@@ -14,5 +14,6 @@ declare module 'fastify' {
   interface PassportUser {
     id: string;
     username: string;
+    issuedAt: number; // when the session was issued (ms since epoch)
   }
 }

@@ -5,7 +5,7 @@ import { NameInput, Username, Email, BioInput } from './inputs.js';
 import type { User } from '@growthlog/db';
 import type { TypeBoxModel } from './mapping.js';
 
-type FullUser = Omit<User, 'deletedAt' | 'avatarId'> & {
+type FullUser = Omit<User, 'deletedAt' | 'avatarId' | 'sessionsRevokedAt'> & {
   avatarKey: string | null; // transformed from avatarId
 }
 

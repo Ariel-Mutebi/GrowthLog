@@ -8,15 +8,17 @@ generator client {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  forename  String
-  surname   String
-  username  String    @unique
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  deletedAt DateTime?
-  bio       String?
+  id                String    @id @default(cuid())
+  forename          String
+  surname           String
+  username          String    @unique
+  email             String    @unique
+  password          String
+  createdAt         DateTime  @default(now())
+  deletedAt         DateTime?
+  bio               String?
+  avatarId          String?   @unique
+  sessionsRevokedAt DateTime?
 
   following           Follow[]             @relation("following")
   followers           Follow[]             @relation("follower")
@@ -26,9 +28,8 @@ model User {
   comments            Comment[]
   onboardingInterests OnboardingInterest[]
 
-  images   Image[] @relation()
-  avatarId String? @unique
-  avatar   Avatar? @relation(fields: [avatarId], references: [imageId])
+  images Image[] @relation()
+  avatar Avatar? @relation(fields: [avatarId], references: [imageId])
 }
 
 model Follow {

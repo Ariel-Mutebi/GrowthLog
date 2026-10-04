@@ -243,7 +243,10 @@ export class UserService {
           id: userId,
           deletedAt: null,
         },
-        data: updateData,
+        data: {
+          ...updateData,
+          ...(updateData.password ? { sessionsRevokedAt: new Date() } : {}),
+        },
         select: clientSafeSelect,
       });
 

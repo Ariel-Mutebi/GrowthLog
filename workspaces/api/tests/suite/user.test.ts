@@ -508,7 +508,59 @@ describe('PATCH /api/users', () => {
     expect(after.avatarId).toBeNull();
   });
 
-  test.todo('revokes the account\'s other sessions after a password change');
+  describe('password change revokes sessions', () => {
+    test('signs out the other devices, which can then log in with the new password', async ({ env }) => {
+      const { device: changer } = await signedInDevice(env);
+      const other = env.device();
+      await other.post('/api/sessions', ADA_LOGIN);
+      expect((await other.get('/api/users')).statusCode, 'signed in before the change').toBe(200);
+
+      const res = await changer.patch('/api/users', { password: NEW_PASSWORD, ...confirmPassword });
+      expect(res.statusCode).toBe(200);
+
+      expect((await other.get('/api/users')).statusCode, 'the other device is signed out').toBe(401);
+
+      const relogin = env.device();
+      const login = await relogin.post('/api/sessions', { ...ADA_LOGIN, password: NEW_PASSWORD });
+      expect(login.statusCode).toBe(200);
+      expect((await relogin.get('/api/users')).statusCode, 'a session issued after the change works').toBe(200);
+    });
+
+    test('keeps the device that changed the password signed in, on a new session id', async ({ env }) => {
+      const { device } = await signedInDevice(env);
+      const before = sessionOf(device);
+
+      const res = await device.patch('/api/users', { password: NEW_PASSWORD, ...confirmPassword });
+      expect(res.statusCode).toBe(200);
+
+      expect(sessionOf(device), 'the session id rotates').not.toBe(before);
+      expect((await device.get('/api/users')).statusCode, 'the new session works').toBe(200);
+      expect((await profileWithSession(env, before)).statusCode, 'the old id is dead').toBe(401);
+    });
+
+    test('a rejected password change signs nobody out', async ({ env }) => {
+      const { device: changer } = await signedInDevice(env);
+      const other = env.device();
+      await other.post('/api/sessions', ADA_LOGIN);
+
+      const res = await changer.patch('/api/users', { password: NEW_PASSWORD, currentPassword: WRONG_PASSWORD });
+
+      expect(res.statusCode).toBe(401);
+      expect((await changer.get('/api/users')).statusCode).toBe(200);
+      expect((await other.get('/api/users')).statusCode).toBe(200);
+    });
+
+    test('a profile update that does not touch the password signs nobody out', async ({ env }) => {
+      const { device: editor } = await signedInDevice(env);
+      const other = env.device();
+      await other.post('/api/sessions', ADA_LOGIN);
+
+      const res = await editor.patch('/api/users', { forename: 'Augusta' });
+
+      expect(res.statusCode).toBe(200);
+      expect((await other.get('/api/users')).statusCode).toBe(200);
+    });
+  });
 });
 
 describe('DELETE /api/users', () => {

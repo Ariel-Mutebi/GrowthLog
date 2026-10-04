@@ -23,7 +23,9 @@ const REGISTRATION_WINDOW_SECONDS = 24 * 3600;
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new UserService(app.prisma);
 
-  app.post('/', { schema: CreateUserSchema }, async (req, res) => {
+  app.post('/', {
+    schema: CreateUserSchema,
+  }, async (req, res) => {
     const slot = `${app.config.REDIS_KEY_PREFIX ?? ''}registration:${req.ip}`;
     const reserved = await app.redis.set(slot, '1', { NX: true, EX: REGISTRATION_WINDOW_SECONDS });
 
@@ -153,6 +155,13 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
 
     try {
       const updatedUser = await service.update(req.user.id, req.body);
+
+      // This device's old session now predates the revocation, so issue it a new one.
+      if (req.body.password) {
+        await req.session.regenerate();
+        await req.logIn(updatedUser);
+      }
+
       return res.code(200).send(updatedUser);
     } catch (error) {
       if (error instanceof UserMutationUnauthorizedError) {
