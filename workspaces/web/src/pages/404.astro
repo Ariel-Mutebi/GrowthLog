@@ -1,5 +1,18 @@
 ---
+import HeadLayout from '../layouts/HeadLayout.astro';
+import ChocolateMilk from '../components/ChocolateMilk.svelte';
+
 Astro.response.status = 404;
 ---
 
-<h1>Not found</h1>
+<HeadLayout title="Not Found | GrowthLog">
+  <main class="isolate relative min-h-screen overflow-hidden bg-stone-400">
+    <ChocolateMilk client:load />
+
+    <div class="relative z-10 flex min-h-screen items-center justify-center">
+      <h1 class="font-serif text-9xl font-bold text-stone-900">
+        Not found
+      </h1>
+    </div>
+  </main>
+</HeadLayout>

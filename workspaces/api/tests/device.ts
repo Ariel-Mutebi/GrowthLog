@@ -40,14 +40,27 @@ export class Device {
   }
 
   post(url: string, payload?: InjectOptions['payload']) {
-    return this.request({ method: 'POST', url, ...(payload !== undefined && { payload }) });
+    return this.send('POST', url, payload);
   }
 
   patch(url: string, payload?: InjectOptions['payload']) {
-    return this.request({ method: 'PATCH', url, ...(payload !== undefined && { payload }) });
+    return this.send('PATCH', url, payload);
+  }
+
+  put(url: string, payload?: InjectOptions['payload']) {
+    return this.send('PUT', url, payload);
   }
 
   delete(url: string, payload?: InjectOptions['payload']) {
-    return this.request({ method: 'DELETE', url, ...(payload !== undefined && { payload }) });
+    return this.send('DELETE', url, payload);
+  }
+
+  private send(
+    method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+    url: string,
+    payload?: InjectOptions['payload'],
+  ) {
+    // Omit the key entirely when there's no payload (exactOptionalPropertyTypes).
+    return this.request({ method, url, ...(payload !== undefined && { payload }) });
   }
 }

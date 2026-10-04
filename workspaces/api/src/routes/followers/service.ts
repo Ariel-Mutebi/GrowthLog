@@ -3,6 +3,9 @@ import type { UserPublicSafe } from '../../typebox/userTypes.js';
 import { flattenAvatarKey, publicSafeSelect } from '../../utils/userSelectors.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
+export class SelfFollowError extends Error { };
+export class FollowTargetNotFoundError extends Error { }
+
 export class FollowerService {
   constructor(
     private readonly prisma: PrismaClient,
@@ -12,6 +15,7 @@ export class FollowerService {
     const rows = await this.prisma.follow.findMany({
       where: {
         followingId: userId,
+        follower: { deletedAt: null },
       },
       select: {
         follower: {
@@ -27,6 +31,7 @@ export class FollowerService {
     const rows = await this.prisma.follow.findMany({
       where: {
         followerId: userId,
+        following: { deletedAt: null },
       },
       select: {
         following: {
@@ -39,6 +44,14 @@ export class FollowerService {
   }
 
   public async follow(followerId: string, followingId: string) {
+    if (followerId === followingId) throw new SelfFollowError();
+
+    const target = await this.prisma.user.findUnique({
+      where: { id: followingId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!target) throw new FollowTargetNotFoundError();
+
     try {
       await this.prisma.follow.create({
         data: {

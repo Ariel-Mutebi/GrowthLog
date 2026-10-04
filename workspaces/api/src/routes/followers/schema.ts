@@ -1,9 +1,28 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import { UserPublicSafe } from '../../typebox/userTypes.js';
-import { UnauthorizedResponse, generalErrorResponses } from '../../typebox/responses.js';
+import { BadRequest, NotFoundResponse, UnauthorizedResponse, generalErrorResponses } from '../../typebox/responses.js';
 
-const FollowersMutationSchema = {
+export const Follow = {
+  summary: 'Follow',
+  description: 'The caller followers the user with the given userId',
+  tags: ['Followers'],
+  security: [{ session: [] }],
+  params: Type.Object({
+    userId: Type.String(),
+  }),
+  response: {
+    204: Type.Null(),
+    401: UnauthorizedResponse,
+    400: BadRequest,
+    404: NotFoundResponse,
+    ...generalErrorResponses,
+  },
+} satisfies FastifySchema;
+
+export const Unfollow = {
+  summary: 'Unfollow',
+  description: 'The caller unfollows the user with the given userId',
   tags: ['Followers'],
   security: [{ session: [] }],
   params: Type.Object({
@@ -14,18 +33,6 @@ const FollowersMutationSchema = {
     401: UnauthorizedResponse,
     ...generalErrorResponses,
   },
-} satisfies FastifySchema;
-
-export const Follow = {
-  summary: 'Follow',
-  description: 'The caller followers the user with the given userId',
-  ...FollowersMutationSchema,
-} satisfies FastifySchema;
-
-export const Unfollow = {
-  summary: 'Unfollow',
-  description: 'The caller unfollows the user with the given userId',
-  ...FollowersMutationSchema,
 } satisfies FastifySchema;
 
 const FollowersQuerySchema = {

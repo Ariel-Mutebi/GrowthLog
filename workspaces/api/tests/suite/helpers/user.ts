@@ -7,6 +7,20 @@ export const STRONG_PASSWORD = 'correct-horse-battery-staple-92';
 export const WRONG_PASSWORD = 'atrociously-wrong-password-here-123';
 export const ADA_LOGIN = { email: 'ada@example.com', password: STRONG_PASSWORD };
 
+export const GRACE = {
+  forename: 'Grace',
+  surname: 'Hopper',
+  username: 'grace-hopper',
+  email: 'grace@example.com',
+};
+
+export const ALAN = {
+  forename: 'Alan',
+  surname: 'Turing',
+  username: 'alan-turing',
+  email: 'alan@example.com',
+};
+
 export const newUser = (over: Partial<Record<string, string>> = {}) => ({
   forename: 'Ada',
   surname: 'Lovelace',
@@ -42,4 +56,10 @@ export function profileWithSession(env: TestEnv, sessionId: string) {
   const device = env.device();
   device.cookies.set(SESSION, sessionId);
   return device.get('/api/users');
+}
+
+/** Deletes the device's account, asserting success. */
+export async function deleteAccount(device: Device) {
+  const res = await device.delete('/api/users', { currentPassword: STRONG_PASSWORD });
+  expect(res.statusCode, `account deletion failed: ${res.body}`).toBe(200);
 }

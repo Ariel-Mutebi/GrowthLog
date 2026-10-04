@@ -8,7 +8,7 @@ import {
   WhoIFollow,
   WhoTheyFollow,
 } from './schema.js';
-import { FollowerService } from './service.js';
+import { FollowerService, SelfFollowError, FollowTargetNotFoundError } from './service.js';
 
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
@@ -86,6 +86,17 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       await service.follow(req.user.id, req.params.userId);
       return res.code(204).send(null);
     } catch (error) {
+      if (error instanceof SelfFollowError) {
+        return res.code(400).send({ error: 'BadRequest', message: 'You cannot follow yourself' });
+      }
+
+      if (error instanceof FollowTargetNotFoundError) {
+        return res.code(404).send({
+          error: 'NotFound',
+          message: 'The user you tried to follow could not be found',
+        });
+      }
+
       req.log.error(error);
       return res.code(500).send({
         error: 'InternalServerError',

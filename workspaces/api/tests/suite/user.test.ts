@@ -14,14 +14,10 @@ import {
   register,
   sessionOf,
   signedInDevice,
+  GRACE,
+  deleteAccount,
 } from './helpers/user.js';
 
-const GRACE = {
-  forename: 'Grace',
-  surname: 'Hopper',
-  username: 'grace-hopper',
-  email: 'grace@example.com',
-};
 const WEAK_PASSWORD = 'passwordpassword';
 const NEW_PASSWORD = 'purple-monkey-dishwasher-telescope-58';
 const confirmPassword = { currentPassword: STRONG_PASSWORD };
@@ -32,11 +28,6 @@ function withoutField(field: string) {
 }
 
 const userRow = (env: TestEnv, id: string) => env.app.prisma.user.findUniqueOrThrow({ where: { id } });
-
-async function deleteAccount(device: Device) {
-  const res = await device.delete('/api/users', confirmPassword);
-  expect(res.statusCode, `account deletion failed: ${res.body}`).toBe(200);
-}
 
 const search = (device: Device, params: Record<string, string>) =>
   device.get(`/api/users/search?${new URLSearchParams(params).toString()}`);
