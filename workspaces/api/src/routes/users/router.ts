@@ -18,24 +18,32 @@ import {
   UserMutationUnauthorizedError,
 } from './service.js';
 
+const REGISTRATION_WINDOW_SECONDS = 24 * 3600;
+
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new UserService(app.prisma);
 
-  app.post('/', {
-    schema: CreateUserSchema,
-    config: {
-      rateLimit: {
-        max: 1,
-        timeWindow: 24 * 3600 * 1000,
-        keyGenerator: (req) => `registration:${req.ip}`,
-      },
-    },
-  }, async (req, res) => {
+  app.post('/', { schema: CreateUserSchema }, async (req, res) => {
+    const slot = `${app.config.REDIS_KEY_PREFIX ?? ''}registration:${req.ip}`;
+    const reserved = await app.redis.set(slot, '1', { NX: true, EX: REGISTRATION_WINDOW_SECONDS });
+
+    if (!reserved) {
+      res.header('retry-after', await app.redis.ttl(slot));
+      return res.code(429).send({
+        error: 'RateLimited',
+        message: 'Only one account can be registered per IP address per day',
+      });
+    }
+
+    let created = false;
     try {
       const user = await service.create(req.body);
+      created = true;
       await req.logIn(user);
       return res.status(201).send(user);
     } catch (error) {
+      if (!created) await app.redis.del(slot);
+
       if (error instanceof PasswordTooWeakError) {
         return res.code(400).send({
           error: 'BadRequest',
@@ -84,15 +92,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       const user = await service.getSelf(req.user.id);
       return res.code(200).send(user);
     } catch (error) {
-      if (error instanceof UserNotFoundError) {
-        return res.code(404).send({
-          error: 'NotFound',
-          message: 'We could not find your account. It may have been deleted.',
-        });
-      }
-
       req.log.error(error);
-
       return res.code(500).send({
         error: 'InternalServerError',
         message: 'Something went wrong. Please try again.',
@@ -161,6 +161,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
           message: 'Please provide your current password to update this field',
         });
       }
+
       if (error instanceof PasswordTooWeakError) {
         return res.code(400).send({
           error: 'BadRequest',
@@ -168,19 +169,15 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
           suggestions: error.suggestions as string[],
         });
       }
+
       if (error instanceof UserConflictError) {
         return res.code(409).send({
           error: 'Conflict',
-          message: 'Your desired username or password is already in use',
-        });
-      }
-      if (error instanceof UserNotFoundError) {
-        return res.code(404).send({
-          error: 'NotFound',
-          message: 'We could not find  your account. Did you delete it?',
+          message: 'Your desired username or email is already in use',
         });
       }
 
+      req.log.error(error);
       return res.code(500).send({
         error: 'InternalServerError',
         message: 'Something went wrong. Please try again.',
@@ -207,13 +204,8 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
           message: 'Please provide your account password to delete your account',
         });
       }
-      if (error instanceof UserNotFoundError) {
-        return res.code(404).send({
-          error: 'NotFound',
-          message: 'We could not find your account. You must have deleted it already',
-        });
-      }
 
+      req.log.error(error);
       return res.code(500).send({
         error: 'InternalServerError',
         message: 'Something went wrong. Please try again',

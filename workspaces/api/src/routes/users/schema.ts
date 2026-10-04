@@ -38,7 +38,6 @@ export const GetSelfSchema = {
   response: {
     200: UserClientSafe,
     401: UnauthorizedResponse,
-    404: NotFoundResponse,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
@@ -48,12 +47,17 @@ export const UpdateSelfSchema = {
   description: 'Updating email or password requires `currentPassword` to be provided.',
   tags: ['Users'],
   security: [{ session: [] }],
-  body: Type.Intersect([Type.Partial(IdentityProof), Type.Partial(UserDeclaredFields)]),
+  body: Type.Composite(
+    [
+      Type.Partial(IdentityProof),
+      Type.Partial(UserDeclaredFields),
+    ],
+    { additionalProperties: false },
+  ),
   response: {
     200: UserClientSafe,
     400: BadRequest,
     401: UnauthorizedResponse,
-    404: NotFoundResponse,
     409: ConflictResponse,
     ...generalErrorResponses,
   },
@@ -68,7 +72,6 @@ export const DeleteSelfSchema = {
   response: {
     200: UserClientSafe,
     401: UnauthorizedResponse,
-    404: NotFoundResponse,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
@@ -93,13 +96,13 @@ export const UserSearchSchema = {
   tags: ['Users'],
   querystring: Type.Object(
     {
-      name: Type.Optional(NameInput),
-      interest: Type.Optional(Type.Array(NameInput)),
+      name: Type.Optional(Type.String({ minLength: 1, maxLength: 100, pattern: '\\S' })),
+      interests: Type.Optional(Type.Array(NameInput)),
       cursor: Type.Optional(Type.String()),
       limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 20 })),
     },
     // at least one of name / interest must be present
-    { anyOf: [{ required: ['name'] }, { required: ['interest'] }] },
+    { anyOf: [{ required: ['name'] }, { required: ['interests'] }] },
   ),
   response: {
     200: Type.Object({

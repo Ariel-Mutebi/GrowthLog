@@ -1,12 +1,12 @@
 import { zxcvbn } from 'zxcvbn-ts';
 import { hash, compare } from 'bcrypt';
-import { extractConflictColumns } from '../../utils/extractors.js';
+import { conflictsOn } from '../../utils/extractors.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { clientSafeSelect, publicSafeSelect, flattenAvatarKey } from '../../utils/userSelectors.js';
 
 import type { IdentityProof } from './schema.js';
 import type { PrismaClient, UserFindManyArgs, UserWhereInput } from '@growthlog/db';
-import type { UserClientSafe, UserPublicSafe } from '../../typebox/userTypes.js';
+import type { UserClientSafe, UserPublicSafe, UserDeclaredFields } from '../../typebox/userTypes.js';
 
 const HASHING_ROUNDS = 10;
 const MAX_RETRIES = 100;
@@ -24,16 +24,6 @@ export class EmailConflictError extends Error { };
 export class UsernameConflictError extends Error { };
 export class UserNotFoundError extends Error { };
 export class UserMutationUnauthorizedError extends Error { };
-
-interface UserDeclaredFields {
-  forename: string;
-  surname: string;
-  email: string;
-  password: string;
-  bio?: string;
-  avatarId?: string;
-  username?: string;
-}
 
 interface SearchParams {
   name?: string;
@@ -118,13 +108,15 @@ export class UserService {
         return flattenAvatarKey(newUser);
       } catch (error) {
         if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-          if (extractConflictColumns(error.meta).includes('username')) {
+          if (conflictsOn(error.meta, 'username')) {
             if (attempt < MAX_RETRIES - 1) {
               continue;
             }
             throw new UsernameConflictError();
           }
-          throw new EmailConflictError();
+          if (conflictsOn(error.meta, 'email')) {
+            throw new EmailConflictError();
+          }
         }
 
         throw error;
@@ -136,25 +128,21 @@ export class UserService {
   }
 
   public async getSelf(id: string): Promise<UserClientSafe> {
-    try {
-      const self = await this.prisma.user.findUniqueOrThrow({
-        where: { id },
-        select: clientSafeSelect,
-      });
+    const self = await this.prisma.user.findUniqueOrThrow({
+      where: { id },
+      select: clientSafeSelect,
+    });
 
-      return flattenAvatarKey(self);
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new UserNotFoundError();
-      }
-      throw error;
-    }
+    return flattenAvatarKey(self);
   }
 
   public async getOther(id: string): Promise<UserPublicSafe> {
     try {
       const other = await this.prisma.user.findUniqueOrThrow({
-        where: { id },
+        where: {
+          id,
+          deletedAt: null,
+        },
         select: publicSafeSelect,
       });
 
@@ -265,10 +253,6 @@ export class UserService {
         throw new UserConflictError();
       }
 
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new UserNotFoundError();
-      }
-
       throw error;
     }
   }
@@ -296,27 +280,19 @@ export class UserService {
   ): Promise<UserClientSafe & { deletedAt: Date | null }> {
     await this.requireCurrentPassword(userId, currentPassword);
 
-    try {
-      const deleted = await this.prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-        select: {
-          ...clientSafeSelect,
-          deletedAt: true,
-        },
-      });
+    const deleted = await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+      select: {
+        ...clientSafeSelect,
+        deletedAt: true,
+      },
+    });
 
-      return flattenAvatarKey(deleted);
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new UserNotFoundError();
-      }
-
-      throw error;
-    }
+    return flattenAvatarKey(deleted);
   }
 }

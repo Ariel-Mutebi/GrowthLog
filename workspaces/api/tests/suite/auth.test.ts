@@ -1,7 +1,6 @@
 import { describe, expect } from 'vitest';
 import { test } from '../fixtures.js';
 import type { TestEnv } from '../test-env.js';
-import type { Device } from '../device.js';
 import {
   ADA_LOGIN,
   SESSION,
@@ -9,26 +8,14 @@ import {
   WRONG_PASSWORD,
   register,
   signedInDevice,
+  sessionOf,
+  profileWithSession,
 } from './helpers/user.js';
 
 const wrongPassword = { ...ADA_LOGIN, password: WRONG_PASSWORD };
 const confirmPassword = { currentPassword: STRONG_PASSWORD };
 
 const failedLoginKey = (env: TestEnv, email: string) => `${env.redisPrefix}failed_login:${email}`;
-
-/** The device's session id; throws if it has none, so it doubles as an assertion. */
-function sessionOf(device: Device) {
-  const id = device.cookies.get(SESSION);
-  if (!id) throw new Error('device has no session cookie');
-  return id;
-}
-
-/** GET /api/users from a fresh device holding only the given session id. */
-function profileWithSession(env: TestEnv, sessionId: string) {
-  const device = env.device();
-  device.cookies.set(SESSION, sessionId);
-  return device.get('/api/users');
-}
 
 /** Simulates a deletion that happened `days` ago. */
 const backdateDeletion = (env: TestEnv, id: string, days: number) =>

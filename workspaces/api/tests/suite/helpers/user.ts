@@ -29,3 +29,17 @@ export async function signedInDevice(env: TestEnv, over: Partial<Record<string, 
   expect(device.cookies.has(SESSION), 'registration should open a session').toBe(true);
   return { device, id };
 }
+
+/** The device's session id; throws if it has none, so it doubles as an assertion. */
+export function sessionOf(device: Device) {
+  const id = device.cookies.get(SESSION);
+  if (!id) throw new Error('device has no session cookie');
+  return id;
+}
+
+/** GET /api/users from a fresh device holding only the given session id. */
+export function profileWithSession(env: TestEnv, sessionId: string) {
+  const device = env.device();
+  device.cookies.set(SESSION, sessionId);
+  return device.get('/api/users');
+}

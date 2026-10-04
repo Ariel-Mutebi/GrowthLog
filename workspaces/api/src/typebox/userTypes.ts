@@ -1,4 +1,4 @@
-import { Type, type TSchema } from '@sinclair/typebox';
+import { Type, type TSchema, type Static } from '@sinclair/typebox';
 import { SerializableDate } from './date.js';
 import { NameInput, Username, Email, BioInput } from './inputs.js';
 
@@ -40,6 +40,7 @@ export const UserDeclaredFields = Type.Object({
   username: Type.Optional(Username),
   email: Email,
   password: Type.String(),
-  avatarId: Type.Optional(Type.String()),
   bio: Type.Optional(BioInput),
-} satisfies Partial<Record<keyof User, TSchema>>);
+} satisfies Partial<Record<keyof User, TSchema>>, { additionalProperties: false });
+
+export type UserDeclaredFields = Static<typeof UserDeclaredFields>;

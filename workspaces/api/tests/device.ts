@@ -43,6 +43,10 @@ export class Device {
     return this.request({ method: 'POST', url, ...(payload !== undefined && { payload }) });
   }
 
+  patch(url: string, payload?: InjectOptions['payload']) {
+    return this.request({ method: 'PATCH', url, ...(payload !== undefined && { payload }) });
+  }
+
   delete(url: string, payload?: InjectOptions['payload']) {
     return this.request({ method: 'DELETE', url, ...(payload !== undefined && { payload }) });
   }

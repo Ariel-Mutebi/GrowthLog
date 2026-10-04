@@ -22,7 +22,7 @@ export const rateLimitPlugin = fp(async (app) => {
       unscopedKey: string,
       cb: (err: Error | null, result?: { current: number; ttl: number }) => void,
     ) {
-      const key = app.config.REDIS_KEY_PREFIX + unscopedKey;
+      const key = (app.config.REDIS_KEY_PREFIX ?? '') + unscopedKey;
 
       app.redis
         .multi()
