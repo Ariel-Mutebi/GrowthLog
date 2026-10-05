@@ -3,13 +3,14 @@ import { Image } from "astro:assets";
 import NavBar from "../components/Navbar.astro";
 import HeadLayout from "../layouts/HeadLayout.astro";
 import aerialForest from "../assets/aerial-forest.jpg";
+import { PUBLIC_MINIO_ENDPOINT } from "astro:env/client";
 
 Astro.response.status = 404;
 const { user } = Astro.locals;
 ---
 
 <HeadLayout title="Not Found | GrowthLog">
-  <div class="h-dvh w-dvw relative">
+  <div class="relative">
     <Image
       alt=""
       src={aerialForest}
@@ -18,9 +19,37 @@ const { user } = Astro.locals;
       widths={[640, 1024, 1920]}
       class="absolute inset-0 h-full w-full object-cover"
     />
-    <div class="z-10 isolate">
+    <div
+      class="isolate min-h-dvh w-dvw flex flex-col justify-start items-center"
+    >
       <NavBar avatarKey={user?.avatarKey} />
-      <h1 class="font-serif text-[22dvw]/none text-lime-100">GrowthLog</h1>
+      <h1
+        class="font-serif text-9xl sm:text-[22dvw] leading-none text-lime-100 display-heading
+          text-wrap break-all"
+      >
+        GrowthLog
+      </h1>
+      <main
+        class="sm:mt-[-5vw] w-[90dvw] max-w-150 bg-blue-500 flex-1 relative
+          shadow-[0px_0px_8px_4px] shadow-stone-900/50"
+      >
+        <video
+          autoplay
+          loop
+          playsinline
+          preload="auto"
+          id="background-video"
+          class="absolute inset-0 h-full w-full object-cover"
+        >
+          <source
+            src={`${PUBLIC_MINIO_ENDPOINT}/videos/404_720p.mp4`}
+            type="video/mp4"
+          />
+        </video>
+        <article class="relative z-10">
+          <h2 class="font-serif text-9xl text-blue-50">404</h2>
+        </article>
+      </main>
     </div>
   </div>
 </HeadLayout>
