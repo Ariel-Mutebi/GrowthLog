@@ -1,18 +1,26 @@
 ---
-import HeadLayout from '../layouts/HeadLayout.astro';
-import Ocean from '../components/404/Ocean.svelte';
+import { Image } from "astro:assets";
+import NavBar from "../components/Navbar.astro";
+import HeadLayout from "../layouts/HeadLayout.astro";
+import aerialForest from "../assets/aerial-forest.jpg";
 
 Astro.response.status = 404;
+const { user } = Astro.locals;
 ---
 
 <HeadLayout title="Not Found | GrowthLog">
-  <main class="isolate relative min-h-screen overflow-hidden bg-stone-400">
-    <Ocean client:load />
-
-    <div class="relative z-10 flex min-h-screen items-center justify-center">
-      <h1 class="font-serif text-9xl font-bold text-stone-900">
-        Not found
-      </h1>
+  <div class="h-dvh w-dvw relative">
+    <Image
+      alt=""
+      src={aerialForest}
+      format="webp"
+      sizes="100dvw"
+      widths={[640, 1024, 1920]}
+      class="absolute inset-0 h-full w-full object-cover"
+    />
+    <div class="z-10 isolate">
+      <NavBar avatarKey={user?.avatarKey} />
+      <h1 class="font-serif text-[22dvw]/none text-lime-100">GrowthLog</h1>
     </div>
-  </main>
+  </div>
 </HeadLayout>
