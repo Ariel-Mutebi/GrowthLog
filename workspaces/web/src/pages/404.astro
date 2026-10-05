@@ -1,9 +1,10 @@
 ---
-import { Image } from "astro:assets";
 import NavBar from "../components/Navbar.astro";
 import HeadLayout from "../layouts/HeadLayout.astro";
 import aerialForest from "../assets/aerial-forest.jpg";
+import humpbackWhale from "../assets/humpback-whale.jpg";
 import { PUBLIC_MINIO_ENDPOINT } from "astro:env/client";
+import Background from "../components/Background.astro";
 
 Astro.response.status = 404;
 const { user } = Astro.locals;
@@ -11,26 +12,19 @@ const { user } = Astro.locals;
 
 <HeadLayout title="Not Found | GrowthLog">
   <div class="relative">
-    <Image
-      alt=""
-      src={aerialForest}
-      format="webp"
-      sizes="100dvw"
-      widths={[640, 1024, 1920]}
-      class="absolute inset-0 h-full w-full object-cover"
-    />
+    <Background light={aerialForest} dark={humpbackWhale} />
     <div
       class="isolate min-h-dvh w-dvw flex flex-col justify-start items-center"
     >
       <NavBar avatarKey={user?.avatarKey} />
       <h1
-        class="font-serif text-9xl sm:text-[22dvw] leading-none text-lime-100 display-heading
-          text-wrap break-all"
+        class="font-serif text-9xl sm:text-[22dvw] leading-none text-lime-100
+          dark:text-blue-100 display-heading text-wrap break-all"
       >
         GrowthLog
       </h1>
       <main
-        class="sm:mt-[-5vw] w-[90dvw] max-w-150 bg-blue-500 flex-1 relative
+        class="sm:mt-[-8vw] w-[90dvw] max-w-150 bg-blue-500 flex-1 relative
           shadow-[0px_0px_8px_4px] shadow-stone-900/50"
       >
         <video
@@ -38,7 +32,6 @@ const { user } = Astro.locals;
           loop
           playsinline
           preload="auto"
-          id="background-video"
           class="absolute inset-0 h-full w-full object-cover"
         >
           <source
@@ -46,10 +39,43 @@ const { user } = Astro.locals;
             type="video/mp4"
           />
         </video>
-        <article class="relative z-10">
-          <h2 class="font-serif text-9xl text-blue-50">404</h2>
+        <article
+          class="relative z-10 grid sm:grid-cols-2 grid-rows-2 p-6 py-8 sm:px-0"
+        >
+          <h2
+            class="font-serif text-9xl text-blue-50 text-center sm:text-right"
+          >
+            404
+          </h2>
+          <div
+            class="sm:row-start-2 sm:col-start-2 text-2xl text-center sm:text-left"
+          >
+            <p class="text-blue-50 mb-2">
+              The page or resource that you are looking for cannot be found.
+            </p>
+            <a
+              href="/"
+              class="underline text-white hover:text-blue-100 active:text-blue-200"
+            >
+              Return home
+            </a>
+          </div>
         </article>
       </main>
     </div>
   </div>
 </HeadLayout>
+
+<script>
+  const video = document.querySelector<HTMLVideoElement>("video");
+
+  if (video) {
+    video.addEventListener(
+      "canplaythrough",
+      () => {
+        video.play();
+      },
+      { once: true },
+    );
+  }
+</script>

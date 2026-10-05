@@ -9,3 +9,4 @@ All photos are from Unsplash, under the free license.
 * <a href="https://unsplash.com/photos/map-9TViXB_73ww">leaf-midrib.jpg</a>
 * <a href="https://unsplash.com/photos/aerial-view-of-a-winding-road-through-a-lush-forest-8YSQ2WIxX6o">aerial-forest.jpg</a>
 * <a href="https://www.pexels.com/video/the-ocean-is-shown-in-this-aerial-photo-27916018/">404_720p.mp4</a>
+* <a href="https://unsplash.com/photos/a-humpback-whale-swims-in-the-deep-blue-ocean-mM_e5LFdTp0">humpback-whale.jpg</a>
