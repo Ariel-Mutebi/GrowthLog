@@ -14,7 +14,7 @@ import { FollowerService, SelfFollowError, FollowTargetNotFoundError } from './s
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new FollowerService(app.prisma);
 
-  app.get('/myFollowers', {
+  app.get('ers/', {
     preHandler: isLoggedIn,
     schema: MyFollowers,
   }, async (req, res) => {
@@ -31,7 +31,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.get('/:userId/followers', {
+  app.get('ers/:userId', {
     schema: TheirFollowers,
   }, async (req, res) => {
     try {
@@ -45,7 +45,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.get('/whoIFollow', {
+  app.get('ing/', {
     preHandler: isLoggedIn,
     schema: WhoIFollow,
   }, async (req, res) => {
@@ -62,7 +62,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.get('/:userId/following', {
+  app.get('ing/:userId', {
     schema: WhoTheyFollow,
   }, async (req, res) => {
     try {

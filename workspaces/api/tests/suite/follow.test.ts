@@ -6,14 +6,12 @@ import type { TestEnv } from '../test-env.js';
 import type { Device } from '../device.js';
 import { ALAN, GRACE, deleteAccount, signedInDevice } from './helpers/user.js';
 
-const FOLLOWERS = '/api/followers';
-
-const follow = (device: Device, userId: string) => device.put(`${FOLLOWERS}/${userId}`);
-const unfollow = (device: Device, userId: string) => device.delete(`${FOLLOWERS}/${userId}`);
-const myFollowers = (device: Device) => device.get(`${FOLLOWERS}/myFollowers`);
-const whoIFollow = (device: Device) => device.get(`${FOLLOWERS}/whoIFollow`);
-const followersOf = (device: Device, userId: string) => device.get(`${FOLLOWERS}/${userId}/followers`);
-const followingOf = (device: Device, userId: string) => device.get(`${FOLLOWERS}/${userId}/following`);
+const follow = (device: Device, userId: string) => device.put(`/api/follow/${userId}`);
+const unfollow = (device: Device, userId: string) => device.delete(`/api/follow/${userId}`);
+const myFollowers = (device: Device) => device.get('/api/followers');
+const whoIFollow = (device: Device) => device.get('/api/following');
+const followersOf = (device: Device, userId: string) => device.get(`/api/followers/${userId}`);
+const followingOf = (device: Device, userId: string) => device.get(`api/following/${userId}`);
 
 /** Usernames in a list response, sorted because the endpoints promise no order. */
 const usernamesOf = (res: LightMyRequestResponse) =>
