@@ -17,6 +17,7 @@ import {
   UsernameConflictError,
   UserMutationUnauthorizedError,
 } from './service.js';
+import { randomInt, createHash } from 'node:crypto';
 
 const REGISTRATION_WINDOW_SECONDS = 24 * 3600;
 
@@ -220,6 +221,25 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         message: 'Something went wrong. Please try again',
       });
     }
+  });
+
+  app.post('/verify-email', {
+    preHandler: isLoggedIn,
+  }, async (req, res) => {
+    assertIsLoggedIn(req);
+
+    const code = randomInt(100000, 1000000).toString();
+    const hash = createHash('sha256').update(code).digest('hex');
+    
+    await app.prisma.emailVerificationCode.create({
+      data: {
+        userId: req.user.id,
+        hash,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+
+    return res.send();
   });
 };
 

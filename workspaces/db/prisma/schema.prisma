@@ -34,10 +34,10 @@ model User {
 }
 
 model EmailVerificationCode {
-  userId    String @unique
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   hash      String
-  expiresAt String
+  expiresAt DateTime?
 }
 
 model Follow {

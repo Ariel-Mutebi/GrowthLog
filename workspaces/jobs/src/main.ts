@@ -1,55 +1,29 @@
-import pino from 'pino';
-import { createClient } from 'redis';
-import { createNodeRedisClient, Queue, Worker } from 'bullmq';
-import { grimReaper } from './reaper.js';
-import { loadEnv } from '@growthlog/env';
-import { createPrismaClient } from '@growthlog/db';
+import { runtime } from './runtime.js';
+import { opts } from './options.js';
+import { DeletionQueue } from './queues.js';
+import { DeletionWorker } from './workers.js';
 
-const log = pino();
+const deletionQueue = new DeletionQueue(runtime.redis);
 
-const config = loadEnv(['REDIS_URL', 'DATABASE_URL']);
-const connection = createNodeRedisClient(createClient({ url: config.REDIS_URL }));
-
-const prisma = createPrismaClient(config.DATABASE_URL);
-await prisma.$connect();
-
-const deletion = new Queue('deletion', { connection });
-await deletion.upsertJobScheduler(
-  'user-deletion-scheduler',
+await deletionQueue.upsertJobScheduler(
+  'user-purge-scheduler',
   { pattern: '0 * * * *' },
   {
-    name: 'grim-reaper',
-    opts: {
-      removeOnComplete: true,
-      removeOnFail: 50,
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 1000,
-      },
-    },
+    name: 'purge-deleted-users',
+    opts,
   },
 );
 
-const hospice = new Worker(
-  'deletion',
-  async (job) => {
-    if (job.name === 'grim-reaper') {
-      return { deletedUsers: await grimReaper(prisma) };
-    }
-  },
-  { connection },
-);
-
-hospice.on(
-  'failed',
-  (job, error) => log.error({ job, error }, 'Death cheated.'),
+const deletionWorker = new DeletionWorker(
+  runtime.log,
+  runtime.redis,
+  runtime.prisma,
 );
 
 async function shutdown() {
-  await hospice.close();
-  await deletion.close();
-  await prisma.$disconnect();
+  await deletionWorker.close();
+  await deletionQueue.close();
+  await runtime.prisma.$disconnect();
   process.exit(0);
 }
 
