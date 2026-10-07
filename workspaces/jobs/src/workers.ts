@@ -3,27 +3,36 @@ import type { Logger } from 'pino';
 import type { RedisClientType } from 'redis';
 import type { PrismaClient } from '@growthlog/db';
 
-export class DeletionWorker extends Worker {
-  private log: Logger;
-  private prisma: PrismaClient;
-  private registry: Map<string, () => Promise<unknown>>;
+class GrowthLogWorker extends Worker {
+  registry: Map<string, () => Promise<unknown>>;
 
-  constructor(log: Logger, redis: RedisClientType, prisma: PrismaClient) {
+  constructor (
+    name: string,
+    redis: RedisClientType,
+    public readonly log: Logger,
+    public readonly prisma: PrismaClient,
+  ) {
     super(
-      'deletion',
+      name,
       async (job) => {
-        return await this.registry.get(job.name)?.();
+        return this.registry.get(job.name)?.();
       },
       { connection: createNodeRedisClient(redis) },
     );
 
-    this.log = log;
-    this.prisma = prisma;
-
     this.registry = new Map();
-    this.registry.set('purge-deleted-users', this.purgeDeletedUsers);
 
-    this.on('failed', (job, error) => this.log.error({ job, error }, 'Deletion failed'));
+    this.on(
+      'failed',
+      (job, error) => this.log.error({ job, error }, `${name} failed`),
+    );
+  }
+}
+
+export class DeletionWorker extends GrowthLogWorker {
+  constructor(redis: RedisClientType, log: Logger, prisma: PrismaClient) {
+    super('deletion', redis, log, prisma);
+    this.registry.set('purge-deleted-users', this.purgeDeletedUsers);
   }
 
   private async purgeDeletedUsers() {

@@ -15,8 +15,8 @@ await deletionQueue.upsertJobScheduler(
 );
 
 const deletionWorker = new DeletionWorker(
-  runtime.log,
   runtime.redis,
+  runtime.log,
   runtime.prisma,
 );
 
