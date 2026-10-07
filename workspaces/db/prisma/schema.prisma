@@ -20,6 +20,7 @@ model User {
   avatarId          String?   @unique
   sessionsRevokedAt DateTime?
 
+  avatar              Avatar?
   following           Follow[]             @relation("following")
   followers           Follow[]             @relation("follower")
   posts               Post[]
@@ -28,8 +29,15 @@ model User {
   comments            Comment[]
   onboardingInterests OnboardingInterest[]
 
-  images Image[] @relation()
-  avatar Avatar? @relation(fields: [avatarId], references: [imageId])
+  emailVerifiedAt       DateTime?
+  emailVerificationCode EmailVerificationCode?
+}
+
+model EmailVerificationCode {
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hash      String
+  expiresAt String
 }
 
 model Follow {
@@ -134,14 +142,14 @@ model Image {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
-  uploaderId String
-  uploader   User   @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
-
+  // class table inheritance pattern
   avatar Avatar?
 }
 
 model Avatar {
   imageId String @id
-  image   Image  @relation(fields: [imageId], references: [id], onDelete: Cascade)
-  user    User?
+  userId  String @unique
+
+  image Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

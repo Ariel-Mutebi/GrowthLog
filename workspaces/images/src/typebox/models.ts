@@ -13,5 +13,4 @@ export const ImageModel = Type.Object({
   status: Type.String(),
   createdAt: SerializableDate,
   updatedAt: SerializableDate,
-  uploaderId: Type.String(),
 } satisfies TypeBoxModel<Image>);

@@ -13,7 +13,7 @@ import type { FastifyLogFn } from 'fastify';
 import type { PrismaClient, Image } from '@growthlog/db';
 import type { S3Client, HeadObjectCommandOutput } from '@aws-sdk/client-s3';
 
-export class ImageNotFoundError extends Error { }
+export class AvatarNotFoundError extends Error { }
 export class UploadAlreadyFailedError extends Error { }
 export class ObjectNotUploadedError extends Error { }
 export class FileTooLargeError extends Error { }
@@ -59,13 +59,13 @@ export class AvatarService {
           key,
           mimeType,
           sizeBytes,
-          uploaderId,
         },
       });
 
       await transactor.avatar.create({
         data: {
           imageId: image.id,
+          userId: uploaderId,
         },
       });
 
@@ -115,7 +115,7 @@ export class AvatarService {
     });
 
     if (!image) {
-      throw new ImageNotFoundError();
+      throw new AvatarNotFoundError();
     }
 
     return image;
@@ -163,12 +163,22 @@ export class AvatarService {
 
   private async finalizeAvatarUpload(image: Image, sizeBytes: number, height: number, width: number) {
     const { updatedImage, oldImageKey } = await this.prisma.$transaction(async (transactor) => {
-      const { avatarId } = await transactor.user.findUniqueOrThrow({
+      const { userId } = await transactor.avatar.findFirstOrThrow({
         where: {
-          id: image.uploaderId,
+          imageId: image.id,
+        },
+      });
+
+      const { avatar: currentAvatar } = await transactor.user.findUniqueOrThrow({
+        where: {
+          id: userId,
         },
         select: {
-          avatarId: true,
+          avatar: {
+            select: {
+              imageId: true,
+            },
+          },
         },
       });
 
@@ -186,7 +196,7 @@ export class AvatarService {
 
       await transactor.user.update({
         where: {
-          id: image.uploaderId,
+          id: userId,
         },
         data: {
           avatarId: image.id,
@@ -195,10 +205,10 @@ export class AvatarService {
 
       let oldImageKey: string | null = null;
 
-      if (avatarId && avatarId !== image.id) {
+      if (currentAvatar && currentAvatar.imageId !== image.id) {
         const oldImage = await transactor.image.findUniqueOrThrow({
           where: {
-            id: avatarId,
+            id: currentAvatar.imageId,
           },
         });
 
@@ -206,7 +216,7 @@ export class AvatarService {
 
         await transactor.image.delete({
           where: {
-            id: avatarId,
+            id: currentAvatar.imageId,
           },
         });
       }

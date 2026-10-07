@@ -4,7 +4,7 @@ import {
   AvatarService,
   FileTooLargeError,
   FileTypeMismatchError,
-  ImageNotFoundError,
+  AvatarNotFoundError,
   ObjectNotUploadedError,
   UploadAlreadyFailedError,
 } from './service.js';
@@ -59,7 +59,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       const image = await service.confirmUpload(req.params.id, req.user.sub);
       return res.code(200).send(image);
     } catch (error) {
-      if (error instanceof ImageNotFoundError) {
+      if (error instanceof AvatarNotFoundError) {
         return res.code(404).send({
           error: 'NotFound',
           message: 'No image with this id was found',
