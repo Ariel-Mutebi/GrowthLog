@@ -5,6 +5,7 @@ allowBuilds:
   bcrypt: true
   cpu-features: true
   esbuild: true
+  msgpackr-extract: true
   prisma: true
   protobufjs: true
   sharp: true

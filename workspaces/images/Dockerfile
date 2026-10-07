@@ -1,4 +1,4 @@
-FROM node:25-alpine AS base
+FROM node:26-alpine AS base
 RUN corepack enable
 WORKDIR /repo
 
@@ -11,7 +11,7 @@ RUN pnpm --filter @growthlog/env build
 RUN pnpm --filter @growthlog/images build
 RUN pnpm deploy --filter @growthlog/images --prod /out/images
 
-FROM node:25-alpine AS runtime
+FROM node:26-alpine AS runtime
 WORKDIR /app
 COPY --from=builder /out/images .
 EXPOSE 3000

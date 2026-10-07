@@ -1,0 +1,21 @@
+{
+  "name": "@growthlog/jobs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsx ./src/main.ts"
+  },
+  "dependencies": {
+    "@growthlog/db": "workspace:*",
+    "@growthlog/env": "workspace:*",
+    "bullmq": "^6.3.11",
+    "nodemailer": "^10.0.15",
+    "pino": "^10.4.0",
+    "redis": "^6.3.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3"
+  }
+}

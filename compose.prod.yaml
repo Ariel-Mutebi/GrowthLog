@@ -78,7 +78,11 @@ services:
   redis:
     container_name: GrowthLogRedis
     image: redis:8
-    command: redis-server --appendonly yes
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy noeviction
     volumes:
       - redis-data:/data
     logging:

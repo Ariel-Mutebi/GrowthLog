@@ -37,7 +37,7 @@
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "pg": "^8.23.0",
-    "redis": "^6.2.1",
+    "redis": "^6.3.0",
     "slugify": "^1.6.9",
     "vitest": "^5.0.3",
     "zxcvbn-ts": "^2.4.0"

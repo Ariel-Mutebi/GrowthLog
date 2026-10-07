@@ -8,11 +8,11 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @growthlog/db generate
 RUN pnpm --filter @growthlog/db build
 RUN pnpm --filter @growthlog/env build
-RUN pnpm --filter @growthlog/api build
-RUN pnpm deploy --filter @growthlog/api --prod /out/api
+RUN pnpm --filter @growthlog/jobs build
+RUN pnpm deploy --filter @growthlog/jobs --prod out/jobs
 
 FROM node:26-alpine AS runtime
 WORKDIR /app
-COPY --from=builder /out/api .
+COPY --from=builder /out/jobs .
 EXPOSE 3000
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/main.js"]
