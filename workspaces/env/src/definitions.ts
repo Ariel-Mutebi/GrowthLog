@@ -26,6 +26,12 @@ export const envDefinitions = {
   PUBLIC_AVATAR_BUCKET: z.string(),
   PUBLIC_MAX_AVATAR_SIZE_BYTES: positive,
   PUBLIC_MINIO_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
+
+  SMTP_HOST: z.string(),
+  SMTP_PORT: port,
+  SMTP_USER: z.string(),
+  SMTP_PASS: z.string(),
+  FROM_EMAIL: z.string(),
 } satisfies Record<string, z.ZodType>;
 
 export type EnvKey = keyof typeof envDefinitions;

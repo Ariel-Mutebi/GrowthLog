@@ -2,11 +2,7 @@ import pino, { type Logger } from 'pino';
 import { createClient, type RedisClientType } from 'redis';
 import { loadEnv } from '@growthlog/env';
 import { createPrismaClient, type PrismaClient } from '@growthlog/db';
-
-interface Config {
-  REDIS_URL: string;
-  DATABASE_URL: string;
-}
+import type { Config } from './types.js';
 
 class Runtime {
   log: Logger;
@@ -16,7 +12,15 @@ class Runtime {
 
   constructor() {
     this.log = pino();
-    this.config = loadEnv(['REDIS_URL', 'DATABASE_URL']);
+    this.config = loadEnv([
+      'REDIS_URL',
+      'DATABASE_URL',
+      'SMTP_HOST',
+      'SMTP_PORT',
+      'SMTP_USER',
+      'SMTP_PASS',
+      'FROM_EMAIL',
+    ]);
     this.prisma = createPrismaClient(this.config.DATABASE_URL);
     this.prisma.$connect();
     this.redis = createClient({ url: this.config.REDIS_URL });
