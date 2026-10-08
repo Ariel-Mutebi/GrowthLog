@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest, PassportUser, preHa
 import type { Static } from '@sinclair/typebox';
 import type { LoginFailure } from './authService.js';
 import type { UserClientSafe } from '../typebox/userTypes.js';
-import type { LockedResponse, UnauthorizedResponse } from '../typebox/responses.js';
+import type { Locked, Unauthorized } from '../typebox/responses.js';
 
 export const isLoggedIn: preHandlerHookHandler = async (req, reply) => {
   if (!req.user) {
@@ -10,7 +10,7 @@ export const isLoggedIn: preHandlerHookHandler = async (req, reply) => {
   }
 };
 
-/* Call as type assertion within request handler that uses isLoggedIn as a pre-handler. */
+/** Call as type assertion within request handler that uses isLoggedIn as a pre-handler. */
 export function assertIsLoggedIn(req: FastifyRequest): asserts req is FastifyRequest & { user: PassportUser } {
   if (!req.user) {
     throw new Error('User is not logged in');
@@ -34,17 +34,17 @@ export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>
           return res.code(423).send({
             error: 'Locked',
             message: 'Account temporarily locked',
-          } satisfies Static<typeof LockedResponse>);
+          } satisfies Static<typeof Locked>);
         case 'expired':
           return res.code(401).send({
             error: 'Unauthorized',
             message: 'Account permanently deleted',
-          } satisfies Static<typeof UnauthorizedResponse>);
+          } satisfies Static<typeof Unauthorized>);
         case 'invalid':
           return res.code(401).send({
             error: 'Unauthorized',
             message: 'Invalid email or password',
-          } satisfies Static<typeof UnauthorizedResponse>);
+          } satisfies Static<typeof Unauthorized>);
         default: {
           const unreachable: never = failure;
           throw new Error(`Unhandled login failure: ${String(unreachable)}`);

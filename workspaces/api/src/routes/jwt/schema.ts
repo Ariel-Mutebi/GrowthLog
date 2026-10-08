@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { RateLimitedResponse } from '../../typebox/responses.js';
+import { RateLimited } from '../../typebox/responses.js';
 
 export const GetJWTSchema = {
   summary: 'JWT',
@@ -11,6 +11,6 @@ export const GetJWTSchema = {
     200: Type.Object({
       token: Type.String(),
     }),
-    429: RateLimitedResponse,
+    429: RateLimited,
   },
 } satisfies FastifySchema;

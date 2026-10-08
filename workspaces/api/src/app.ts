@@ -13,6 +13,7 @@ import { redisPlugin } from './plugins/redis.js';
 import { sessionPlugin } from './plugins/session.js';
 import { swaggerPlugin } from './plugins/swagger.js';
 import { rateLimitPlugin } from './plugins/rate.js';
+import { emailerPlugin } from './plugins/emailer.js';
 import type { Config } from './types/config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -49,6 +50,7 @@ export function buildApp(overrides?: Overrides) {
   app.register(sessionPlugin);
   app.register(prismaPlugin);
   app.register(authPlugin);
+  app.register(emailerPlugin);
   app.register(swaggerPlugin);
 
   /**

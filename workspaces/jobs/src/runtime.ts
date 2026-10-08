@@ -25,6 +25,11 @@ class Runtime {
     this.prisma.$connect();
     this.redis = createClient({ url: this.config.REDIS_URL });
   }
+
+  async stop() {
+    await this.prisma.$disconnect();
+    await this.redis.close();
+  }
 }
 
 export const runtime = new Runtime();

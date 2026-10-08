@@ -3,9 +3,9 @@ import type { Post } from '@growthlog/db';
 import type { FastifySchema } from 'fastify';
 import type { TypeBoxModel } from '../../typebox/mapping.js';
 import {
-  ConflictResponse,
-  NotFoundResponse,
-  UnauthorizedResponse,
+  Conflict,
+  NotFound,
+  Unauthorized,
   generalErrorResponses,
 } from '../../typebox/responses.js';
 import { OptionalDate, SerializableDate } from '../../typebox/date.js';
@@ -29,7 +29,7 @@ export const CreateBlankPost = {
   security: [{ session: [] }],
   response: {
     201: PostMetadata,
-    401: UnauthorizedResponse,
+    401: Unauthorized,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
@@ -48,9 +48,9 @@ export const UpdatePost = {
   })),
   response: {
     200: PostMetadata,
-    401: UnauthorizedResponse,
-    404: NotFoundResponse,
-    409: ConflictResponse,
+    401: Unauthorized,
+    404: NotFound,
+    409: Conflict,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
@@ -65,8 +65,8 @@ export const GetOwnPost = {
   }),
   response: {
     200: PostMetadata,
-    401: UnauthorizedResponse,
-    404: NotFoundResponse,
+    401: Unauthorized,
+    404: NotFound,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;

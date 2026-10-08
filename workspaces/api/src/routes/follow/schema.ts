@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import { UserPublicSafe } from '../../typebox/userTypes.js';
-import { BadRequest, NotFoundResponse, UnauthorizedResponse, generalErrorResponses } from '../../typebox/responses.js';
+import { BadRequest, NotFound, Unauthorized, generalErrorResponses } from '../../typebox/responses.js';
 
 export const Follow = {
   summary: 'Follow',
@@ -13,9 +13,9 @@ export const Follow = {
   }),
   response: {
     204: Type.Null(),
-    401: UnauthorizedResponse,
+    401: Unauthorized,
     400: BadRequest,
-    404: NotFoundResponse,
+    404: NotFound,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
@@ -30,7 +30,7 @@ export const Unfollow = {
   }),
   response: {
     204: Type.Null(),
-    401: UnauthorizedResponse,
+    401: Unauthorized,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
@@ -39,7 +39,7 @@ const FollowersQuerySchema = {
   tags: ['Followers'],
   response: {
     200: Type.Array(UserPublicSafe),
-    401: UnauthorizedResponse,
+    401: Unauthorized,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;

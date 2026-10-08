@@ -2,7 +2,7 @@ import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import { Email } from '../../typebox/inputs.js';
 import { UserClientSafe } from '../../typebox/userTypes.js';
-import { UnauthorizedResponse, RateLimitedResponse } from '../../typebox/responses.js';
+import { Unauthorized, RateLimited } from '../../typebox/responses.js';
 
 export const CreateSessionSchema = {
   summary: 'Log in',
@@ -14,8 +14,8 @@ export const CreateSessionSchema = {
   }),
   response: {
     200: UserClientSafe,
-    401: UnauthorizedResponse,
-    429: RateLimitedResponse,
+    401: Unauthorized,
+    429: RateLimited,
   },
 } satisfies FastifySchema;
 
@@ -26,7 +26,7 @@ export const DeleteSessionSchema = {
   security: [{ session: [] }],
   response: {
     204: Type.Null(),
-    401: UnauthorizedResponse,
-    429: RateLimitedResponse,
+    401: Unauthorized,
+    429: RateLimited,
   },
 } satisfies FastifySchema;

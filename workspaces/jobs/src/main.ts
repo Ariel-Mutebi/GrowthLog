@@ -39,7 +39,7 @@ async function shutdown() {
   await deletionWorker.close();
   await deletionQueue.close();
   await emailWorker.close();
-  await runtime.prisma.$disconnect();
+  await runtime.stop();
   process.exit(0);
 }
 

@@ -2,9 +2,9 @@ import { Type } from '@sinclair/typebox';
 import { NameInput } from '../../typebox/inputs.js';
 import {
   BadRequest,
-  ConflictResponse,
-  NotFoundResponse,
-  UnauthorizedResponse,
+  Conflict,
+  NotFound,
+  Unauthorized,
   generalErrorResponses,
 } from '../../typebox/responses.js';
 import {
@@ -26,7 +26,7 @@ export const CreateUserSchema = {
   response: {
     201: UserClientSafe,
     400: BadRequest,
-    409: ConflictResponse,
+    409: Conflict,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
@@ -37,7 +37,7 @@ export const GetSelfSchema = {
   security: [{ session: [] }],
   response: {
     200: UserClientSafe,
-    401: UnauthorizedResponse,
+    401: Unauthorized,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
@@ -57,8 +57,8 @@ export const UpdateSelfSchema = {
   response: {
     200: UserClientSafe,
     400: BadRequest,
-    401: UnauthorizedResponse,
-    409: ConflictResponse,
+    401: Unauthorized,
+    409: Conflict,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
@@ -71,7 +71,7 @@ export const DeleteSelfSchema = {
   body: IdentityProof,
   response: {
     200: UserClientSafe,
-    401: UnauthorizedResponse,
+    401: Unauthorized,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
@@ -84,8 +84,8 @@ export const GetUserSchema = {
   }),
   response: {
     200: UserPublicSafe,
-    401: UnauthorizedResponse,
-    404: NotFoundResponse,
+    401: Unauthorized,
+    404: NotFound,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
@@ -109,7 +109,7 @@ export const UserSearchSchema = {
       users: Type.Array(UserPublicSafe),
       nextCursor: Type.Union([Type.String(), Type.Null()]),
     }),
-    404: NotFoundResponse,
+    404: NotFound,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
