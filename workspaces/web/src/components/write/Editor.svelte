@@ -11,7 +11,7 @@
 
   import { apiClient } from '../clients.ts';
   import { assignCursorColor } from './cursor.ts';
-  import type { User } from '../../types/user.ts';
+  import type { User } from '../../types/backend.ts';
 
   interface Props {
     user: User;

@@ -3,7 +3,8 @@ import { Image } from "astro:assets";
 import HeadLayout from "../layouts/HeadLayout.astro";
 import Navbar from "../components/Navbar.astro";
 import leafMidrib from "../assets/leaf-midrib.jpg";
-import CreateButton from "../components/write/CreateButton.svelte";
+import CreateButton from "../components/drafts/CreateButton.svelte";
+import List from "../components/drafts/List.svelte";
 
 const { user } = Astro.locals;
 
@@ -34,5 +35,6 @@ if (!user) {
         <CreateButton client:load />
       </hgroup>
     </header>
+    <List client:only="svelte" />
   </div>
 </HeadLayout>
