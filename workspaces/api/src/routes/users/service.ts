@@ -44,23 +44,12 @@ export class UserService {
   ) {}
 
   public async create(data: UserDeclaredFields): Promise<UserClientSafe> {
-    const { password, username, ...rest } = data;
+    const { password, ...rest } = data;
 
     this.passwordCheck(password);
     const hashedPassword = await hash(password, HASHING_ROUNDS);
 
-    if (username) {
-      return await this.simpleCreate({
-        username,
-        password: hashedPassword,
-        ...rest,
-      });
-    }
-
-    return await this.createWithAutoUsername({
-      password: hashedPassword,
-      ...rest,
-    });
+    return this.createUser({ ...rest, password: hashedPassword });
   }
 
   private passwordCheck(password: string): void {
@@ -71,44 +60,30 @@ export class UserService {
     }
   }
 
-  private async simpleCreate(data: UserDeclaredFields & { username: string }): Promise<UserClientSafe> {
+  private async createUser(data: UserDeclaredFields): Promise<UserClientSafe> {
+    const { username, forename, surname, ...rest } = data;
+
     try {
       const user = await this.prisma.user.create({
-        data,
+        data: {
+          ...rest,
+          forename,
+          surname,
+          username:
+            username ||
+            `${slugify(`${forename} ${surname}`, { lower: true })}-${randomInt(1000, 10000)}`,
+        },
         select: clientSafeSelect,
       });
 
       return flattenAvatarKey(user);
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code == 'P2002') {
-        throw new UserConflictError();
-      }
-
-      throw error;
-    }
-  }
-
-  private async createWithAutoUsername(data: UserDeclaredFields): Promise<UserClientSafe> {
-    const { forename, surname, ...rest } = data;
-    const username = `${slugify(`${forename} ${surname}`, { lower: true })}-${randomInt(1000, 10000)}`;
-
-    try {
-      const newUser = await this.prisma.user.create({
-        data: {
-          username,
-          forename,
-          surname,
-          ...rest,
-        },
-        select: clientSafeSelect,
-      });
-
-      return flattenAvatarKey(newUser);
-    } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
         if (conflictsOn(error.meta, 'username')) {
-          return this.createWithAutoUsername(data);
+          if (username) throw new UserConflictError();
+          return this.createUser(data);
         }
+
         throw new EmailConflictError();
       }
 
