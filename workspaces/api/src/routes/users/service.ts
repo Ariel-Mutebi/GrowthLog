@@ -1,6 +1,7 @@
 import slugify from 'slugify';
 import { zxcvbn } from 'zxcvbn-ts';
 import { hash, compare } from 'bcrypt';
+import { randomInt } from 'node:crypto';
 import { conflictsOn } from '../../utils/extractors.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { clientSafeSelect, publicSafeSelect, flattenAvatarKey } from '../../utils/userSelectors.js';
@@ -10,7 +11,6 @@ import type { PrismaClient, UserFindManyArgs, UserWhereInput } from '@growthlog/
 import type { UserClientSafe, UserPublicSafe, UserDeclaredFields } from '../../typebox/userTypes.js';
 
 const HASHING_ROUNDS = 10;
-const MAX_RETRIES = 100;
 
 export class PasswordTooWeakError extends Error {
   constructor (
@@ -57,7 +57,7 @@ export class UserService {
       });
     }
 
-    return await this.createWithDerivedUsername({
+    return await this.createWithAutoUsername({
       password: hashedPassword,
       ...rest,
     });
@@ -88,45 +88,32 @@ export class UserService {
     }
   }
 
-  private async createWithDerivedUsername(data: UserDeclaredFields): Promise<UserClientSafe> {
+  private async createWithAutoUsername(data: UserDeclaredFields): Promise<UserClientSafe> {
     const { forename, surname, ...rest } = data;
-    const base = slugify(`${forename} ${surname}`, { lower: true });
+    const username = `${slugify(`${forename} ${surname}`, { lower: true })}-${randomInt(1000, 10000)}`;
 
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      const suffix = attempt > 0 ? `-${attempt}` : '';
-      const derived = base + suffix;
-      
-      try {
-        const newUser = await this.prisma.user.create({
-          data: {
-            username: derived,
-            forename,
-            surname,
-            ...rest,
-          },
-          select: clientSafeSelect,
-        });
-        
-        return flattenAvatarKey(newUser);
-      } catch (error) {
-        if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-          if (conflictsOn(error.meta, 'username')) {
-            if (attempt < MAX_RETRIES - 1) {
-              continue;
-            }
-            throw new UsernameConflictError();
-          }
-          if (conflictsOn(error.meta, 'email')) {
-            throw new EmailConflictError();
-          }
+    try {
+      const newUser = await this.prisma.user.create({
+        data: {
+          username,
+          forename,
+          surname,
+          ...rest,
+        },
+        select: clientSafeSelect,
+      });
+
+      return flattenAvatarKey(newUser);
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+        if (conflictsOn(error.meta, 'username')) {
+          return this.createWithAutoUsername(data);
         }
-
-        throw error;
+        throw new EmailConflictError();
       }
-    }
 
-    // for typescript
-    throw new Error();
+      throw error;
+    }
   }
 
   public async getSelf(id: string): Promise<UserClientSafe> {

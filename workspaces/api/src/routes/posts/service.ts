@@ -42,9 +42,10 @@ export class PostService {
 
   public async update(params: UpdateParams): Promise<PostMetadata> {
     const { authorId, postId, ...data } = params;
+    const autoSlug = data.title && !data.slug;
 
-    if (data.title && !data.slug) {
-      data.slug = `${slugify(data.title, { lower: true })}-${randomInt(1000, 10000)}`;
+    if (autoSlug) {
+      data.slug = `${slugify(data.title!, { lower: true })}-${randomInt(1000, 10000)}`;
     }
 
     try {
@@ -58,6 +59,9 @@ export class PostService {
       });
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+        if (autoSlug) {
+          return this.update(params);
+        }
         throw new PostNotFoundError();
       }
 
