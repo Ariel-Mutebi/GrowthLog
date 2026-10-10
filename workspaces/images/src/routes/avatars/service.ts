@@ -12,6 +12,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { FastifyLogFn } from 'fastify';
 import type { PrismaClient, Image } from '@growthlog/db';
 import type { S3Client, HeadObjectCommandOutput } from '@aws-sdk/client-s3';
+import { PrismaClientKnownRequestError } from '@growthlog/db/src/generated/internal/prismaNamespace.js';
 
 export class AvatarNotFoundError extends Error { }
 export class UploadAlreadyFailedError extends Error { }
@@ -52,8 +53,29 @@ export class AvatarService {
     if (sizeBytes > this.maxSizeBytes) throw new FileTooLargeError();
 
     const key = `${uploaderId}/${randomUUIDv7()}`;
+    let oldKey: string | undefined = undefined;
 
     const imageId = await this.prisma.$transaction(async (transactor) => {
+      try {
+        const oldAvatar = await transactor.avatar.delete({
+          where: {
+            userId: uploaderId,
+          },
+          select: {
+            image: {
+              select: {
+                key: true,
+              },
+            },
+          },
+        });
+        oldKey = oldAvatar.image.key;
+      } catch (error) {
+        if (!(error instanceof PrismaClientKnownRequestError && error.code == 'P2025')) {
+          throw error;
+        }
+      }
+
       const image = await transactor.image.create({
         data: {
           key,
@@ -71,6 +93,15 @@ export class AvatarService {
 
       return image.id;
     });
+
+    if (oldKey) {
+      await this.minio.send(
+        new DeleteObjectCommand({
+          Bucket: this.bucket,
+          Key: oldKey,
+        }),
+      );
+    }
 
     const uploadUrl = await getSignedUrl(
       this.presigner,
@@ -99,9 +130,26 @@ export class AvatarService {
     try {
       const sizeBytes = await this.verifyObjectUploaded(image.key);
       const { height, width } = await this.verifyFileContent(image.key, image.mimeType);
-      return this.finalizeAvatarUpload(image, sizeBytes, height, width);
+
+      return await this.prisma.image.update({
+        where: {
+          id: image.id,
+        },
+        data: {
+          status: 'UPLOADED',
+          sizeBytes,
+          height,
+          width,
+        },
+      });
     } catch (error) {
-      await this.handleError(image, error);
+      if (
+        error instanceof ObjectNotUploadedError ||
+        error instanceof FileTooLargeError ||
+        error instanceof FileTypeMismatchError
+      ) {
+        await this.markFailed(image, error);
+      }
       throw error;
     }
   }
@@ -110,7 +158,9 @@ export class AvatarService {
     const image = await this.prisma.image.findFirst({
       where: {
         id: imageId,
-        uploaderId,
+        avatar: {
+          userId: uploaderId,
+        },
       },
     });
 
@@ -161,82 +211,7 @@ export class AvatarService {
     return imageSize(buffer);
   }
 
-  private async finalizeAvatarUpload(image: Image, sizeBytes: number, height: number, width: number) {
-    const { updatedImage, oldImageKey } = await this.prisma.$transaction(async (transactor) => {
-      const { userId } = await transactor.avatar.findFirstOrThrow({
-        where: {
-          imageId: image.id,
-        },
-      });
-
-      const { avatar: currentAvatar } = await transactor.user.findUniqueOrThrow({
-        where: {
-          id: userId,
-        },
-        select: {
-          avatar: {
-            select: {
-              imageId: true,
-            },
-          },
-        },
-      });
-
-      const updatedImage = await transactor.image.update({
-        where: {
-          id: image.id,
-        },
-        data: {
-          status: 'UPLOADED',
-          sizeBytes,
-          height,
-          width,
-        },
-      });
-
-      await transactor.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          avatarId: image.id,
-        },
-      });
-
-      let oldImageKey: string | null = null;
-
-      if (currentAvatar && currentAvatar.imageId !== image.id) {
-        const oldImage = await transactor.image.findUniqueOrThrow({
-          where: {
-            id: currentAvatar.imageId,
-          },
-        });
-
-        oldImageKey = oldImage.key;
-
-        await transactor.image.delete({
-          where: {
-            id: currentAvatar.imageId,
-          },
-        });
-      }
-
-      return { updatedImage, oldImageKey };
-    });
-
-    if (oldImageKey) {
-      await this.minio.send(
-        new DeleteObjectCommand({
-          Bucket: this.bucket,
-          Key: oldImageKey,
-        }),
-      );
-    }
-
-    return updatedImage;
-  }
-
-  private async handleError(image: Image, error: unknown) {
+  private async markFailed(image: Image, error: unknown) {
     try {
       await this.prisma.image.update({
         where: {
