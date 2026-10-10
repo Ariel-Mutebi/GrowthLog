@@ -16,7 +16,7 @@ const PostMetadata = Type.Object({
   id: Type.String(),
   authorId: Type.String(),
   title: Type.String(),
-  slug: Type.Union([Type.String(), Type.Null()]),
+  slug: Type.String(),
   publishedAt: OptionalDate,
   createdAt: SerializableDate,
   updatedAt: SerializableDate,
@@ -61,7 +61,7 @@ export const GetOwnPost = {
   security: [{ session: [] }],
   tags: ['Posts'],
   params: Type.Object({
-    id: Type.String(),
+    slug: Type.String(),
   }),
   response: {
     200: PostMetadata,

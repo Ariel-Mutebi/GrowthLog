@@ -18,7 +18,7 @@
         return toast.error(error.error, { description: error.message });
       }
 
-      return navigate(`/edit/${data.id}`);
+      return navigate(`/edit/${data.slug}`);
     } catch (networkError) {
       return toast.error(String(networkError));
     } finally {

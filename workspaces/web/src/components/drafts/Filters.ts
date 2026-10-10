@@ -1,5 +1,5 @@
 export interface DraftFilters {
-  orderBy: 'title' | 'updatedAt';
+  sortBy: 'title' | 'updatedAt';
   order: 'asc' | 'desc';
   isPrivate: boolean;
   isPublished: boolean;

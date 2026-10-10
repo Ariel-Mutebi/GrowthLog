@@ -54,7 +54,7 @@ model Post {
   id            String    @id @default(cuid())
   authorId      String
   title         String
-  slug          String?   @unique
+  slug          String    @unique
   draftContent  Bytes?
   publishedHtml String?
   publishedAt   DateTime?

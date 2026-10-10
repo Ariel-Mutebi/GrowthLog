@@ -10,12 +10,11 @@ if (!user) {
 }
 
 const apiClient = createApiClient(Astro.request.headers.get("cookie"));
-const postId = Astro.params.postId!;
 
-const { data: post } = await apiClient.GET("/api/posts/{id}", {
+const { data: post } = await apiClient.GET("/api/posts/{slug}", {
   params: {
     path: {
-      id: postId,
+      slug: Astro.params.slug!,
     },
   },
 });
@@ -25,6 +24,6 @@ if (!post) {
 }
 ---
 
-<HeadLayout title={post.title}>
-  <Editor {user} {postId} initialTitle={post.title} client:only="svelte" />
+<HeadLayout title={`Editing ${post.title} | GrowthLog`}>
+  <Editor {user} postId={post.id} initialTitle={post.title} client:only="svelte" />
 </HeadLayout>

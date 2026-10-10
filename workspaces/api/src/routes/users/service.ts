@@ -1,3 +1,4 @@
+import slugify from 'slugify';
 import { zxcvbn } from 'zxcvbn-ts';
 import { hash, compare } from 'bcrypt';
 import { conflictsOn } from '../../utils/extractors.js';
@@ -89,10 +90,11 @@ export class UserService {
 
   private async createWithDerivedUsername(data: UserDeclaredFields): Promise<UserClientSafe> {
     const { forename, surname, ...rest } = data;
+    const base = slugify(`${forename} ${surname}`, { lower: true });
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       const suffix = attempt > 0 ? `-${attempt}` : '';
-      const derived = `${forename.toLocaleLowerCase()}-${surname.toLocaleLowerCase()}${suffix}`;
+      const derived = base + suffix;
       
       try {
         const newUser = await this.prisma.user.create({

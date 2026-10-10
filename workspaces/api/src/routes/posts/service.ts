@@ -1,3 +1,5 @@
+import { randomInt } from 'node:crypto';
+import slugify from 'slugify';
 import type { PostSelect, PostWhereInput, PrismaClient } from '@growthlog/db';
 import type { PostMetadata, PostQueryOptions } from './schema.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
@@ -32,6 +34,7 @@ export class PostService {
       data: {
         authorId,
         title: 'Untitled',
+        slug: `untitled-${randomInt(1000, 10000)}`,
       },
       select: metadataSelector,
     });
@@ -39,6 +42,10 @@ export class PostService {
 
   public async update(params: UpdateParams): Promise<PostMetadata> {
     const { authorId, postId, ...data } = params;
+
+    if (data.title && !data.slug) {
+      data.slug = `${slugify(data.title, { lower: true })}-${randomInt(1000, 10000)}`;
+    }
 
     try {
       return await this.prisma.post.update({
@@ -62,12 +69,12 @@ export class PostService {
     }
   }
 
-  public async getPost(authorId: string, postId: string): Promise<PostMetadata> {
+  public async getPost(authorId: string, slug: string): Promise<PostMetadata> {
     try {
       return await this.prisma.post.findUniqueOrThrow({
         where: {
           authorId,
-          id: postId,
+          slug,
         },
         select: metadataSelector,
       });
@@ -92,10 +99,7 @@ export class PostService {
     return await this.prisma.post.findMany({
       where,
       select: metadataSelector,
-      orderBy: [
-        { [sortBy]: order },
-        { id: 'asc' }, // tiebreaker so ordering is deterministic
-      ],
+      orderBy: [{ [sortBy]: order }],
     });
   }
 }

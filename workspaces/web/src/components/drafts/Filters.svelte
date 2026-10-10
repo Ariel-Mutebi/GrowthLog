@@ -12,21 +12,22 @@
     <button
       aria-pressed={open}
       aria-label="Open filters"
+      class="p-2 rounded-full aria-pressed:bg-stone-200 aria-pressed:dark:bg-stone-800"
     >
-      <ArrowDownUp />
+      <ArrowDownUp size={16} />
     </button>
   </Popover.Trigger>
   <Popover.Portal>
     <Popover.Content side="top" align="end" sideOffset={8}>
-      <form class="bg-stone-100">
+      <form class="p-2 pr-8 bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-600">
         <fieldset>
           <legend>Sort by:</legend>
           <label>
-            <input type="radio" bind:group={filters.orderBy} value="title" />
+            <input type="radio" bind:group={filters.sortBy} value="title" />
             Title
           </label>
           <label>
-            <input type="radio" bind:group={filters.orderBy} value="updatedAt" />
+            <input type="radio" bind:group={filters.sortBy} value="updatedAt" />
             Last Edited
           </label>
         </fieldset>
@@ -66,3 +67,31 @@
     </Popover.Content>
   </Popover.Portal>
 </Popover.Root>
+
+<style>
+  fieldset {
+    margin-bottom: var(--spacing);
+  }
+
+  fieldset > * {
+    display: block;
+  }
+
+  legend {
+    font-family: var(--font-mono);
+    color: var(--color-stone-900);
+  }
+
+  :global(.dark) legend {
+    color: var(--color-stone-100);
+  }
+
+  label {
+    font-size: var(--text-sm);
+    color: var(--color-stone-700);
+  }
+
+  :global(.dark) label {
+    color: var(--color-stone-300);
+  }
+</style>

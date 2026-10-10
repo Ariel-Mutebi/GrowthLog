@@ -12,6 +12,8 @@
   import { apiClient } from '../clients.ts';
   import { assignCursorColor } from './cursor.ts';
   import type { User } from '../../types/backend.ts';
+  import { toast } from 'svelte-sonner';
+  import Toaster from '../Toaster.svelte';
 
   interface Props {
     user: User;
@@ -77,11 +79,18 @@
   });
 
   const saveTitle = debounce(async (value: string) => {
-    await apiClient.PATCH('/api/posts/{id}', {
+    const { data: updated, error } = await apiClient.PATCH('/api/posts/{id}', {
       params: { path: { id: postId } },
       body: { title: value },
     });
-  }, 1000);
+
+    if (!updated && error) {
+      return toast.error(error.error, { description: error.message });
+    }
+
+    document.title = `Editing ${updated.title} | GrowthLog`;
+    window.history.replaceState(null, '', '/edit/' + updated.slug);
+  }, 10000);
 </script>
 
 {#if status === 'error'}
@@ -98,3 +107,5 @@
 >
 
 <div bind:this={element}></div>
+
+<Toaster />

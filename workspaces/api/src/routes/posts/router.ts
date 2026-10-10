@@ -60,14 +60,14 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.get('/:id', {
+  app.get('/:slug', {
     preHandler: isLoggedIn,
     schema: GetOwnPost,
   }, async (req, res) => {
     assertIsLoggedIn(req);
 
     try {
-      const post = await service.getPost(req.user.id, req.params.id);
+      const post = await service.getPost(req.user.id, req.params.slug);
       return res.code(200).send(post);
     } catch (error) {
       if (error instanceof PostNotFoundError) {
