@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
-import { CreateBlankPost, UpdatePost, GetOwnPost } from './schema.js';
+import { CreateBlankPost, UpdatePost, GetOwnPost, GetOwnPosts } from './schema.js';
 import { PostNotFoundError, PostService, SlugConflictError } from './service.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
@@ -73,10 +73,28 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       if (error instanceof PostNotFoundError) {
         return res.code(404).send({
           error: 'NotFound',
-          message: 'The post you are looking for was not found among your own posts',
+          message: 'The post you are looking for was not found',
         });
       }
 
+      req.log.error(error);
+      return res.code(500).send({
+        error: 'InternalServerError',
+        message: 'Something went wrong. Please try again.',
+      });
+    }
+  });
+
+  app.get('/', {
+    preHandler: isLoggedIn,
+    schema: GetOwnPosts,
+  }, async (req, res) => {
+    assertIsLoggedIn(req);
+
+    try {
+      const posts = await service.getPosts(req.user.id, req.query);
+      return res.code(200).send(posts);
+    } catch (error) {
       req.log.error(error);
       return res.code(500).send({
         error: 'InternalServerError',

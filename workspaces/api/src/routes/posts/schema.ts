@@ -1,4 +1,4 @@
-import { Type } from '@sinclair/typebox';
+import { Type, type Static } from '@sinclair/typebox';
 import type { Post } from '@growthlog/db';
 import type { FastifySchema } from 'fastify';
 import type { TypeBoxModel } from '../../typebox/mapping.js';
@@ -56,7 +56,7 @@ export const UpdatePost = {
 } satisfies FastifySchema;
 
 export const GetOwnPost = {
-  summary: 'Get post',
+  summary: 'Get own post',
   description: 'Get one of your own post\'s public metadata',
   security: [{ session: [] }],
   tags: ['Posts'],
@@ -67,6 +67,37 @@ export const GetOwnPost = {
     200: PostMetadata,
     401: Unauthorized,
     404: NotFound,
+    ...generalErrorResponses,
+  },
+} satisfies FastifySchema;
+
+export const PostSortField = Type.Union([
+  Type.Literal('title'),
+  Type.Literal('updatedAt'),
+]);
+
+export const SortOrder = Type.Union([
+  Type.Literal('asc'),
+  Type.Literal('desc'),
+]);
+
+export const GetOwnPostsQuery = Type.Object({
+  sortBy: Type.Optional(PostSortField),
+  order: Type.Optional(SortOrder),
+  published: Type.Optional(Type.Boolean()),
+});
+
+export type PostQueryOptions = Static<typeof GetOwnPostsQuery>;
+
+export const GetOwnPosts = {
+  summary: 'Get own posts',
+  description: 'Get your own posts, filtered and sorted',
+  security: [{ session: [] }],
+  tags: ['Posts'],
+  querystring: GetOwnPostsQuery,
+  response: {
+    200: Type.Array(PostMetadata),
+    401: Unauthorized,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;

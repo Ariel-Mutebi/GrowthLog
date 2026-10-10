@@ -33,11 +33,9 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: ConfirmSchema,
   }, async (req, res) => {
     assertIsLoggedIn(req);
-    const userId = req.user.id;
 
     try {
-      const codeId = await service.getCodeId(userId, req.body.code);
-      await service.verifyEmail(userId, codeId);
+      await service.verifyEmail(req.user.id, req.body.code);
       return res.code(204).send(null);
     } catch (error) {
       if (error instanceof InvalidCode) {

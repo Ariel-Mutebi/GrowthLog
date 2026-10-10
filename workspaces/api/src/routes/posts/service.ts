@@ -1,5 +1,5 @@
-import type { PostSelect, PrismaClient } from '@growthlog/db';
-import type { PostMetadata } from './schema.js';
+import type { PostSelect, PostWhereInput, PrismaClient } from '@growthlog/db';
+import type { PostMetadata, PostQueryOptions } from './schema.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 export class PostNotFoundError extends Error { };
@@ -69,6 +69,7 @@ export class PostService {
           authorId,
           id: postId,
         },
+        select: metadataSelector,
       });
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
@@ -77,5 +78,24 @@ export class PostService {
 
       throw error;
     }
+  }
+
+  public async getPosts(authorId: string, options: PostQueryOptions): Promise<PostMetadata[]> {
+    const { sortBy = 'updatedAt', order = 'asc', published } = options;
+
+    const where: PostWhereInput = { authorId };
+
+    if (published !== undefined) {
+      where.publishedAt = published ? { not: null } : null;
+    }
+
+    return await this.prisma.post.findMany({
+      where,
+      select: metadataSelector,
+      orderBy: [
+        { [sortBy]: order },
+        { id: 'asc' }, // tiebreaker so ordering is deterministic
+      ],
+    });
   }
 }

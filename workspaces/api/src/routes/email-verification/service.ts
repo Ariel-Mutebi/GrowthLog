@@ -31,7 +31,7 @@ export class EmailVerificationService {
     });
   }
 
-  async getCodeId(userId: string, code: string) {
+  private async getCodeId(userId: string, code: string) {
     try {
       const { id } = await this.prisma.emailVerificationCode.findFirstOrThrow({
         where: {
@@ -52,7 +52,9 @@ export class EmailVerificationService {
     }
   }
 
-  async verifyEmail(userId: string, codeId: string) {
+  async verifyEmail(userId: string, code: string) {
+    const codeId = await this.getCodeId(userId, code);
+
     await this.prisma.$transaction([
       this.prisma.user.update({
         where: {
