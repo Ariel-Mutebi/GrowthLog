@@ -1,9 +1,9 @@
 <script lang="ts">
   import * as Y from 'yjs';
   import { onMount, onDestroy } from 'svelte';
-  import debounce from 'debounce';
   import { Editor } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
+  import BubbleMenu from '@tiptap/extension-bubble-menu';
   import Collaboration from '@tiptap/extension-collaboration';
   import CollaborationCaret from '@tiptap/extension-collaboration-caret';
   import { PUBLIC_DOCS_URL } from 'astro:env/client';
@@ -12,8 +12,9 @@
   import { apiClient } from '../clients.ts';
   import { assignCursorColor } from './cursor.ts';
   import type { User } from '../../types/backend.ts';
-  import { toast } from 'svelte-sonner';
-  import Toaster from '../Toaster.svelte';
+
+  import Title from './Title.svelte';
+  import BubbleToolbar from './BubbleToolbar.svelte';
 
   interface Props {
     user: User;
@@ -24,12 +25,15 @@
   const { postId, user, initialTitle }: Props = $props();
 
   let ydoc: Y.Doc;
-  let editor: Editor;
-  let element: HTMLDivElement;
   let provider: HocuspocusProvider;
+  let element: HTMLDivElement;
+
+  // $state.raw (not $state) because a deep proxy would wrap the Editor instance and break it.
+  let editor = $state.raw<Editor | null>(null);
+  let menuElement = $state<HTMLDivElement>();
 
   // svelte-ignore state_referenced_locally
-  let title = $state(initialTitle);
+  let title = $state(initialTitle == 'Untitled' ? '' : initialTitle);
   let status = $state<'connecting' | 'connected' | 'error'>('connecting');
 
   onMount(async () => {
@@ -54,17 +58,30 @@
 
       editor = new Editor({
         element,
+        editorProps: {
+          attributes: {
+            class: 'prose prose-lg max-w-none min-h-[60vh] focus:outline-none'
+          }
+        },
         extensions: [
-          StarterKit.configure({ undoRedo: false }),
+          StarterKit.configure({
+            undoRedo: false,
+            link: { openOnClick: false },
+            heading: { levels: [2, 3] } // reserve h1 for the title
+          }),
+          BubbleMenu.configure({
+            element: menuElement!,
+            options: { placement: 'top', offset: 8 }
+          }),
           Collaboration.configure({ document: ydoc }),
           CollaborationCaret.configure({
             provider,
             user: {
               name: `${user.forename} ${user.surname}`,
-              color: assignCursorColor(user.id),
+              color: assignCursorColor(user.id)
             }
-          }),
-        ],
+          })
+        ]
       });
     } catch (error) {
       console.error(error);
@@ -77,35 +94,14 @@
     provider?.destroy();
     ydoc?.destroy();
   });
-
-  const saveTitle = debounce(async (value: string) => {
-    const { data: updated, error } = await apiClient.PATCH('/api/posts/{id}', {
-      params: { path: { id: postId } },
-      body: { title: value },
-    });
-
-    if (!updated && error) {
-      return toast.error(error.error, { description: error.message });
-    }
-
-    document.title = `Editing ${updated.title} | GrowthLog`;
-    window.history.replaceState(null, '', '/edit/' + updated.slug);
-  }, 10000);
 </script>
 
 {#if status === 'error'}
   <p>Couldn't connect to the editor. Try refreshing.</p>
 {/if}
 
-<input
-  type="text"
-  placeholder="Title"
-  value={title != 'Untitled' ? title : ''}
-  oninput={(event) => {
-    saveTitle(event.currentTarget.value);
-  }}
->
-
-<div bind:this={element}></div>
-
-<Toaster />
+<main>
+  <Title id={postId} bind:title />
+  <div bind:this={element}></div>
+  <BubbleToolbar {editor} bind:element={menuElement} />
+</main>
