@@ -1,0 +1,29 @@
+---
+import { PUBLIC_MINIO_ENDPOINT, PUBLIC_AVATAR_BUCKET } from "astro:env/client";
+
+interface Props {
+  avatarKey: string | null | undefined;
+  upscale?: boolean;
+}
+
+const { avatarKey, upscale = false } = Astro.props;
+---
+
+{
+  avatarKey !== undefined && (
+    <img
+      src={
+        avatarKey
+          ? `${PUBLIC_MINIO_ENDPOINT}/${PUBLIC_AVATAR_BUCKET}/${avatarKey}`
+          : "default-avatar.jpg"
+      }
+      alt="avatar"
+      class:list={[
+        "h-8 w-8 rounded-full object-cover",
+        {
+          "sm:h-16 sm:w-16": upscale,
+        }
+      ]}
+    />
+  )
+}

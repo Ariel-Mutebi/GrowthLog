@@ -12,3 +12,7 @@
 .display-heading {
   font-variation-settings: "SOFT" 0, "opsz" 144, "WONK" 1;
 }
+
+.soft {
+  font-variation-settings: "SOFT" 50, "WONK" 0;
+}

@@ -2,6 +2,7 @@
 import { createApiClient } from "../../server/clients.ts";
 import HeadLayout from "../../layouts/HeadLayout.astro";
 import Editor from "../../components/write/Editor.svelte";
+import Avatar from "../../components/Avatar.astro";
 
 const { user } = Astro.locals;
 
@@ -25,5 +26,34 @@ if (!post) {
 ---
 
 <HeadLayout title={`Editing ${post.title} | GrowthLog`}>
-  <Editor {user} postId={post.id} initialTitle={post.title} client:only="svelte" />
+  <div
+    class="grid grid-cols-[64px_1fr] grid-rows-[64px_1fr] min-h-dvh bg-white dark:bg-black"
+  >
+    <a class="col-start-1 row-start-1 relative z-30 block" href="/my-drafts">
+      <img
+        src="/logo-64.png"
+        alt="The GrowthLog logo"
+        class="h-16 w-16 dark:hidden"
+      />
+      <img
+        src="/logo-dark-64.png"
+        alt="The GrowthLog logo"
+        class="h-16 w-16 hidden dark:block"
+      />
+    </a>
+    <nav
+      class="col-start-1 row-start-1 col-span-2 bg-lime-200/50 dark:bg-lime-900/50
+        pr-4 py-2 md:py-0 flex justify-end items-center gap-3 relative z-20"
+    >
+      <Avatar avatarKey={user.avatarKey} />
+    </nav>
+    <div
+      class="hidden md:block row-start-1 row-span-2 col-start-1
+        bg-fuchsia-200/50 dark:bg-fuchsia-900/50"
+    >
+    </div>
+    <div class="col-span-2 md:col-span-1 p-8 md:p-16 flex justify-center">
+      <Editor {user} postId={post.id} initialTitle={post.title} client:load />
+    </div>
+  </div>
 </HeadLayout>

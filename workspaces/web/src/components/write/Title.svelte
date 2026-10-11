@@ -12,6 +12,8 @@
   let { id, title = $bindable() }: Props = $props();
 
   const saveTitle = debounce(async (value: string) => {
+    if (value.length === 0) return;
+
     const { data: updated, error } = await apiClient.PATCH('/api/posts/{id}', {
       params: { path: { id } },
       body: { title: value },
@@ -33,6 +35,8 @@
   oninput={(event) => {
     saveTitle(event.currentTarget.value);
   }}
+  class="font-serif soft text-5xl mb-4 focus:outline-none text-stone-800
+    dark:text-stone-100 placeholder:text-stone-400"
 >
 
 <Toaster />

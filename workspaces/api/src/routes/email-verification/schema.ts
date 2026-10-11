@@ -8,6 +8,7 @@ import {
 export const RequestSchema = {
   summary: 'Request email verification',
   description: 'Sends a six-digit code to your email',
+  tags: ['Email'],
   security: [{ session: [] }],
   response: {
     204: Type.Null(),
@@ -18,6 +19,7 @@ export const RequestSchema = {
 export const ConfirmSchema = {
   summary: 'Confirm email verification',
   description: 'Confirms if the email verification code is valid',
+  tags: ['Email'],
   security: [{ session: [] }],
   body: Type.Object({
     code: Type.String({ minLength: 0, maxLength: 6 }),

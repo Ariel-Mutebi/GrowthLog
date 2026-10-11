@@ -1,5 +1,12 @@
 <script lang="ts">
   import type { Editor } from '@tiptap/core';
+  import Bold from '@lucide/svelte/icons/bold';
+  import Italic from '@lucide/svelte/icons/italic';
+  import Underline from '@lucide/svelte/icons/underline';
+  import Link from '@lucide/svelte/icons/link';
+  import Heading2 from '@lucide/svelte/icons/heading-2';
+  import Heading3 from '@lucide/svelte/icons/heading-3';
+  import Quote from '@lucide/svelte/icons/quote';
 
   interface Props {
     editor: Editor | null;
@@ -8,113 +15,96 @@
 
   let { editor, element = $bindable() }: Props = $props();
 
+  // Explicit reactive state: one boolean per button.
+  type ActiveKey =
+    | 'bold'
+    | 'italic'
+    | 'underline'
+    | 'link'
+    | 'h2'
+    | 'h3'
+    | 'blockquote';
+
+  let active = $state<Record<ActiveKey, boolean>>({
+    bold: false,
+    italic: false,
+    underline: false,
+    link: false,
+    h2: false,
+    h3: false,
+    blockquote: false
+  });
+
   let linkMode = $state(false);
   let linkValue = $state('');
   let linkInput = $state<HTMLInputElement>();
 
-  /*
-   * TipTap isn't reactive on its own. Bumping this on every transaction makes
-   * any template expression that reads it (via isActive) re-evaluate.
-  */
-  let tick = $state(0);
+  // Copy TipTap's current answers into Svelte state.
+  function sync() {
+    if (!editor) return;
+    active = {
+      bold: editor.isActive('bold'),
+      italic: editor.isActive('italic'),
+      underline: editor.isActive('underline'),
+      link: editor.isActive('link'),
+      h2: editor.isActive('heading', { level: 2 }),
+      h3: editor.isActive('heading', { level: 3 }),
+      blockquote: editor.isActive('blockquote')
+    };
+  }
 
   $effect(() => {
     if (!editor) return;
 
-    const onTransaction = () => tick++;
     // The toolbar hides on empty selections, so make sure the link input
     // isn't still open the next time it appears.
     const onSelection = () => {
       if (editor.state.selection.empty) linkMode = false;
     };
 
-    editor.on('transaction', onTransaction);
+    sync();
+    editor.on('transaction', sync);
     editor.on('selectionUpdate', onSelection);
     return () => {
-      editor.off('transaction', onTransaction);
+      editor.off('transaction', sync);
       editor.off('selectionUpdate', onSelection);
     };
   });
 
-  function isActive(name: string, attrs?: Record<string, unknown>) {
-    tick; // subscribe
-    return editor?.isActive(name, attrs) ?? false;
-  }
+  const chain = () => editor!.chain().focus();
 
   interface ToolbarItem {
-    label: string;
+    key: ActiveKey;
     title: string;
-    class?: string; // extra Tailwind classes for the label (font style etc.)
-    active: () => boolean;
+    icon: typeof Bold;
     run: () => void;
   }
 
-  const chain = () => editor!.chain().focus();
-
   const formatItems: ToolbarItem[] = [
-    {
-      label: 'B',
-      title: 'Bold',
-      class: 'font-bold',
-      active: () => isActive('bold'),
-      run: () => chain().toggleBold().run()
-    },
-    {
-      label: 'i',
-      title: 'Italic',
-      class: 'italic font-serif',
-      active: () => isActive('italic'),
-      run: () => chain().toggleItalic().run()
-    },
-    {
-      label: 'U',
-      title: 'Underline',
-      class: 'underline',
-      active: () => isActive('underline'),
-      run: () => chain().toggleUnderline().run()
-    },
-    {
-      label: 'Link',
-      title: 'Link',
-      active: () => isActive('link'),
-      run: startLink
-    }
+    { key: 'bold', title: 'Bold', icon: Bold, run: () => chain().toggleBold().run() },
+    { key: 'italic', title: 'Italic', icon: Italic, run: () => chain().toggleItalic().run() },
+    { key: 'underline', title: 'Underline', icon: Underline, run: () => chain().toggleUnderline().run() },
+    { key: 'link', title: 'Link', icon: Link, run: startLink }
   ];
 
   const blockItems: ToolbarItem[] = [
-    {
-      label: 'H',
-      title: 'Large heading',
-      class: 'font-bold text-base',
-      active: () => isActive('heading', { level: 2 }),
-      run: () => chain().toggleHeading({ level: 2 }).run()
-    },
-    {
-      label: 'H',
-      title: 'Small heading',
-      class: 'font-bold text-xs',
-      active: () => isActive('heading', { level: 3 }),
-      run: () => chain().toggleHeading({ level: 3 }).run()
-    },
-    {
-      label: '❝',
-      title: 'Quote',
-      active: () => isActive('blockquote'),
-      run: () => chain().toggleBlockquote().run()
-    }
+    { key: 'h2', title: 'Large heading', icon: Heading2, run: () => chain().toggleHeading({ level: 2 }).run() },
+    { key: 'h3', title: 'Small heading', icon: Heading3, run: () => chain().toggleHeading({ level: 3 }).run() },
+    { key: 'blockquote', title: 'Quote', icon: Quote, run: () => chain().toggleBlockquote().run() }
   ];
 
   function startLink() {
     if (!editor) return;
 
     // Already a link: clicking again removes it
-    if (editor.isActive('link')) {
+    if (active.link) {
       chain().extendMarkRange('link').unsetLink().run();
       return;
     }
 
     linkValue = '';
     linkMode = true;
+    // focus after re-render
     queueMicrotask(() => linkInput?.focus());
   }
 
@@ -133,27 +123,31 @@
 </script>
 
 {#snippet group(items: ToolbarItem[])}
-  {#each items as item (item.title)}
+  {#each items as item (item.key)}
     <!-- mousedown preventDefault stops the click from stealing focus,
          which would collapse the selection and hide the menu -->
     <button
       type="button"
       title={item.title}
+      aria-label={item.title}
+      aria-pressed={active[item.key]}
       onmousedown={(e) => e.preventDefault()}
       onclick={item.run}
-      class="h-8 min-w-8 cursor-pointer rounded-md px-2 text-sm transition-colors hover:bg-white/15 {item.active()
-        ? 'text-emerald-300'
-        : 'text-white'}"
+      class={[
+        `flex size-8 cursor-pointer items-center justify-center rounded-md transition-colors
+       text-stone-800 dark:text-stone-50 hover:bg-stone-100 dark:hover:bg-stone-800`,
+        { 'text-emerald-800': active[item.key] }
+      ]}
     >
-      <span class={item.class}>{item.label}</span>
+      <item.icon size={18} />
     </button>
   {/each}
 {/snippet}
 
-<!-- TipTap moves this element into place and toggles its visibility -->
 <div
   bind:this={element}
-  class="z-50 flex items-center gap-0.5 rounded-lg bg-neutral-900 p-1 shadow-lg"
+  class="invisible absolute z-50 flex w-max items-center gap-0.5 rounded-lg p-1
+    bg-stone-50 dark:bg-stone-900 shadow shadow-stone-600/25 dark:shadow-stone-200/25"
 >
   {#if linkMode}
     <input
@@ -161,7 +155,8 @@
       bind:value={linkValue}
       type="url"
       placeholder="Paste a link and press Enter"
-      class="w-64 bg-transparent px-2 py-1.5 text-sm text-white outline-none placeholder:text-neutral-400"
+      class="w-64 bg-transparent px-2 py-1.5 text-sm outline-none
+        text-stone-800 dark:text-stone-50 placeholder:text-stone-400"
       onkeydown={(e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -173,7 +168,7 @@
     />
   {:else}
     {@render group(formatItems)}
-    <span class="mx-1 h-4 w-px bg-white/25"></span>
+    <span class="mx-1 h-4 w-px bg-stone-400 dark:bg-stone-600"></span>
     {@render group(blockItems)}
   {/if}
 </div>

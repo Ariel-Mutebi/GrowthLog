@@ -19,7 +19,7 @@
   }).format(updatedAt);
 </script>
 
-<li class="hover:bg-stone-100 active:bg-stone-100 hover:dark:bg-stone-900 hover:active:bg-stone-900 active:dark:bg-stone-100">
+<li class="hover:bg-stone-100 active:bg-stone-100 hover:dark:bg-stone-900 dark:active:bg-stone-900">
   <a
     href={`/edit/${slug}`}
     class="flex items-center p-3 md:px-8 md:py-4 gap-3 md:gap-8 font-serif"

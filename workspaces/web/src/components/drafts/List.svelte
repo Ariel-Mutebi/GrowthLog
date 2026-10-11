@@ -2,6 +2,7 @@
   import { toast } from 'svelte-sonner';
   import Toaster from '../Toaster.svelte';
   import { apiClient } from '../clients.ts';
+  import { fly } from 'svelte/transition';
   import type { DraftFilters } from './Filters.ts';
   import type { Drafts } from '../../types/backend.ts';
 
@@ -40,26 +41,26 @@
   });
 </script>
 
-<main class="py-9 px-6 md:pt-16 flex justify-center">
-  <div class="w-full max-w-225 text-stone-900 dark:text-stone-200">
-    {#if drafts}
-      <div class="flex w-full px-8 gap-8 justify-end">
-        <Filters bind:filters />
-        <p>Last edited</p>
-      </div>
+{#if drafts}
+  <main class="py-9 px-6 md:pt-8 flex justify-center" in:fly={{ y: 200, duration: 300 }}>
+    <div class="w-full max-w-225 text-stone-900 dark:text-stone-200">
+        <div class="flex w-full px-8 gap-8 justify-end">
+          <Filters bind:filters />
+          <p>Last edited</p>
+        </div>
 
-      <ul>
-        {#each drafts as draft}
-          <Item
-            slug={draft.slug}
-            title={draft.title}
-            updatedAt={new Date(draft.updatedAt)}
-            isPrivate={draft.publishedAt === null}
-          />
-        {/each}
-      </ul>
-    {/if}
-  </div>
-</main>
+        <ul>
+          {#each drafts as draft}
+            <Item
+              slug={draft.slug}
+              title={draft.title}
+              updatedAt={new Date(draft.updatedAt)}
+              isPrivate={draft.publishedAt === null}
+            />
+          {/each}
+        </ul>
+    </div>
+  </main>
+{/if}
 
 <Toaster />

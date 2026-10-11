@@ -1,6 +1,7 @@
 <script lang="ts">
   import * as Y from 'yjs';
   import { onMount, onDestroy } from 'svelte';
+  import { fade } from 'svelte/transition';
   import { Editor } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
   import BubbleMenu from '@tiptap/extension-bubble-menu';
@@ -60,14 +61,14 @@
         element,
         editorProps: {
           attributes: {
-            class: 'prose prose-lg max-w-none min-h-[60vh] focus:outline-none'
+            class: 'prose prose-xl max-w-none min-h-[60vh] focus:outline-none'
           }
         },
         extensions: [
           StarterKit.configure({
             undoRedo: false,
             link: { openOnClick: false },
-            heading: { levels: [2, 3] } // reserve h1 for the title
+            heading: { levels: [2, 3] },
           }),
           BubbleMenu.configure({
             element: menuElement!,
@@ -102,6 +103,15 @@
 
 <main>
   <Title id={postId} bind:title />
-  <div bind:this={element}></div>
+  <div
+    bind:this={element}
+    in:fade={{ duration: 1000 }}
+  ></div>
   <BubbleToolbar {editor} bind:element={menuElement} />
 </main>
+
+<style>
+  main {
+    width: min(100%, 800px);
+  }
+</style>
