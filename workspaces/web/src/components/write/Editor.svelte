@@ -13,6 +13,7 @@
   import { apiClient } from '../clients.ts';
   import { assignCursorColor } from './cursor.ts';
   import type { User } from '../../types/backend.ts';
+  import type { HistoryReport } from './events.ts';
 
   import Title from './Title.svelte';
   import BubbleToolbar from './BubbleToolbar.svelte';
@@ -94,6 +95,44 @@
       console.error(error);
       status = 'error';
     }
+  });
+
+  $effect(() => {
+    const undo = () => {
+      editor?.commands.focus();
+      editor?.commands.undo();
+    };
+    const redo = () => {
+      editor?.commands.focus();
+      editor?.commands.redo();
+    };
+
+    window.addEventListener('editor:undo', undo);
+    window.addEventListener('editor:redo', redo);
+    return () => {
+      window.removeEventListener('editor:undo', undo);
+      window.removeEventListener('editor:redo', redo);
+    };
+  });
+
+  $effect(() => {
+    if (!editor) return;
+    const current = editor;
+
+    const report = () => {
+      window.dispatchEvent(
+        new CustomEvent('editor:history', {
+          detail: {
+            canUndo: current.can().undo(),
+            canRedo: current.can().redo(),
+          } satisfies HistoryReport,
+        })
+      );
+    };
+
+    report();
+    current.on('transaction', report);
+    return () => current.off('transaction', report);
   });
 
   onDestroy(() => {

@@ -3,6 +3,7 @@ import { createApiClient } from "../../server/clients.ts";
 import HeadLayout from "../../layouts/HeadLayout.astro";
 import Editor from "../../components/write/Editor.svelte";
 import Avatar from "../../components/Avatar.astro";
+import UndoRedo from "../../components/write/UndoRedo.svelte";
 
 const { user } = Astro.locals;
 
@@ -26,10 +27,8 @@ if (!post) {
 ---
 
 <HeadLayout title={`Editing ${post.title} | GrowthLog`}>
-  <div
-    class="grid grid-cols-[64px_1fr] grid-rows-[64px_1fr] min-h-dvh bg-white dark:bg-black"
-  >
-    <a class="col-start-1 row-start-1 relative z-30 block" href="/my-drafts">
+  <div class="min-h-dvh bg-white dark:bg-black">
+    <a class="z-30 block fixed top-0 left-0" href="/my-drafts">
       <img
         src="/logo-64.png"
         alt="The GrowthLog logo"
@@ -42,17 +41,20 @@ if (!post) {
       />
     </a>
     <nav
-      class="col-start-1 row-start-1 col-span-2 bg-lime-200/50 dark:bg-lime-900/50
-        pr-4 py-2 md:py-0 flex justify-end items-center gap-3 relative z-20"
+      class="z-20 sticky h-16 top-0 left-0 right-0 bg-lime-200/50 dark:bg-lime-900/50
+        pr-4 py-2 md:py-0 flex justify-end items-center gap-3 backdrop-blur"
     >
+      <div class="flex px-2 py-1 gap-4 bg-lime-200 dark:bg-lime-800">
+        <UndoRedo client:load />
+      </div>
       <Avatar avatarKey={user.avatarKey} />
     </nav>
     <div
-      class="hidden md:block row-start-1 row-span-2 col-start-1
+      class="hidden md:block fixed w-16 top-0 left-0 bottom-0
         bg-fuchsia-200/50 dark:bg-fuchsia-900/50"
     >
     </div>
-    <div class="col-span-2 md:col-span-1 p-8 md:p-16 flex justify-center">
+    <div class="p-8 md:p-16 flex justify-center">
       <Editor {user} postId={post.id} initialTitle={post.title} client:load />
     </div>
   </div>

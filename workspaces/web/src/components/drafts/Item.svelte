@@ -33,9 +33,9 @@
       ]}
     >
       {#if isPrivate}
-        <Lock size={16} />
+        <Lock class="size-3 md:size-4" />
       {:else}
-        <Globe size={16} />
+        <Globe class="size-3 md:size-4" />
       {/if}
       <span class="hidden sm:inline">{isPrivate ? 'Private' : 'Published'}</span>
     </div>
