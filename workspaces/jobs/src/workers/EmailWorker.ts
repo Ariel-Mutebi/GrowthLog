@@ -1,63 +1,16 @@
-import { Worker, createNodeRedisClient } from 'bullmq';
+import { GrowthLogWorker } from './GrowthLogWorker.js';
 import nodmailer, { type Transporter } from 'nodemailer';
+
 import type { Logger } from 'pino';
 import type { RedisClientType } from 'redis';
 import type { PrismaClient } from '@growthlog/db';
-import type { SMTPCredentials, VerificationEmailJobData } from './types.js';
-
-class GrowthLogWorker extends Worker {
-  registry: Map<string, (data?: unknown) => Promise<unknown>>;
-
-  constructor (
-    name: string,
-    redis: RedisClientType,
-    public readonly log: Logger,
-    public readonly prisma: PrismaClient,
-  ) {
-    super(
-      name,
-      async (job) => {
-        return this.registry.get(job.name)?.(job.data);
-      },
-      { connection: createNodeRedisClient(redis) },
-    );
-
-    this.registry = new Map();
-
-    this.on(
-      'failed',
-      (job, error) => this.log.error({ job, error }, `${name} failed`),
-    );
-  }
-}
-
-export class DeletionWorker extends GrowthLogWorker {
-  constructor(redis: RedisClientType, log: Logger, prisma: PrismaClient) {
-    super('deletion', redis, log, prisma);
-    this.registry.set('purge-deleted-users', () => this.purgeDeletedUsers());
-  }
-
-  private async purgeDeletedUsers() {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - 7);
-
-    const purged = await this.prisma.user.deleteMany({
-      where: {
-        deletedAt: {
-          lte: cutoffDate,
-        },
-      },
-    });
-
-    return { purgedUsers: purged.count };
-  }
-}
+import type { SMTPCredentials, VerificationEmailJobData } from '../types.js';
 
 export class EmailWorker extends GrowthLogWorker {
   private readonly from: string;
   private readonly transporter: Transporter;
 
-  constructor (
+  constructor(
     redis: RedisClientType,
     log: Logger,
     prisma: PrismaClient,

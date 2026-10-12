@@ -62,11 +62,12 @@ model Post {
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
-  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author   User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   tags     Tag[]
   views    View[]
   likes    Like[]
   comments Comment[]
+  images   PostImage[]
 }
 
 model Tag {
@@ -145,6 +146,7 @@ model Image {
 
   // class table inheritance pattern
   avatar Avatar?
+  post   PostImage?
 }
 
 model Avatar {
@@ -153,4 +155,14 @@ model Avatar {
 
   image Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PostImage {
+  imageId String @id
+  postId  String
+
+  image Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  post  Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
 }

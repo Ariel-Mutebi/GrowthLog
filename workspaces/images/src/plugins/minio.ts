@@ -23,4 +23,9 @@ export const minioPlugin  = fp(async (app) => {
 
   app.decorate('minio', minio);
   app.decorate('minioPresign', minioPresign);
+
+  app.addHook('onClose', () => {
+    minio.destroy();
+    minioPresign.destroy();
+  });
 });

@@ -1,7 +1,8 @@
 import { runtime } from './runtime.js';
 import { opts } from './options.js';
 import { DeletionQueue } from './queues.js';
-import { DeletionWorker, EmailWorker } from './workers.js';
+import { DeletionWorker } from './workers/DeletionWorker.js';
+import { EmailWorker } from './workers/EmailWorker.js';
 
 const deletionQueue = new DeletionQueue(runtime.redis);
 
@@ -14,10 +15,21 @@ await deletionQueue.upsertJobScheduler(
   },
 );
 
+await deletionQueue.upsertJobScheduler(
+  'image-purge-scheduler',
+  { pattern: '*/15 * * * *' },
+  {
+    name: 'purge-stale-images',
+    opts,
+  },
+);
+
 const deletionWorker = new DeletionWorker(
   runtime.redis,
   runtime.log,
   runtime.prisma,
+  runtime.minio,
+  runtime.config.PUBLIC_IMAGE_BUCKET,
 );
 
 const emailWorker = new EmailWorker(

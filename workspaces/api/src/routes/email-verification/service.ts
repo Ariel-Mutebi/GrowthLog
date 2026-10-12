@@ -1,6 +1,6 @@
 import { randomInt, createHash } from 'node:crypto';
 import type { PrismaClient } from '@growthlog/db';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { PrismaClientKnownRequestError } from '@growthlog/db';
 
 export class InvalidCode extends Error { };
 

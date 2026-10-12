@@ -24,7 +24,9 @@ export const envDefinitions = {
   PRESIGNED_URL_EXPIRY_SECONDS: positive,
 
   PUBLIC_AVATAR_BUCKET: z.string(),
+  PUBLIC_IMAGE_BUCKET: z.string(),
   PUBLIC_MAX_AVATAR_SIZE_BYTES: positive,
+  PUBLIC_MAX_IMAGE_SIZE_BYTES: positive,
   PUBLIC_MINIO_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
 
   SMTP_HOST: z.string(),

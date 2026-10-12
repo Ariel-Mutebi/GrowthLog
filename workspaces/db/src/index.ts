@@ -8,3 +8,4 @@ export function createPrismaClient(connectionString: string) {
 
 export type * from './generated/client.js';
 export type * from './generated/models.js';
+export { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';

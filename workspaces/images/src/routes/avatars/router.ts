@@ -1,24 +1,24 @@
 import { Confirm, RequestUpload } from './schema.js';
 import { verifyJWT } from '../../auth/preHandler.js';
+import { AvatarService } from './service.js';
 import {
-  AvatarService,
+  ImageNotFoundError,
+  UploadAlreadyFailedError,
+  ObjectNotUploadedError,
   FileTooLargeError,
   FileTypeMismatchError,
-  AvatarNotFoundError,
-  ObjectNotUploadedError,
-  UploadAlreadyFailedError,
-} from './service.js';
+} from '../../classes/errors.js';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new AvatarService({
     prisma: app.prisma,
     minio: app.minio,
+    logError: app.log.error,
     presigner: app.minioPresign,
     bucket: app.config.PUBLIC_AVATAR_BUCKET,
     maxSizeBytes: app.config.PUBLIC_MAX_AVATAR_SIZE_BYTES,
     presignedUrlExpirySeconds: app.config.PRESIGNED_URL_EXPIRY_SECONDS,
-    logError: app.log.error,
   });
 
   const mb = app.config.PUBLIC_MAX_AVATAR_SIZE_BYTES / 1024 ** 2;
@@ -28,12 +28,13 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     preHandler: verifyJWT,
   }, async (req, res) => {
     try {
-      const response = await service.requestUpload(
-        req.user.sub,
-        req.body.mimeType,
-        req.body.sizeBytes,
-      );
-      return res.code(200).send(response);
+      const permission = await service.requestUpload({
+        userId: req.user.sub,
+        mimeType: req.body.mimeType,
+        sizeBytes: req.body.sizeBytes,
+      });
+
+      return res.code(200).send(permission);
     } catch (error) {
       if (error instanceof FileTooLargeError) {
         return res.code(400).send({
@@ -56,10 +57,14 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     preHandler: verifyJWT,
   }, async (req, res) => {
     try {
-      const image = await service.confirmUpload(req.params.id, req.user.sub);
+      const image = await service.confirmUpload({
+        userId: req.user.sub,
+        imageId: req.params.id,
+      });
+
       return res.code(200).send(image);
     } catch (error) {
-      if (error instanceof AvatarNotFoundError) {
+      if (error instanceof ImageNotFoundError) {
         return res.code(404).send({
           error: 'NotFound',
           message: 'No image with this id was found',
@@ -70,13 +75,6 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         return res.code(409).send({
           error: 'Conflict',
           message: 'Upload failed previously; call request-upload again',
-        });
-      }
-
-      if (error instanceof ObjectNotUploadedError) {
-        return res.code(422).send({
-          error: 'UnprocessableEntity',
-          message: 'The upload was never received by storage',
         });
       }
 
@@ -91,6 +89,13 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         return res.code(422).send({
           error: 'UnprocessableEntity',
           message: 'The type of the uploaded file does not match the declared type',
+        });
+      }
+
+      if (error instanceof ObjectNotUploadedError) {
+        return res.code(425).send({
+          error: 'TooEarly',
+          message: 'The upload was never received by storage',
         });
       }
 

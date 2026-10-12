@@ -2,7 +2,7 @@ import { randomInt } from 'node:crypto';
 import slugify from 'slugify';
 import type { PostSelect, PostWhereInput, PrismaClient } from '@growthlog/db';
 import type { PostMetadata, PostQueryOptions } from './schema.js';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { PrismaClientKnownRequestError } from '@growthlog/db';
 
 export class PostNotFoundError extends Error { };
 export class SlugConflictError extends Error { };

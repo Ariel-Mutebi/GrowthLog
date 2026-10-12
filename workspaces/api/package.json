@@ -25,7 +25,6 @@
     "@growthlog/db": "workspace:*",
     "@growthlog/env": "workspace:*",
     "@growthlog/jobs": "workspace:*",
-    "@prisma/client": "^7.10.0",
     "@sinclair/typebox": "^0.34.52",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",

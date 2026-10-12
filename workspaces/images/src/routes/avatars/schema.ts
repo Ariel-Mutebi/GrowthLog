@@ -6,21 +6,20 @@ import {
   Unauthorized,
   InternalServerError,
   Conflict,
+  TooEarly,
   PayloadTooLarge,
   UnprocessableEntity,
 } from '../../typebox/responses.js';
+import { headers } from '../../typebox/headers.js';
 import { ImageModel } from '../../typebox/models.js';
+import { allowedMimeTypes } from '../../typebox/mime.js';
 
 export const RequestUpload = {
-  headers: Type.Object({
-    Authorization: Type.String(),
-  }),
+  summary: 'Request avatar upload',
+  description: 'Returns the image ID and a presigned PUT URL to Minio',
+  headers,
   body: Type.Object({
-    mimeType: Type.Union([
-      Type.Literal('image/jpeg'),
-      Type.Literal('image/png'),
-      Type.Literal('image/webp'),
-    ]),
+    mimeType: allowedMimeTypes,
     sizeBytes: Type.Integer({ minimum: 0 }),
   }),
   response: {
@@ -35,9 +34,9 @@ export const RequestUpload = {
 } satisfies FastifySchema;
 
 export const Confirm = {
-  headers: Type.Object({
-    Authorization: Type.String(),
-  }),
+  summary: 'Confirm avatar upload',
+  description: 'Checks if the uploaded object follows the rules and updates the image status',
+  headers,
   params: Type.Object({
     id: Type.String(),
   }),
@@ -48,6 +47,7 @@ export const Confirm = {
     409: Conflict,
     413: PayloadTooLarge,
     422: UnprocessableEntity,
+    425: TooEarly,
     500: InternalServerError,
   },
 } satisfies FastifySchema;

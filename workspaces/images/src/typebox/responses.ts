@@ -34,3 +34,8 @@ export const Conflict = Type.Object({
   error: Type.Literal('Conflict'),
   message: Type.String(),
 });
+
+export const TooEarly = Type.Object({
+  error: Type.Literal('TooEarly'),
+  message: Type.String(),
+});

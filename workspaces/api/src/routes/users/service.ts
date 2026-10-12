@@ -3,7 +3,7 @@ import { zxcvbn } from 'zxcvbn-ts';
 import { hash, compare } from 'bcrypt';
 import { randomInt } from 'node:crypto';
 import { conflictsOn } from '../../utils/extractors.js';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { PrismaClientKnownRequestError } from '@growthlog/db';
 import { clientSafeSelect, publicSafeSelect, flattenAvatarKey } from '../../utils/userSelectors.js';
 
 import type { IdentityProof } from './schema.js';

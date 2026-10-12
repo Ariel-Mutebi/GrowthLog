@@ -1,7 +1,6 @@
-import type { PrismaClient } from '@growthlog/db';
+import { type PrismaClient, PrismaClientKnownRequestError } from '@growthlog/db';
 import type { UserPublicSafe } from '../../typebox/userTypes.js';
 import { flattenAvatarKey, publicSafeSelect } from '../../utils/userSelectors.js';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 export class SelfFollowError extends Error { };
 export class FollowTargetNotFoundError extends Error { }
