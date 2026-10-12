@@ -58,5 +58,3 @@
   class="resize-none font-serif soft text-6xl mb-4 focus:outline-none text-stone-800
     dark:text-stone-50 placeholder:text-stone-400 w-full font-semibold"
 ></textarea>
-
-<Toaster />

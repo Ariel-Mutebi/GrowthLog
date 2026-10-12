@@ -4,6 +4,7 @@ import HeadLayout from "../../layouts/HeadLayout.astro";
 import Editor from "../../components/write/Editor.svelte";
 import Avatar from "../../components/Avatar.astro";
 import UndoRedo from "../../components/write/UndoRedo.svelte";
+import Upload from "../../components/write/Upload.svelte";
 
 const { user } = Astro.locals;
 
@@ -45,6 +46,7 @@ if (!post) {
         pr-4 py-2 md:py-0 flex justify-end items-center gap-3 backdrop-blur"
     >
       <div class="flex px-2 py-1 gap-4 bg-lime-200 dark:bg-lime-800">
+        <Upload postId={post.id} client:load />
         <UndoRedo client:load />
       </div>
       <Avatar avatarKey={user.avatarKey} />

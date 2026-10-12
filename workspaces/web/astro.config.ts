@@ -3,6 +3,25 @@ import svelte from '@astrojs/svelte';
 import node from '@astrojs/node';
 import tailwindcss from '@tailwindcss/vite';
 
+const url = envField.string({
+  context: 'client',
+  access: 'public',
+  url: true,
+});
+
+const bucketName = envField.string({
+  context: 'client',
+  access: 'public',
+  min: 1,
+});
+
+const positiveInteger = envField.number({
+  context: 'client',
+  access: 'public',
+  int: true,
+  gt: 0,
+});
+
 export default defineConfig({
   output: 'server',
   adapter: node({ mode: 'standalone' }),
@@ -16,37 +35,14 @@ export default defineConfig({
 
   env: {
     schema: {
-      PUBLIC_API_URL: envField.string({
-        context: 'client',
-        access: 'public',
-        url: true,
-      }),
-      PUBLIC_IMAGES_URL: envField.string({
-        context: 'client',
-        access: 'public',
-        url: true,
-      }),
-      PUBLIC_DOCS_URL: envField.string({
-        context: 'client',
-        access: 'public',
-        url: true,
-      }),
-      PUBLIC_MINIO_ENDPOINT: envField.string({
-        context: 'client',
-        access: 'public',
-        url: true,
-      }),
-      PUBLIC_AVATAR_BUCKET: envField.string({
-        context: 'client',
-        access: 'public',
-        min: 1,
-      }),
-      PUBLIC_MAX_AVATAR_SIZE_BYTES: envField.number({
-        context: 'client',
-        access: 'public',
-        int: true,
-        gt: 0,
-      }),
+      PUBLIC_API_URL: url,
+      PUBLIC_IMAGES_URL: url,
+      PUBLIC_DOCS_URL: url,
+      PUBLIC_MINIO_ENDPOINT: url,
+      PUBLIC_AVATAR_BUCKET: bucketName,
+      PUBLIC_IMAGE_BUCKET: bucketName,
+      PUBLIC_MAX_AVATAR_SIZE_BYTES: positiveInteger,
+      PUBLIC_MAX_IMAGE_SIZE_BYTES: positiveInteger,
     },
   },
 

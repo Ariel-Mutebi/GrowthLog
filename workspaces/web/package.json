@@ -25,6 +25,7 @@
     "@tiptap/extension-bubble-menu": "^3.31.4",
     "@tiptap/extension-collaboration": "^3.31.3",
     "@tiptap/extension-collaboration-caret": "^3.31.3",
+    "@tiptap/extension-image": "^3.31.4",
     "@tiptap/starter-kit": "^3.31.3",
     "astro": "^7.3.4",
     "bits-ui": "^2.19.5",

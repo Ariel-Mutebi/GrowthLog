@@ -1,8 +1,6 @@
 import z from 'zod';
 import { PUBLIC_MAX_AVATAR_SIZE_BYTES } from 'astro:env/client';
-
-export const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
-export type ACCEPTED_TYPE = typeof ACCEPTED_TYPES[number];
+import { ACCEPTED_TYPES, type ACCEPTED_TYPE } from '../acceptedMime.ts';
 
 export const OnboardingSchema = z.object({
   avatar: z

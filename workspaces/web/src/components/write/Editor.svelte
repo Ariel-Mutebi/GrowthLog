@@ -4,6 +4,7 @@
   import { fade } from 'svelte/transition';
   import { Editor } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
+  import Image from '@tiptap/extension-image';
   import BubbleMenu from '@tiptap/extension-bubble-menu';
   import Collaboration from '@tiptap/extension-collaboration';
   import CollaborationCaret from '@tiptap/extension-collaboration-caret';
@@ -13,9 +14,10 @@
   import { apiClient } from '../clients.ts';
   import { assignCursorColor } from './cursor.ts';
   import type { User } from '../../types/backend.ts';
-  import type { HistoryReport } from './events.ts';
+  import type { HistoryReport, ImageUploaded } from './events.ts';
 
   import Title from './Title.svelte';
+  import Toaster from '../Toaster.svelte';
   import BubbleToolbar from './BubbleToolbar.svelte';
 
   interface Props {
@@ -77,6 +79,7 @@
             link: { openOnClick: false },
             heading: { levels: [2, 3] },
           }),
+          Image,
           BubbleMenu.configure({
             element: menuElement!,
             options: { placement: 'top', offset: 8 }
@@ -135,6 +138,16 @@
     return () => current.off('transaction', report);
   });
 
+  $effect(() => {
+    const onImageUploaded = (event: Event) => {
+      const { detail } = event as CustomEvent<ImageUploaded>;
+      editor?.chain().focus('end').setImage(detail).run();
+    };
+
+    window.addEventListener('editor:image-uploaded', onImageUploaded);
+    return () => window.removeEventListener('editor:image-uploaded', onImageUploaded);
+  });
+
   onDestroy(() => {
     editor?.destroy();
     provider?.destroy();
@@ -160,3 +173,5 @@
     width: min(100%, 800px);
   }
 </style>
+
+<Toaster />

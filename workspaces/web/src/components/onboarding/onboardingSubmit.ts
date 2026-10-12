@@ -1,23 +1,26 @@
-import { HTTPError } from '../errorHandling.ts';
+import { HTTPError, logMinioError } from '../errorHandling.ts';
 import { apiClient, imagesClient } from '../clients.ts';
-import type { OnboardingData, ACCEPTED_TYPE } from './OnboardingSchema.ts';
+import type { OnboardingData } from './OnboardingSchema.ts';
+import type { ACCEPTED_TYPE } from '../acceptedMime.ts';
 
 async function uploadAvatar(avatar: File) {
   const {
     data: handoff,
-    error: jwtError,
+    error: handoffError,
   } = await apiClient.GET('/api/jwt');
 
-  if (!handoff) {
-    throw new HTTPError(jwtError!);
+  if (!handoff && handoffError) {
+    throw new HTTPError(handoffError);
   }
 
   const {
     data: permission,
-    error: requestUploadError,
+    error: permissionError,
   } = await imagesClient.POST('/images/avatars/request-upload', {
-    headers: {
-      Authorization: `Bearer ${handoff.token}`,
+    params: {
+      header: {
+        Authorization: `Bearer ${handoff.token}`,
+      },
     },
     body: {
       mimeType: avatar.type as ACCEPTED_TYPE,
@@ -25,8 +28,8 @@ async function uploadAvatar(avatar: File) {
     },
   });
 
-  if (!permission) {
-    throw new HTTPError(requestUploadError!);
+  if (!permission && permissionError) {
+    throw new HTTPError(permissionError);
   }
 
   const upload = await fetch(permission.uploadUrl, {
@@ -38,28 +41,19 @@ async function uploadAvatar(avatar: File) {
   });
 
   if (!upload.ok) {
-    const xml = await upload.text();
-    const doc = new DOMParser().parseFromString(xml, 'application/xml');
-    const code = doc.querySelector('Code')?.textContent;
-    const message = doc.querySelector('Message')?.textContent;
-
-    console.error('PUT request to Minio container failed\n', {
-      status: upload.status,
-      code,
-      message,
-    });
+    logMinioError(upload.status, await upload.text());
 
     throw new HTTPError({
       error: 'Upload Failed',
-      message: 'Please try to upload your picture again',
+      message: 'Please try to upload your avatar again',
     });
   }
 
   const { error: confirmError } = await imagesClient.POST('/images/avatars/{id}/confirm', {
-    headers: {
-      Authorization: `Bearer ${handoff.token}`,
-    },
     params: {
+      header: {
+        Authorization: `Bearer ${handoff.token}`,
+      },
       path: {
         id: permission.imageId,
       },
@@ -69,22 +63,16 @@ async function uploadAvatar(avatar: File) {
   if (confirmError) {
     throw new HTTPError(confirmError);
   }
-
-  return permission.imageId;
 }
 
 export async function handleOnboardingSubmit({ username, bio, avatar }: OnboardingData) {
-  const avatarId = avatar ? await uploadAvatar(avatar) : undefined;
-
   const { error: updateError } = await apiClient.PATCH('/api/users', {
-    body: {
-      username,
-      bio,
-      avatarId,
-    },
+    body: { username, bio },
   });
 
   if (updateError) {
     throw new HTTPError(updateError);
   }
+
+  if (avatar) uploadAvatar(avatar);
 }

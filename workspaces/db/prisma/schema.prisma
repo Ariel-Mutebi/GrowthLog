@@ -17,7 +17,6 @@ model User {
   createdAt         DateTime  @default(now())
   deletedAt         DateTime?
   bio               String?
-  avatarId          String?   @unique
   sessionsRevokedAt DateTime?
 
   avatar              Avatar?
