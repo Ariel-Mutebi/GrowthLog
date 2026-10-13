@@ -2,7 +2,7 @@
   import * as Y from 'yjs';
   import { onMount, onDestroy } from 'svelte';
   import { fade } from 'svelte/transition';
-  import { Editor } from '@tiptap/core';
+  import { Editor, isTextSelection } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
   import Image from '@tiptap/extension-image';
   import BubbleMenu from '@tiptap/extension-bubble-menu';
@@ -78,11 +78,13 @@
             undoRedo: false,
             link: { openOnClick: false },
             heading: { levels: [2, 3] },
+            dropcursor: { color: false, width: 4, class: 'drop-cursor' }
           }),
           Image,
           BubbleMenu.configure({
             element: menuElement!,
-            options: { placement: 'top', offset: 8 }
+            options: { placement: 'top', offset: 8 },
+            shouldShow: ({ state }) => isTextSelection(state.selection) && !state.selection.empty,
           }),
           Collaboration.configure({ document: ydoc }),
           CollaborationCaret.configure({

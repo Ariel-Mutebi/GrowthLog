@@ -9,10 +9,19 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-.display-heading {
-  font-variation-settings: "SOFT" 0, "opsz" 144, "WONK" 1;
+/* See Editor.svelte */
+@layer components {
+  .drop-cursor {
+    @apply rounded-full bg-blue-500 dark:bg-blue-400;
+  }
 }
 
-.soft {
-  font-variation-settings: "SOFT" 50, "WONK" 0;
+@layer utilities {
+  .display-heading {
+    font-variation-settings: "SOFT" 0, "opsz" 144, "WONK" 1;
+  }
+
+  .soft {
+    font-variation-settings: "SOFT" 50, "WONK" 0;
+  }
 }
