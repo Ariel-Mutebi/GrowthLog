@@ -25,3 +25,12 @@
     font-variation-settings: "SOFT" 50, "WONK" 0;
   }
 }
+
+#nprogress .bar {
+  background: var(--color-lime-500) !important;
+  height: 3px !important;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px var(--color-lime-500), 0 0 5px var(--color-lime-500) !important;
+}

@@ -54,6 +54,7 @@ model Post {
   authorId      String
   title         String
   slug          String    @unique
+  coverImageId  String?   @unique
   draftContent  Bytes?
   publishedHtml String?
   publishedAt   DateTime?
@@ -66,7 +67,8 @@ model Post {
   views    View[]
   likes    Like[]
   comments Comment[]
-  images   PostImage[]
+  images   PostImage[] @relation("PostImages")
+  cover    PostImage?  @relation("PostCoverImage", fields: [coverImageId], references: [imageId])
 }
 
 model Tag {
@@ -160,8 +162,9 @@ model PostImage {
   imageId String @id
   postId  String
 
-  image Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
-  post  Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  image   Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  post    Post  @relation("PostImages", fields: [postId], references: [id], onDelete: Cascade)
+  coverOf Post? @relation("PostCoverImage")
 
   @@index([postId])
 }
