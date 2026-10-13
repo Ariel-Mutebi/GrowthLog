@@ -50,17 +50,19 @@ model Follow {
 }
 
 model Post {
-  id            String    @id @default(cuid())
-  authorId      String
-  title         String
-  slug          String    @unique
-  coverImageId  String?   @unique
-  draftContent  Bytes?
-  publishedHtml String?
-  publishedAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
+  id             String    @id @default(cuid())
+  authorId       String
+  title          String
+  slug           String    @unique
+  coverImageId   String?   @unique
+  draftContent   Bytes?
+  publishedSlug  String?
+  publishedTitle String?
+  publishedHtml  String?
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
 
   author   User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   tags     Tag[]

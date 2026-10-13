@@ -25,7 +25,12 @@
     "@growthlog/db": "workspace:*",
     "@growthlog/env": "workspace:*",
     "@growthlog/jobs": "workspace:*",
+    "@hocuspocus/transformer": "^4.7.1",
     "@sinclair/typebox": "^0.34.52",
+    "@tiptap/core": "^3.31.4",
+    "@tiptap/extension-image": "^3.31.4",
+    "@tiptap/html": "^3.31.4",
+    "@tiptap/starter-kit": "^3.31.4",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "bcrypt": "^6.0.0",
@@ -40,6 +45,7 @@
     "redis": "^6.3.0",
     "slugify": "^1.6.9",
     "vitest": "^5.0.3",
+    "yjs": "^13.6.33",
     "zxcvbn-ts": "^2.4.0"
   },
   "devDependencies": {

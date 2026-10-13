@@ -1,11 +1,25 @@
-import { randomInt } from 'node:crypto';
+import * as Y from 'yjs';
 import slugify from 'slugify';
-import type { PostSelect, PostWhereInput, PrismaClient } from '@growthlog/db';
-import type { PostMetadata, PostQueryOptions } from './schema.js';
+import { randomInt } from 'node:crypto';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import { generateHTML } from '@tiptap/html/server';
+import { TiptapTransformer } from '@hocuspocus/transformer';
 import { PrismaClientKnownRequestError } from '@growthlog/db';
+
+import type { Extensions, JSONContent } from '@tiptap/core';
+import type {
+  PostSelect,
+  PostWhereInput,
+  PrismaClient,
+} from '@growthlog/db';
+import type { PostMetadata, PostQueryOptions } from './schema.js';
 
 export class PostNotFoundError extends Error { };
 export class SlugConflictError extends Error { };
+export class TitleRequiredError extends Error { };
+export class EmptyPostError extends Error { };
+export class InvalidImageError extends Error { };
 
 const metadataSelector = {
   id: true,
@@ -15,6 +29,9 @@ const metadataSelector = {
   publishedAt: true,
   createdAt: true,
   updatedAt: true,
+  coverImageId: true,
+  publishedSlug: true,
+  publishedTitle: true,
 } satisfies PostSelect;
 
 interface UpdateParams {
@@ -25,9 +42,22 @@ interface UpdateParams {
 }
 
 export class PostService {
+  private readonly extensions: Extensions;
+
   constructor(
     private readonly prisma: PrismaClient,
-  ) {}
+    private readonly imageBaseUrl: string,
+    private readonly imageBucket: string,
+  ) {
+    /*
+     * Sync with web/src/components/write/Editor.svelte, including
+     * only extensions and options to do with the document structure.
+    */
+    this.extensions = [
+      StarterKit.configure({ heading: { levels: [2, 3] } }),
+      Image,
+    ];
+  }
 
   public async create(authorId: string): Promise<PostMetadata> {
     return await this.prisma.post.create({
@@ -104,5 +134,75 @@ export class PostService {
       select: metadataSelector,
       orderBy: [{ [sortBy]: order }],
     });
+  }
+
+  public async publishPost(authorId: string, postId: string): Promise<PostMetadata> {
+    const post = await this.prisma.post.findFirst({
+      where: {
+        id: postId,
+        authorId,
+        deletedAt: null,
+      },
+      select: {
+        title: true,
+        slug: true,
+        draftContent: true,
+      },
+    });
+
+    if (!post) {
+      throw new PostNotFoundError();
+    }
+
+    if (!post.title.trim() || post.title === 'Untitled') {
+      throw new TitleRequiredError();
+    }
+
+    if (!post.draftContent) {
+      throw new EmptyPostError();
+    }
+
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, post.draftContent);
+
+    const json = TiptapTransformer.fromYdoc(ydoc, 'default');
+    this.assertPublishable(json, postId);
+
+    const publishedHtml = generateHTML(json, this.extensions);
+
+    const publishedPost = await this.prisma.post.update({
+      where: {
+        id: postId,
+      },
+      data: {
+        publishedHtml,
+        publishedSlug: post.slug,
+        publishedTitle: post.title,
+        publishedAt: new Date(),
+      },
+      select: metadataSelector,
+    });
+
+    return publishedPost;
+  }
+
+  private async assertPublishable(doc: JSONContent, postId: string) {
+    const srcPrefix = `${this.imageBaseUrl}/${this.imageBucket}/${postId}`;
+    let hasContent = false;
+
+    function visit(node: JSONContent) {
+      if (node.type === 'image') {
+        if (!String(node.attrs?.src).startsWith(srcPrefix)) {
+          throw new InvalidImageError();
+        }
+        hasContent = true;
+      } else if (node.type === 'text' && node.text?.trim()) {
+        hasContent = true;
+      }
+      node.content?.forEach(visit);
+    };
+
+    visit(doc);
+    if (!hasContent) throw new EmptyPostError();
   }
 }

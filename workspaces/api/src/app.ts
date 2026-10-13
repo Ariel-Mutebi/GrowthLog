@@ -38,6 +38,8 @@ export function buildApp(overrides?: Overrides) {
       'SESSION_SECRET',
       'JWT_SECRET',
       'DATABASE_URL',
+      'PUBLIC_MINIO_ENDPOINT',
+      'PUBLIC_IMAGE_BUCKET',
     ],
     overrides,
   );
