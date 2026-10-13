@@ -1,7 +1,12 @@
 import { Queue, createNodeRedisClient } from 'bullmq';
 import { opts } from './options.js';
 import type { RedisClientType } from 'redis';
-import type { Emailer, VerificationEmailJobData } from './types.js';
+import type {
+  Cleaner,
+  Emailer,
+  PurgeUnusedImagesJobData,
+  VerificationEmailJobData,
+} from './types.js';
 
 class Adapter extends Queue {
   constructor(name: string, raw: RedisClientType) {
@@ -9,9 +14,13 @@ class Adapter extends Queue {
   }
 }
 
-export class DeletionQueue extends Adapter {
+export class DeletionQueue extends Adapter implements Cleaner {
   constructor(redis: RedisClientType) {
     super('deletion', redis);
+  }
+
+  async purgeUnusedImages(data: PurgeUnusedImagesJobData): Promise<void> {
+    await this.add('purge-unused-images', data, opts);
   }
 }
 

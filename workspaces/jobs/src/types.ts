@@ -28,3 +28,11 @@ export interface SMTPCredentials {
   pass: string;
   from: string;
 };
+
+export interface PurgeUnusedImagesJobData {
+  postId: string;
+}
+
+export interface Cleaner {
+  purgeUnusedImages(data: PurgeUnusedImagesJobData): Promise<void>;
+}

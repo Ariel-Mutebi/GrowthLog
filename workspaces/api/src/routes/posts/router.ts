@@ -4,7 +4,12 @@ import { CreateBlankPost, UpdatePost, GetOwnPost, GetOwnPosts } from './schema.j
 import { PostNotFoundError, PostService, SlugConflictError } from './service.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
-  const service = new PostService(app.prisma);
+  const service = new PostService(
+    app.prisma,
+    app.cleaner,
+    app.config.PUBLIC_MINIO_ENDPOINT,
+    app.config.PUBLIC_IMAGE_BUCKET,
+  );
 
   app.post('/', {
     preHandler: isLoggedIn,

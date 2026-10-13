@@ -13,6 +13,7 @@ import type {
   PostWhereInput,
   PrismaClient,
 } from '@growthlog/db';
+import type { Cleaner } from '@growthlog/jobs';
 import type { PostMetadata, PostQueryOptions } from './schema.js';
 
 export class PostNotFoundError extends Error { };
@@ -46,6 +47,7 @@ export class PostService {
 
   constructor(
     private readonly prisma: PrismaClient,
+    private readonly cleaner: Cleaner,
     private readonly imageBaseUrl: string,
     private readonly imageBucket: string,
   ) {
@@ -136,7 +138,7 @@ export class PostService {
     });
   }
 
-  public async publishPost(authorId: string, postId: string): Promise<PostMetadata> {
+  public async publishPost(authorId: string, postId: string, coverImageId?: string): Promise<PostMetadata> {
     const post = await this.prisma.post.findFirst({
       where: {
         id: postId,
@@ -147,6 +149,11 @@ export class PostService {
         title: true,
         slug: true,
         draftContent: true,
+        images: {
+          select: {
+            imageId: true,
+          },
+        },
       },
     });
 
@@ -169,6 +176,7 @@ export class PostService {
     this.assertPublishable(json, postId);
 
     const publishedHtml = generateHTML(json, this.extensions);
+    if (!coverImageId) coverImageId = post.images[0]?.imageId;
 
     const publishedPost = await this.prisma.post.update({
       where: {
@@ -179,9 +187,12 @@ export class PostService {
         publishedSlug: post.slug,
         publishedTitle: post.title,
         publishedAt: new Date(),
+        ...(coverImageId && { coverImageId }),
       },
       select: metadataSelector,
     });
+
+    await this.cleaner.purgeUnusedImages({ postId });
 
     return publishedPost;
   }

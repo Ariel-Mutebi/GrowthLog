@@ -2,7 +2,7 @@ import 'fastify';
 import type { RedisClientType } from 'redis';
 import type { Authenticator } from '@fastify/passport';
 import type { PrismaClient } from '@growthlog/db';
-import type { Emailer } from '@growthlog/jobs';
+import type { Emailer, Cleaner } from '@growthlog/jobs';
 import type { Config } from './config.ts';
 
 declare module 'fastify' {
@@ -10,6 +10,7 @@ declare module 'fastify' {
     auth: Authenticator;
     config: Config;
     emailer: Emailer;
+    cleaner: Cleaner;
     prisma: PrismaClient;
     redis: RedisClientType;
   }
