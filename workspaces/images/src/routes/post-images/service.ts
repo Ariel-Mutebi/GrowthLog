@@ -75,7 +75,7 @@ export class PostImageService extends ImageUploadService<ConfirmUploadParams> {
         id: imageId,
         postImage: {
           post: {
-            postId,
+            id: postId,
             authorId,
             deletedAt: null,
           },

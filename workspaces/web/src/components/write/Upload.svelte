@@ -71,11 +71,14 @@
   aria-label="Add image"
   disabled={uploading}
   onclick={() => fileInput.click()}
+  class="cursor-pointer text-stone-700 disabled:text-stone-500 hover:text-stone-900
+    active:text-stone-950 dark:text-stone-200 dark:disabled:text-stone-400
+    dark:hover:text-stone-100 dark:active:text-stone-50"
 >
   {#if uploading}
-    <LoaderCircle size={16} class="animate-spin" />
+    <LoaderCircle size={18} class="animate-spin" />
   {:else}
-    <ImagePlus size={16} />
+    <ImagePlus size={18} />
   {/if}
 </button>
 

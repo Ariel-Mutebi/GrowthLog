@@ -144,8 +144,8 @@ model Image {
   updatedAt DateTime    @updatedAt
 
   // class table inheritance pattern
-  avatar Avatar?
-  post   PostImage?
+  avatar    Avatar?
+  postImage PostImage?
 }
 
 model Avatar {

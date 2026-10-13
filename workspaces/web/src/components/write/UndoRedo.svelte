@@ -31,7 +31,7 @@
   });
 </script>
 
-<div class="flex gap-4">
+<div class="flex gap-2">
   {#each items as item}
     <button
       type="button"
@@ -40,11 +40,11 @@
       disabled={!item.enabled}
       data-editor-event={item.event}
       onclick={() => window.dispatchEvent(new CustomEvent(item.event))}
-      class="cursor-pointer text-stone-700 disabled:text-stone-500 hover:text-stone-950
+      class="cursor-pointer text-stone-700 disabled:text-stone-500 hover:text-stone-900
         active:text-stone-950 dark:text-stone-200 dark:disabled:text-stone-400
-        dark:hover:text-stone-50 dark:active:text-stone-950"
+        dark:hover:text-stone-100 dark:active:text-stone-50"
     >
-      <item.icon size={16} />
+      <item.icon size={18} />
     </button>
   {/each}
 </div>
