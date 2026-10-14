@@ -1,13 +1,12 @@
-import * as Y from 'yjs';
 import slugify from 'slugify';
 import { randomInt } from 'node:crypto';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { generateHTML } from '@tiptap/html/server';
-import { TiptapTransformer } from '@hocuspocus/transformer';
 import { PrismaClientKnownRequestError } from '@growthlog/db';
+import { assertPublishable, extractDefaultHook, yDocToJson } from './explorers.js';
 
-import type { Extensions, JSONContent } from '@tiptap/core';
+import type { Extensions } from '@tiptap/core';
 import type {
   PostSelect,
   PostWhereInput,
@@ -35,21 +34,35 @@ const metadataSelector = {
   publishedTitle: true,
 } satisfies PostSelect;
 
-interface UpdateParams {
-  authorId: string;
-  postId: string;
+interface UpdateData {
   title?: string;
   slug?: string;
 }
 
+interface PublishAdditions {
+  coverImageId: string;
+  publishedSlug: string;
+  publishedTitle: string;
+  publishedHook: string;
+}
+
+interface PrePublishDefaults {
+  publishedSlug: string;
+  publishedTitle: string;
+  publishedHook: string;
+  coverImageId: string | null;
+  coverImageKey: string | null;
+};
+
 export class PostService {
   private readonly extensions: Extensions;
+  private readonly srcPrefix: string;
 
   constructor(
     private readonly prisma: PrismaClient,
     private readonly cleaner: Cleaner,
-    private readonly imageBaseUrl: string,
-    private readonly imageBucket: string,
+    imageBaseUrl: string,
+    imageBucket: string,
   ) {
     /*
      * Sync with web/src/components/write/Editor.svelte, including
@@ -59,6 +72,7 @@ export class PostService {
       StarterKit.configure({ heading: { levels: [2, 3] } }),
       Image,
     ];
+    this.srcPrefix = `/${imageBaseUrl}/${imageBucket}`;
   }
 
   public async create(authorId: string): Promise<PostMetadata> {
@@ -72,9 +86,7 @@ export class PostService {
     });
   }
 
-  public async update(params: UpdateParams): Promise<PostMetadata> {
-    const { authorId, postId, ...data } = params;
-
+  public async update(authorId: string, postId: string, data: UpdateData): Promise<PostMetadata> {
     try {
       return await this.prisma.post.update({
         where: {
@@ -95,7 +107,7 @@ export class PostService {
 
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
         if (data.title && !data.slug) {
-          return this.update(params);
+          return this.update(authorId, postId, data);
         }
         throw new SlugConflictError();
       }
@@ -138,7 +150,7 @@ export class PostService {
     });
   }
 
-  public async publishPost(authorId: string, postId: string, coverImageId?: string): Promise<PostMetadata> {
+  public async publishPost(authorId: string, postId: string, additions: PublishAdditions): Promise<PostMetadata> {
     const post = await this.prisma.post.findFirst({
       where: {
         id: postId,
@@ -147,13 +159,7 @@ export class PostService {
       },
       select: {
         title: true,
-        slug: true,
         draftContent: true,
-        images: {
-          select: {
-            imageId: true,
-          },
-        },
       },
     });
 
@@ -169,51 +175,70 @@ export class PostService {
       throw new EmptyPostError();
     }
 
-    const ydoc = new Y.Doc();
-    Y.applyUpdate(ydoc, post.draftContent);
-
-    const json = TiptapTransformer.fromYdoc(ydoc, 'default');
-    this.assertPublishable(json, postId);
+    const json = yDocToJson(post.draftContent);
+    assertPublishable(json, `${this.srcPrefix}/${postId}`);
 
     const publishedHtml = generateHTML(json, this.extensions);
-    if (!coverImageId) coverImageId = post.images[0]?.imageId;
+    const { publishedSlug, publishedTitle, coverImageId } = additions;
 
-    const publishedPost = await this.prisma.post.update({
-      where: {
-        id: postId,
-      },
-      data: {
-        publishedHtml,
-        publishedSlug: post.slug,
-        publishedTitle: post.title,
-        publishedAt: new Date(),
-        ...(coverImageId && { coverImageId }),
-      },
-      select: metadataSelector,
-    });
+    try {
+      const publishedPost = await this.prisma.post.update({
+        where: {
+          id: postId,
+        },
+        data: {
+          slug: publishedSlug,
+          title: publishedTitle,
+          publishedHtml,
+          publishedSlug,
+          publishedTitle,
+          publishedAt: new Date(),
+          ...(coverImageId && { coverImageId }),
+        },
+        select: metadataSelector,
+      });
 
-    await this.cleaner.purgeUnusedImages({ postId });
+      await this.cleaner.purgeUnusedImages({ postId });
 
-    return publishedPost;
+      return publishedPost;
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new SlugConflictError();
+      }
+
+      throw error;
+    }
   }
 
-  private async assertPublishable(doc: JSONContent, postId: string) {
-    const srcPrefix = `${this.imageBaseUrl}/${this.imageBucket}/${postId}`;
-    let hasContent = false;
+  public async prepublish(authorId: string, postId: string): Promise<PrePublishDefaults> {
+    const post = await this.prisma.post.findFirst({
+      where: {
+        id: postId,
+        authorId,
+      },
+      select: {
+        slug: true,
+        title: true,
+        draftContent: true,
+        images: {
+          select: {
+            imageId: true,
+            key: true,
+          },
+        },
+      },
+    });
 
-    function visit(node: JSONContent) {
-      if (node.type === 'image') {
-        if (!String(node.attrs?.src).startsWith(srcPrefix)) {
-          throw new InvalidImageError();
-        }
-        hasContent = true;
-      } else if (node.type === 'text' && node.text?.trim()) {
-        hasContent = true;
-      }
-      node.content?.forEach(visit);
+    if (!post) throw new PostNotFoundError();
+    const defaultCover = post.images[0];
+    const json = yDocToJson(post.draftContent);
+
+    return {
+      publishedSlug: post.slug,
+      publishedTitle: post.title,
+      publishedHook: extractDefaultHook(json),
+      coverImageKey: defaultCover ? defaultCover.key : null,
+      coverImageId: defaultCover ? defaultCover.imageId : null,
     };
-
-    visit(doc);
-    if (!hasContent) throw new EmptyPostError();
   }
 }

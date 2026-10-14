@@ -39,6 +39,16 @@ export const InternalServerError = Type.Object({
   message: Type.String(),
 });
 
+export const UnprocessableEntity = Type.Object({
+  error: Type.Literal('UnprocessableEntity'),
+  message: Type.String(),
+});
+
+export const TooEarly = Type.Object({
+  error: Type.Literal('TooEarly'),
+  message: Type.String(),
+});
+
 export const generalErrorResponses = {
   429: RateLimited,
   500: InternalServerError,

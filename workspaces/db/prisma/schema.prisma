@@ -56,8 +56,9 @@ model Post {
   slug           String    @unique
   coverImageId   String?   @unique
   draftContent   Bytes?
-  publishedSlug  String?
+  publishedSlug  String?   @unique
   publishedTitle String?
+  publishedHook  String?
   publishedHtml  String?
   publishedAt    DateTime?
   createdAt      DateTime  @default(now())

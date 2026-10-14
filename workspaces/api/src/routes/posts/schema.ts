@@ -5,7 +5,9 @@ import type { TypeBoxModel } from '../../typebox/mapping.js';
 import {
   Conflict,
   NotFound,
+  TooEarly,
   Unauthorized,
+  UnprocessableEntity,
   generalErrorResponses,
 } from '../../typebox/responses.js';
 import { OptionalDate, SerializableDate } from '../../typebox/date.js';
@@ -17,6 +19,9 @@ const PostMetadata = Type.Object({
   authorId: Type.String(),
   title: Type.String(),
   slug: Type.String(),
+  coverImageId: Type.Union([Type.String(), Type.Null()]),
+  publishedSlug: Type.Union([Type.String(), Type.Null()]),
+  publishedTitle: Type.Union([Type.String(), Type.Null()]),
   publishedAt: OptionalDate,
   createdAt: SerializableDate,
   updatedAt: SerializableDate,
@@ -97,6 +102,53 @@ export const GetOwnPosts = {
   querystring: GetOwnPostsQuery,
   response: {
     200: Type.Array(PostMetadata),
+    401: Unauthorized,
+    ...generalErrorResponses,
+  },
+} satisfies FastifySchema;
+
+export const PublishPost = {
+  summary: 'Publish post',
+  description: 'Make your own post publicly discoverable',
+  security: [{ session: [] }],
+  tags: ['Posts'],
+  params: Type.Object({
+    id: Type.String(),
+  }),
+  body: Type.Object({
+    publishedSlug: Type.String(),
+    publishedTitle: Type.String(),
+    publishedHook: Type.String(),
+    coverImageId: Type.String(),
+  }),
+  response: {
+    200: PostMetadata,
+    400: NotFound,
+    401: Unauthorized,
+    409: Conflict,
+    422: UnprocessableEntity,
+    425: TooEarly,
+    ...generalErrorResponses,
+  },
+} satisfies FastifySchema;
+
+export const Prepublish = {
+  summary: 'Prepublish',
+  description: 'Get reasonable defaults for publish data to reduce user friction',
+  security: [{ session: [] }],
+  tags: ['Posts'],
+  params: Type.Object({
+    id: Type.String(),
+  }),
+  response: {
+    200: Type.Object({
+      publishedSlug: Type.String(),
+      publishedTitle: Type.String(),
+      publishedHook: Type.String(),
+      coverImageId: Type.Union([Type.String(), Type.Null()]),
+      coverImageKey: Type.Union([Type.String(), Type.Null()]),
+    }),
+    400: NotFound,
     401: Unauthorized,
     ...generalErrorResponses,
   },

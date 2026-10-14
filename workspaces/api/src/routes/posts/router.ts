@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
-import { CreateBlankPost, UpdatePost, GetOwnPost, GetOwnPosts } from './schema.js';
-import { PostNotFoundError, PostService, SlugConflictError } from './service.js';
+import { CreateBlankPost, UpdatePost, GetOwnPost, GetOwnPosts, PublishPost, Prepublish } from './schema.js';
+import { EmptyPostError, InvalidImageError, PostNotFoundError, PostService, SlugConflictError, TitleRequiredError } from './service.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new PostService(
@@ -36,11 +36,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     assertIsLoggedIn(req);
 
     try {
-      const updated = await service.update({
-        authorId: req.user.id,
-        postId: req.params.id,
-        ...req.body,
-      });
+      const updated = await service.update(req.user.id, req.params.id, req.body);
       return res.code(200).send(updated);
     } catch (error) {
       if (error instanceof PostNotFoundError) {
@@ -101,6 +97,79 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       return res.code(200).send(posts);
     } catch (error) {
       req.log.error(error);
+      return res.code(500).send({
+        error: 'InternalServerError',
+        message: 'Something went wrong. Please try again.',
+      });
+    }
+  });
+
+  app.get('/:id/prepublish', {
+    preHandler: isLoggedIn,
+    schema: Prepublish,
+  }, async (req, res) => {
+    assertIsLoggedIn(req);
+
+    try {
+      const defaults = await service.prepublish(req.user.id, req.params.id);
+      return res.code(200).send(defaults);
+    } catch (error) {
+      if (error instanceof PostNotFoundError) {
+        return res.code(400).send({
+          error: 'NotFound',
+          message: 'This post could not be found',
+        });
+      }
+
+      req.log.error(error);
+
+      return res.code(500).send({
+        error: 'InternalServerError',
+        message: 'Something went wrong. Please try again.',
+      });
+    }
+  });
+
+  app.post('/:id/publish', {
+    preHandler: isLoggedIn,
+    schema: PublishPost,
+  }, async (req, res) => {
+    assertIsLoggedIn(req);
+
+    try {
+      const publishedPost = await service.publishPost(req.user.id, req.params.id, req.body);
+      return res.code(200).send(publishedPost);
+    } catch (error) {
+      if (error instanceof SlugConflictError) {
+        return res.code(409).send({
+          error: 'Conflict',
+          message: 'That url slug is already in use',
+        });
+      }
+
+      if (error instanceof InvalidImageError) {
+        return res.code(422).send({
+          error: 'UnprocessableEntity',
+          message: 'You can only use images hosted on GrowthLog\'s servers',
+        });
+      }
+
+      if (error instanceof EmptyPostError) {
+        return res.code(425).send({
+          error: 'TooEarly',
+          message: 'You cannot publish an empty post',
+        });
+      }
+
+      if (error instanceof TitleRequiredError) {
+        return res.code(425).send({
+          error: 'TooEarly',
+          message: 'You cannot publish an untitled post',
+        });
+      }
+
+      req.log.error(error);
+
       return res.code(500).send({
         error: 'InternalServerError',
         message: 'Something went wrong. Please try again.',
