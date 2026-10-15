@@ -82,21 +82,17 @@ export abstract class ImageUploadService<T> {
   };
 
   private async verifyObjectUploaded(key: string) {
-    try {
-      const { ContentLength } = await this.deps.minio.send(
-        new HeadObjectCommand({
-          Bucket: this.deps.bucket,
-          Key: key,
-        }),
-      );
+    const { ContentLength } = await this.deps.minio.send(
+      new HeadObjectCommand({
+        Bucket: this.deps.bucket,
+        Key: key,
+      }),
+    );
 
-      if (!ContentLength) throw new ObjectNotUploadedError();
-      if (ContentLength > this.deps.maxSizeBytes) throw new FileTooLargeError();
+    if (!ContentLength) throw new ObjectNotUploadedError();
+    if (ContentLength > this.deps.maxSizeBytes) throw new FileTooLargeError();
 
-      return ContentLength;
-    } catch {
-      throw new ObjectNotUploadedError();
-    }
+    return ContentLength;
   }
 
   private async verifyFileContent(key: string, declaredMimeType: string) {

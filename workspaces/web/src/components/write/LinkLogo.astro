@@ -1,0 +1,19 @@
+---
+interface Props {
+  backLink: string;
+}
+const { backLink } = Astro.props;
+---
+
+<a class="z-30 block fixed top-0 left-0" href={backLink}>
+  <img
+    src="/logo-64.png"
+    alt="The GrowthLog logo"
+    class="h-16 w-16 dark:hidden"
+  />
+  <img
+    src="/logo-dark-64.png"
+    alt="The GrowthLog logo"
+    class="h-16 w-16 hidden dark:block"
+  />
+</a>

@@ -2,7 +2,7 @@
   import { toast } from 'svelte-sonner';
   import Plus from '@lucide/svelte/icons/plus';
   import FileImage from '@lucide/svelte/icons/file-image';
-  import { ACCEPTED_TYPES } from './OnboardingSchema.ts';
+  import { ACCEPTED_TYPES } from '../acceptedMime.ts';
 
   import Label from '../Label.svelte';
 
@@ -36,7 +36,7 @@
 </script>
 
 <div class="flex flex-col gap-2">
-  <Label name="avatar" label="Avatar" variant="light" />
+  <Label name="avatar" label="Avatar (optional)" variant="light" />
 
   <div class="border border-stone-200 dark:border-stone-600 w-min">
     <label

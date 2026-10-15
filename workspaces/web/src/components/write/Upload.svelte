@@ -8,7 +8,7 @@
     PUBLIC_IMAGE_BUCKET,
   } from 'astro:env/client';
 
-  import { uploadImage } from './upload.ts';
+  import { uploadPostImage } from './upload.ts';
   import { HTTPError } from '../errorHandling.ts';
   import type { ImageUploaded } from './events.ts';
   import { ACCEPTED_TYPES, type ACCEPTED_TYPE } from '../acceptedMime.ts';
@@ -39,9 +39,9 @@
       });
     }
 
-    let uploading = true;
+    uploading = true;
     try {
-      const image = await uploadImage(postId, file);
+      const image = await uploadPostImage(postId, file);
       
       window.dispatchEvent(
         new CustomEvent('editor:image-uploaded', {

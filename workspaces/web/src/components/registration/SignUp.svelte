@@ -9,7 +9,7 @@
 
   import Link from './Link.svelte';
   import Field from './Field.svelte';
-  import Submit from './Submit.svelte';
+  import Submit from '../Submit.svelte';
   import Password from './Password.svelte';
   import Toaster from '../Toaster.svelte';
   import FieldWrapper from '../FieldWrapper.svelte';

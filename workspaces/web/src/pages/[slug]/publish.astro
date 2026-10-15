@@ -1,0 +1,51 @@
+---
+import { createApiClient } from "../../server/clients.ts";
+import HeadLayout from "../../layouts/HeadLayout.astro";
+import Avatar from "../../components/Avatar.astro";
+import LinkLogo from "../../components/write/LinkLogo.astro";
+import RibbonNav from "../../components/write/RibbonNav.astro";
+import VerticalRibbon from "../../components/write/VerticalRibbon.astro";
+import Publish from "../../components/publish/Publish.svelte";
+
+const { user } = Astro.locals;
+
+if (!user) {
+  return Astro.redirect("/login", 302);
+}
+
+const slug = Astro.params.slug!;
+
+const { data: prepublish } = await createApiClient(
+  Astro.request.headers.get("cookie"),
+).GET("/api/posts/{slug}/prepublish", {
+  params: {
+    path: {
+      slug,
+    },
+  },
+});
+
+if (!prepublish) {
+  return Astro.rewrite("/404");
+}
+---
+
+<HeadLayout title="Publish your story | GrowthLog">
+  <div class="min-h-dvh bg-amber-100 dark:bg-olive-900">
+    <LinkLogo backLink={`/${slug}/edit`} />
+    <RibbonNav>
+      <Avatar avatarKey={user.avatarKey} />
+    </RibbonNav>
+    <VerticalRibbon />
+    <div class="pt-16 px-4 md:p-16 md:pb-0 flex items-start flex-wrap gap-y-6">
+      <h1 class="font-serif text-8xl md:text-9xl text-stone-600 dark:text-olive-400 display-heading">
+        Publish
+      </h1>
+      <Publish
+        initial={prepublish}
+        mockUrlBase={`https://growthlog.com/@${user.username}/`}
+        client:load
+      />
+    </div>
+  </div>
+</HeadLayout>

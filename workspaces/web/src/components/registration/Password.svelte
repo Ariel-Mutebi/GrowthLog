@@ -1,7 +1,7 @@
 <script lang="ts">
   import Label from '../Label.svelte';
   import Input from '../Input.svelte';
-  import Errors from './Error.svelte';
+  import Errors from '../Error.svelte';
   import FieldWrapper from '../FieldWrapper.svelte';
   import Eye from '@lucide/svelte/icons/eye';
   import EyeClosed from '@lucide/svelte/icons/eye-closed';

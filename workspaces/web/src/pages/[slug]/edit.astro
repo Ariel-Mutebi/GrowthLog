@@ -5,6 +5,10 @@ import Editor from "../../components/write/Editor.svelte";
 import Avatar from "../../components/Avatar.astro";
 import UndoRedo from "../../components/write/UndoRedo.svelte";
 import Upload from "../../components/write/Upload.svelte";
+import Publish from "../../components/write/PublishButton.svelte";
+import LinkLogo from "../../components/write/LinkLogo.astro";
+import RibbonNav from "../../components/write/RibbonNav.astro";
+import VerticalRibbon from "../../components/write/VerticalRibbon.astro";
 
 const { user } = Astro.locals;
 
@@ -12,12 +16,14 @@ if (!user) {
   return Astro.redirect("/login", 302);
 }
 
-const apiClient = createApiClient(Astro.request.headers.get("cookie"));
+const slug = Astro.params.slug!;
 
-const { data: post } = await apiClient.GET("/api/posts/{slug}", {
+const { data: post } = await createApiClient(
+  Astro.request.headers.get("cookie"),
+).GET("/api/posts/{slug}", {
   params: {
     path: {
-      slug: Astro.params.slug!,
+      slug,
     },
   },
 });
@@ -29,33 +35,16 @@ if (!post) {
 
 <HeadLayout title={`Editing ${post.title} | GrowthLog`}>
   <div class="min-h-dvh bg-white dark:bg-black">
-    <a class="z-30 block fixed top-0 left-0" href="/my-drafts">
-      <img
-        src="/logo-64.png"
-        alt="The GrowthLog logo"
-        class="h-16 w-16 dark:hidden"
-      />
-      <img
-        src="/logo-dark-64.png"
-        alt="The GrowthLog logo"
-        class="h-16 w-16 hidden dark:block"
-      />
-    </a>
-    <nav
-      class="z-20 sticky h-16 top-0 left-0 right-0 bg-lime-200/50 dark:bg-lime-900/50
-        pr-4 py-2 md:py-0 flex justify-end items-center gap-3 backdrop-blur"
-    >
+    <LinkLogo backLink="/my-drafts" />
+    <RibbonNav>
       <div class="flex px-2 py-1 gap-4 bg-lime-200 dark:bg-lime-800">
         <Upload postId={post.id} client:load />
         <UndoRedo client:load />
       </div>
+      <Publish {slug} client:load />
       <Avatar avatarKey={user.avatarKey} />
-    </nav>
-    <div
-      class="hidden md:block fixed w-16 top-0 left-0 bottom-0
-        bg-fuchsia-200/50 dark:bg-fuchsia-900/50"
-    >
-    </div>
+    </RibbonNav>
+    <VerticalRibbon />
     <div class="p-8 md:p-16 md:pl-32 flex justify-center">
       <Editor {user} postId={post.id} initialTitle={post.title} client:load />
     </div>

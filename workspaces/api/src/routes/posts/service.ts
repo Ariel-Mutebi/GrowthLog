@@ -20,6 +20,7 @@ export class SlugConflictError extends Error { };
 export class TitleRequiredError extends Error { };
 export class EmptyPostError extends Error { };
 export class InvalidImageError extends Error { };
+export class InvalidCoverImageError extends Error { };
 
 const metadataSelector = {
   id: true,
@@ -39,7 +40,7 @@ interface UpdateData {
   slug?: string;
 }
 
-interface PublishAdditions {
+interface PublishSnapshot {
   coverImageId: string;
   publishedSlug: string;
   publishedTitle: string;
@@ -47,6 +48,7 @@ interface PublishAdditions {
 }
 
 interface PrePublishDefaults {
+  postId: string;
   publishedSlug: string;
   publishedTitle: string;
   publishedHook: string;
@@ -150,7 +152,7 @@ export class PostService {
     });
   }
 
-  public async publishPost(authorId: string, postId: string, additions: PublishAdditions): Promise<PostMetadata> {
+  public async publish(authorId: string, postId: string, snapshot: PublishSnapshot): Promise<PostMetadata> {
     const post = await this.prisma.post.findFirst({
       where: {
         id: postId,
@@ -179,10 +181,18 @@ export class PostService {
     assertPublishable(json, `${this.srcPrefix}/${postId}`);
 
     const publishedHtml = generateHTML(json, this.extensions);
-    const { publishedSlug, publishedTitle, coverImageId } = additions;
+    const publishedPost = this.publishPost(postId, publishedHtml, snapshot);
+
+    await this.cleaner.purgeUnusedImages({ postId });
+    return publishedPost;
+  }
+
+  private async publishPost(postId: string, publishedHtml: string, snapshot: PublishSnapshot) {
+    const { publishedSlug, publishedTitle, coverImageId, publishedHook } = snapshot;
+    await this.assertCoverImageValid(postId, coverImageId);
 
     try {
-      const publishedPost = await this.prisma.post.update({
+      return await this.prisma.post.update({
         where: {
           id: postId,
         },
@@ -192,15 +202,12 @@ export class PostService {
           publishedHtml,
           publishedSlug,
           publishedTitle,
+          publishedHook,
+          coverImageId,
           publishedAt: new Date(),
-          ...(coverImageId && { coverImageId }),
         },
         select: metadataSelector,
       });
-
-      await this.cleaner.purgeUnusedImages({ postId });
-
-      return publishedPost;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new SlugConflictError();
@@ -210,35 +217,58 @@ export class PostService {
     }
   }
 
-  public async prepublish(authorId: string, postId: string): Promise<PrePublishDefaults> {
+  private async assertCoverImageValid(postId: string, imageId: string) {
+    const postImage = await this.prisma.postImage.findFirst({
+      where: {
+        imageId,
+        postId,
+        image: {
+          status: 'UPLOADED',
+        },
+      },
+      select: { imageId: true },
+    });
+
+    if (!postImage) throw new InvalidCoverImageError();
+  }
+
+  public async prepublish(authorId: string, slug: string): Promise<PrePublishDefaults> {
     const post = await this.prisma.post.findFirst({
       where: {
-        id: postId,
         authorId,
+        slug,
       },
       select: {
+        id: true,
         slug: true,
         title: true,
         draftContent: true,
         images: {
           select: {
             imageId: true,
-            key: true,
+            image: {
+              select: {
+                key: true,
+                status: true,
+              },
+            },
           },
         },
       },
     });
 
     if (!post) throw new PostNotFoundError();
-    const defaultCover = post.images[0];
+
     const json = yDocToJson(post.draftContent);
+    const defaultCover = post.images.find((postImage) => postImage.image.status === 'UPLOADED');
 
     return {
+      postId: post.id,
       publishedSlug: post.slug,
       publishedTitle: post.title,
       publishedHook: extractDefaultHook(json),
-      coverImageKey: defaultCover ? defaultCover.key : null,
       coverImageId: defaultCover ? defaultCover.imageId : null,
+      coverImageKey: defaultCover ? defaultCover.image.key : null,
     };
   }
 }

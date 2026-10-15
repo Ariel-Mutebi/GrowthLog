@@ -1,7 +1,7 @@
 <script lang="ts">
   import Label from '../Label.svelte';
   import Input from '../Input.svelte';
-  import Error from './Error.svelte';
+  import Error from '../Error.svelte';
   import FieldWrapper from '../FieldWrapper.svelte';
 
   interface Props {

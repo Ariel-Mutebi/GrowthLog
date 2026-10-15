@@ -2,12 +2,14 @@ import z from 'zod';
 import { PUBLIC_MAX_AVATAR_SIZE_BYTES } from 'astro:env/client';
 import { ACCEPTED_TYPES, type ACCEPTED_TYPE } from '../acceptedMime.ts';
 
+const MB = PUBLIC_MAX_AVATAR_SIZE_BYTES / 1024 ** 2;
+
 export const OnboardingSchema = z.object({
   avatar: z
     .instanceof(File, { error: 'Please chose a profile picture' })
     .refine(
       (file) => file.size <= PUBLIC_MAX_AVATAR_SIZE_BYTES,
-      `Please upload an image under ${PUBLIC_MAX_AVATAR_SIZE_BYTES / 1024 ** 2} MB`,
+      `Please upload an image under ${MB} MB`,
     )
     .refine(
       (file) => ACCEPTED_TYPES.includes(file.type as ACCEPTED_TYPE),

@@ -1,4 +1,20 @@
 import type { paths } from '@growthlog/api';
 
-export type User = paths['/api/users']['get']['responses']['200']['content']['application/json'];
-export type Drafts = paths['/api/posts']['get']['responses']['200']['content']['application/json'];
+type SuccessResponse<T extends keyof paths> =
+  paths[T] extends {
+    get: {
+      responses: {
+        200: {
+          content: {
+            'application/json': infer R;
+          };
+        };
+      };
+    };
+  }
+  ? R
+  : never;
+
+export type User = SuccessResponse<'/api/users'>;
+export type Drafts = SuccessResponse<'/api/posts'>;
+export type Prepublish = SuccessResponse<'/api/posts/{slug}/prepublish'>;

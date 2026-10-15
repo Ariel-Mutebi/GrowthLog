@@ -138,10 +138,11 @@ export const Prepublish = {
   security: [{ session: [] }],
   tags: ['Posts'],
   params: Type.Object({
-    id: Type.String(),
+    slug: Type.String(),
   }),
   response: {
     200: Type.Object({
+      postId: Type.String(),
       publishedSlug: Type.String(),
       publishedTitle: Type.String(),
       publishedHook: Type.String(),
@@ -152,4 +153,13 @@ export const Prepublish = {
     401: Unauthorized,
     ...generalErrorResponses,
   },
+} satisfies FastifySchema;
+
+
+export const SetCOver = {
+  summary: 'Set post cover image',
+  description: 'Set the cover image id of your post from among its images',
+  params: Type.Object({
+    postId: Type.String(),
+  }),
 } satisfies FastifySchema;

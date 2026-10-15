@@ -6,7 +6,7 @@
 
   import Field from './Field.svelte';
   import Password from './Password.svelte';
-  import Submit from './Submit.svelte';
+  import Submit from '../Submit.svelte';
   import Link from "./Link.svelte";
   import Toaster from '../Toaster.svelte';
 

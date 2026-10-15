@@ -1,10 +1,8 @@
 <script lang="ts">
   import debounce from 'debounce';
   import { toast } from 'svelte-sonner';
-  import Toaster from '../Toaster.svelte';
   import { apiClient } from '../clients.ts';
-  import type { Action } from 'svelte/action';
-
+  import { autoResize } from '../Textarea.svelte';
   interface Props {
     id: string;
     title: string;
@@ -27,31 +25,13 @@
     document.title = `Editing ${updated.title} | GrowthLog`;
     window.history.replaceState(null, '', '/edit/' + updated.slug);
   }, 10000);
-
-  const autoResize: Action<HTMLTextAreaElement> = (node) => {
-    function resize() {
-      node.style.height = 'auto';
-      node.style.height = `${node.scrollHeight}px`;
-    }
-
-    resize();
-    node.addEventListener('input', resize);
-    window.addEventListener('resize', resize);
-
-    return {
-      destroy() {
-        node.removeEventListener('input', resize);
-        window.removeEventListener('resize', resize);
-      }
-    };
-  };
 </script>
 
 <textarea
   rows={1}
   placeholder="Title"
-  use:autoResize
   bind:value={title}
+  use:autoResize
   oninput={(event) => {
     saveTitle(event.currentTarget.value);
   }}

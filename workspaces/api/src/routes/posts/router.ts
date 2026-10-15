@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
 import { CreateBlankPost, UpdatePost, GetOwnPost, GetOwnPosts, PublishPost, Prepublish } from './schema.js';
-import { EmptyPostError, InvalidImageError, PostNotFoundError, PostService, SlugConflictError, TitleRequiredError } from './service.js';
+import { EmptyPostError, InvalidCoverImageError, InvalidImageError, PostNotFoundError, PostService, SlugConflictError, TitleRequiredError } from './service.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new PostService(
@@ -104,14 +104,14 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.get('/:id/prepublish', {
+  app.get('/:slug/prepublish', {
     preHandler: isLoggedIn,
     schema: Prepublish,
   }, async (req, res) => {
     assertIsLoggedIn(req);
 
     try {
-      const defaults = await service.prepublish(req.user.id, req.params.id);
+      const defaults = await service.prepublish(req.user.id, req.params.slug);
       return res.code(200).send(defaults);
     } catch (error) {
       if (error instanceof PostNotFoundError) {
@@ -137,13 +137,20 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     assertIsLoggedIn(req);
 
     try {
-      const publishedPost = await service.publishPost(req.user.id, req.params.id, req.body);
+      const publishedPost = await service.publish(req.user.id, req.params.id, req.body);
       return res.code(200).send(publishedPost);
     } catch (error) {
       if (error instanceof SlugConflictError) {
         return res.code(409).send({
           error: 'Conflict',
           message: 'That url slug is already in use',
+        });
+      }
+
+      if (error instanceof InvalidCoverImageError) {
+        return res.code(422).send({
+          error: 'UnprocessableEntity',
+          message: 'You can only use a cover image that belongs to this post',
         });
       }
 

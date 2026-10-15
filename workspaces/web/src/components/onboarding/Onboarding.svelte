@@ -14,11 +14,12 @@
   import Label from '../Label.svelte';
   import Toaster from '../Toaster.svelte';
   import Textarea from '../Textarea.svelte';
-  import Error from '../registration/Error.svelte';
+  import Error from '../Error.svelte';
   import FieldWrapper from '../FieldWrapper.svelte';
   import AvatarPicker from './AvatarPicker.svelte';
-  import Submit from '../registration/Submit.svelte';
+  import Submit from '../Submit.svelte';
   import CharacterCount from '../CharacterCount.svelte';
+    import TextareaLimited from '../TextareaLimited.svelte';
 
   interface Props {
     username: string;
@@ -49,18 +50,14 @@
         {/if}
       </FieldWrapper>
 
-      <FieldWrapper>
-        <div class="flex justify-between">
-          <Label name="bio" label="Bio" variant="light" />
-          {#if $data.bio}
-            <CharacterCount current={$data.bio.length} maximum={200} />   
-          {/if}
-        </div>
-        <Textarea name="bio" />
-        {#if $errors.bio}
-          <Error errors={$errors.bio} />          
-        {/if}
-      </FieldWrapper>
+      <TextareaLimited
+        name="bio"
+        label="Bio"
+        rows={4}
+        current={$data.bio?.length}
+        maximum={200}
+        errors={$errors.bio}
+      />
     </div>
   </div>
 

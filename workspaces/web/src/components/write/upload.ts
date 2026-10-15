@@ -2,7 +2,7 @@ import type { ACCEPTED_TYPE } from '../acceptedMime.ts';
 import { apiClient, imagesClient } from '../clients.ts';
 import { HTTPError, logMinioError } from '../errorHandling.ts';
 
-export async function uploadImage(postId: string, file: File) {
+export async function uploadPostImage(postId: string, file: File) {
   const {
     data: handoff,
     error: handoffError,
