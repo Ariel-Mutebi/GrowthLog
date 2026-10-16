@@ -1,0 +1,100 @@
+import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { assertIsLoggedIn } from '../../auth/preHandler.js';
+import { PersonalService } from '../../services/users/PersonalService.js';
+import { DeleteSelf, GetSelf, UpdateSelf } from './schema.js';
+import { ForbiddenError, UserConflictError, WeakPasswordError } from '../../services/users/shared/errors.js';
+
+const router: FastifyPluginAsyncTypebox = async (app) => {
+  const service = new PersonalService(app.prisma);
+
+  app.get('/', {
+    schema: GetSelf,
+  }, async (req, res) => {
+    assertIsLoggedIn(req);
+
+    try {
+      const me = await service.getSelf(req.user.id);
+      return res.code(200).send(me);
+    } catch (error) {
+      req.log.error(error);
+      return res.code(500).send({
+        error: 'InternalServerError',
+        message: 'Something went wrong. Please try again.',
+      });
+    }
+  });
+
+  app.patch('/', {
+    schema: UpdateSelf,
+  }, async (req, res) => {
+    assertIsLoggedIn(req);
+
+    try {
+      const newMe = await service.updateSelf(req.user.id, req.body);
+
+      // This device's old session now predates the revocation, so issue it a new one.
+      if (req.body.password) {
+        await req.session.regenerate();
+        await req.logIn(newMe);
+      }
+
+      return res.code(200).send(newMe);
+    } catch (error) {
+      if (error instanceof WeakPasswordError) {
+        return res.code(400).send({
+          error: 'BadRequest',
+          message: 'Your desired new password is too weak',
+        });
+      }
+
+      if (error instanceof ForbiddenError) {
+        return res.code(403).send({
+          error: 'Forbidden',
+          message: 'Provide your current password to make this update',
+        });
+      }
+
+      if (error instanceof UserConflictError) {
+        return res.code(409).send({
+          error: 'Conflict',
+          message: 'The username or email you want to change to is already in use',
+        });
+      }
+
+      req.log.error(error);
+      return res.code(500).send({
+        error: 'InternalServerError',
+        message: 'Something went wrong. Please try again.',
+      });
+    }
+  });
+
+  app.delete('/', {
+    schema: DeleteSelf,
+  }, async (req, res) => {
+    assertIsLoggedIn(req);
+
+    try {
+      const me = await service.deleteSelf(req.user.id, req.body.passwordAttempt);
+      await req.logOut();
+      await req.session.destroy();
+      res.clearCookie('sessionId');
+      return res.code(200).send(me);
+    } catch (error) {
+      if (error instanceof ForbiddenError) {
+        return res.code(403).send({
+          error: 'Forbidden',
+          message: 'Please provide your current password to delete your account',
+        });
+      }
+
+      req.log.error(error);
+      return res.code(500).send({
+        error: 'InternalServerError',
+        message: 'Something went wrong. Please try again.',
+      });
+    }
+  });
+};
+
+export default router;

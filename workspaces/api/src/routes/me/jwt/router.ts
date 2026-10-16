@@ -1,14 +1,14 @@
 import jwt from 'jsonwebtoken';
+import { Handoff } from './schema.js';
+import { assertIsLoggedIn } from '../../../auth/preHandler.js';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { GetJWTSchema } from './schema.js';
-import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   app.get('/', {
-    preHandler: isLoggedIn,
-    schema: GetJWTSchema,
+    schema: Handoff,
   }, async (req, res) => {
     assertIsLoggedIn(req);
+
     const token = jwt.sign(
       {
         sub: req.user.id,

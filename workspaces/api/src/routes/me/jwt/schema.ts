@@ -1,12 +1,13 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { RateLimited } from '../../typebox/responses.js';
+import { security } from '../../../typebox/constants.js';
+import { RateLimited } from '../../../typebox/responses.js';
 
-export const GetJWTSchema = {
-  summary: 'JWT',
-  description:'Get a JWT to authenticate other microservices (document-editing, image processing)',
+export const Handoff = {
+  summary: 'Hand-off',
+  description:'Get a JWT to authenticate other microservices',
   tags: ['Microservices'],
-  security: [{ session: [] }],
+  security,
   response: {
     200: Type.Object({
       token: Type.String(),

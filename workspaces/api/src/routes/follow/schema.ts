@@ -1,13 +1,16 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { UserPublicSafe } from '../../typebox/userTypes.js';
+import { security } from '../../typebox/constants.js';
+import { PublicUserObject } from '../../typebox/users.js';
 import { BadRequest, NotFound, Unauthorized, generalErrorResponses } from '../../typebox/responses.js';
+
+const tags = ['Followers'];
 
 export const Follow = {
   summary: 'Follow',
-  description: 'The caller followers the user with the given userId',
-  tags: ['Followers'],
-  security: [{ session: [] }],
+  description: 'Follow the user with the given userId',
+  tags,
+  security,
   params: Type.Object({
     userId: Type.String(),
   }),
@@ -22,9 +25,9 @@ export const Follow = {
 
 export const Unfollow = {
   summary: 'Unfollow',
-  description: 'The caller unfollows the user with the given userId',
-  tags: ['Followers'],
-  security: [{ session: [] }],
+  description: 'Unfollows the user with the given userId',
+  tags,
+  security,
   params: Type.Object({
     userId: Type.String(),
   }),
@@ -35,44 +38,28 @@ export const Unfollow = {
   },
 } satisfies FastifySchema;
 
-const FollowersQuerySchema = {
-  tags: ['Followers'],
+export const GetFollowers = {
+  summary: 'Get followers',
+  description: 'Get a list of the followers of a user',
+  params: Type.Object({
+    userId: Type.String(),
+  }),
+  tags,
   response: {
-    200: Type.Array(UserPublicSafe),
-    401: Unauthorized,
+    200: Type.Array(PublicUserObject),
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
 
-export const MyFollowers = {
-  summary: 'See your followers',
-  description: 'Get your followers\' ids and usernames',
-  security: [{ session: [] }],
-  ...FollowersQuerySchema,
-} satisfies FastifySchema;
-
-export const WhoIFollow = {
-  summary: 'See who you follow',
-  description: 'Get the ids and usernames of the accounts you follow',
-  security: [{ session: [] }],
-  ...FollowersQuerySchema,
-} satisfies FastifySchema;
-
-const TheirFollowersQuerySchema = {
+export const GetFollowing = {
+  summary: 'Get following',
+  description: 'Get a list of who a user follows',
   params: Type.Object({
     userId: Type.String(),
   }),
-  ...FollowersQuerySchema,
-} satisfies FastifySchema;
-
-export const TheirFollowers = {
-  summary: 'See someone else\'s followers',
-  description: 'Get the ids and usernames of the accounts who follow the account with the given user ID',
-  ...TheirFollowersQuerySchema,
-} satisfies FastifySchema;
-
-export const WhoTheyFollow = {
-  summary: 'See who someone else follows',
-  description: 'Get the ids and usernames of the accounts that the account with the given user ID follows',
-  ...TheirFollowersQuerySchema,
+  tags,
+  response: {
+    200: Type.Array(PublicUserObject),
+    ...generalErrorResponses,
+  },
 } satisfies FastifySchema;

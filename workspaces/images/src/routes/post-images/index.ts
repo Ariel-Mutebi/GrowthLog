@@ -1,45 +1,43 @@
 import { Confirm, RequestUpload } from './schema.js';
-import { verifyJWT } from '../../auth/preHandler.js';
-import { AvatarService } from './service.js';
 import {
   ImageNotFoundError,
   UploadAlreadyFailedError,
   ObjectNotUploadedError,
   FileTooLargeError,
   FileTypeMismatchError,
-} from '../../classes/errors.js';
+} from '../../services/errors.js';
+import { PostImageService } from '../../services/PostImageService.js';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
-  const service = new AvatarService({
+  const service = new PostImageService({
     prisma: app.prisma,
     minio: app.minio,
     logError: app.log.error,
     presigner: app.minioPresign,
-    bucket: app.config.PUBLIC_AVATAR_BUCKET,
-    maxSizeBytes: app.config.PUBLIC_MAX_AVATAR_SIZE_BYTES,
+    bucket: app.config.PUBLIC_IMAGE_BUCKET,
+    maxSizeBytes: app.config.PUBLIC_MAX_IMAGE_SIZE_BYTES,
     presignedUrlExpirySeconds: app.config.PRESIGNED_URL_EXPIRY_SECONDS,
   });
 
-  const mb = app.config.PUBLIC_MAX_AVATAR_SIZE_BYTES / 1024 ** 2;
+  const mb = app.config.PUBLIC_MAX_IMAGE_SIZE_BYTES / 1024 ** 2;
 
-  app.post('/request-upload', {
+  app.post('/:postId/request-upload/', {
     schema: RequestUpload,
-    preHandler: verifyJWT,
   }, async (req, res) => {
     try {
-      const permission = await service.requestUpload({
-        userId: req.user.sub,
+      const response = await service.requestUpload({
+        authorId: req.user.sub,
+        postId: req.params.postId,
         mimeType: req.body.mimeType,
         sizeBytes: req.body.sizeBytes,
       });
-
-      return res.code(200).send(permission);
+      return res.code(200).send(response);
     } catch (error) {
       if (error instanceof FileTooLargeError) {
         return res.code(400).send({
           error: 'BadRequest',
-          message: `Max avatar size is ${mb} MB`,
+          message: `Max post image size is ${mb} MB`,
         });
       }
 
@@ -52,16 +50,15 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.post('/:id/confirm', {
+  app.post('/:postId/:imageId/confirm', {
     schema: Confirm,
-    preHandler: verifyJWT,
   }, async (req, res) => {
     try {
       const image = await service.confirmUpload({
-        userId: req.user.sub,
-        imageId: req.params.id,
+        authorId: req.user.sub,
+        postId: req.params.postId,
+        imageId: req.params.imageId,
       });
-
       return res.code(200).send(image);
     } catch (error) {
       if (error instanceof ImageNotFoundError) {
@@ -81,7 +78,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       if (error instanceof FileTooLargeError) {
         return res.code(413).send({
           error: 'PayloadTooLarge',
-          message: `Max avatar size is ${mb} MB`,
+          message: `Max post image size is ${mb} MB`,
         });
       }
 

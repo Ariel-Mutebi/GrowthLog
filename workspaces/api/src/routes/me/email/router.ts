@@ -1,23 +1,18 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
-import { EmailVerificationService, InvalidCode } from './service.js';
+import { assertIsLoggedIn } from '../../../auth/preHandler.js';
 import { ConfirmSchema, RequestSchema } from './schema.js';
+import { EmailVerificationService, InvalidCode } from '../../../services/EmailVerificationService.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
-  const service = new EmailVerificationService(app.prisma);
+  const service = new EmailVerificationService(app.prisma, app.emailer);
 
-  app.post('/request', {
-    preHandler: isLoggedIn,
+  app.post('/request-verification', {
     schema: RequestSchema,
   }, async (req, res) => {
     assertIsLoggedIn(req);
 
-    const userId = req.user.id;
-    const code = service.generateCode();
-
     try {
-      await service.issueCode(userId, code);
-      await app.emailer.sendVerificationEmail({ userId, code });
+      await service.issueCode(req.user.id);
       return res.code(204).send(null);
     } catch (error) {
       req.log.error(error);
@@ -28,8 +23,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.post('/confirm', {
-    preHandler: isLoggedIn,
+  app.post('/confirm-token', {
     schema: ConfirmSchema,
   }, async (req, res) => {
     assertIsLoggedIn(req);

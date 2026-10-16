@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { NameInput } from '../../typebox/inputs.js';
+import type { FastifySchema } from 'fastify';
 import {
   BadRequest,
   Conflict,
@@ -7,106 +7,54 @@ import {
   Unauthorized,
   generalErrorResponses,
 } from '../../typebox/responses.js';
-import {
-  UserClientSafe,
-  UserPublicSafe,
-  UserDeclaredFields,
-} from '../../typebox/userTypes.js';
-import type { FastifySchema } from 'fastify';
-import type { Static } from '@sinclair/typebox';
+import { NameInput, Username } from '../../typebox/inputs.js';
+import { EditableFields, PersonalFields, PublicUserObject } from '../../typebox/users.js';
 
-const IdentityProof = Type.Object({ currentPassword: Type.String() });
-export type IdentityProof = Static<typeof IdentityProof>;
-
-export const CreateUserSchema = {
-  summary: 'Register a new user',
+export const Register = {
+  summary: 'Register',
   description: 'Creates a user account and opens a session. One request per IP per day.',
   tags: ['Users'],
-  body: UserDeclaredFields,
+  body: EditableFields,
   response: {
-    201: UserClientSafe,
+    201: PersonalFields,
     400: BadRequest,
     409: Conflict,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
 
-export const GetSelfSchema = {
-  summary: 'Get current user\'s account details',
-  tags: ['Users'],
-  security: [{ session: [] }],
-  response: {
-    200: UserClientSafe,
-    401: Unauthorized,
-    ...generalErrorResponses,
-  },
-} satisfies FastifySchema;
-
-export const UpdateSelfSchema = {
-  summary: 'Update current user',
-  description: 'Updating email or password requires `currentPassword` to be provided.',
-  tags: ['Users'],
-  security: [{ session: [] }],
-  body: Type.Composite(
-    [
-      Type.Partial(IdentityProof),
-      Type.Partial(UserDeclaredFields),
-    ],
-    { additionalProperties: false },
-  ),
-  response: {
-    200: UserClientSafe,
-    400: BadRequest,
-    401: Unauthorized,
-    409: Conflict,
-    ...generalErrorResponses,
-  },
-} satisfies FastifySchema;
-
-export const DeleteSelfSchema = {
-  summary: 'Delete current user',
-  description: 'Soft deletes the account. The account can be recovered by logging in within 7 days.',
-  tags: ['Users'],
-  security: [{ session: [] }],
-  body: IdentityProof,
-  response: {
-    200: UserClientSafe,
-    401: Unauthorized,
-    ...generalErrorResponses,
-  },
-} satisfies FastifySchema;
-
-export const GetUserSchema = {
-  summary: 'Get a user\'s public data',
+export const GetUser = {
+  summary: 'Get User',
+  description: 'Get basic public data about a user\'s account',
   tags: ['Users'],
   params: Type.Object({
-    userId: Type.String(),
+    id: Type.String(),
   }),
   response: {
-    200: UserPublicSafe,
+    200: PublicUserObject,
     401: Unauthorized,
     404: NotFound,
     ...generalErrorResponses,
   },
 } satisfies FastifySchema;
 
-export const UserSearchSchema = {
-  summary: 'User discovery endpoint',
+export const UserSearch = {
+  summary: 'User Search',
   description: 'Search for users by name and/or interests (tags on their published posts)',
   tags: ['Users'],
-  querystring: Type.Object(
+  querystring: Type.Partial(Type.Object(
     {
-      name: Type.Optional(Type.String({ minLength: 1, maxLength: 100, pattern: '\\S' })),
-      interests: Type.Optional(Type.Array(NameInput)),
-      cursor: Type.Optional(Type.String()),
-      limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 20 })),
+      name: Username,
+      interests: Type.Array(NameInput),
+      cursor: Type.String(),
+      limit: Type.Integer({ minimum: 1, maximum: 50, default: 20 }),
     },
     // at least one of name / interest must be present
     { anyOf: [{ required: ['name'] }, { required: ['interests'] }] },
-  ),
+  )),
   response: {
     200: Type.Object({
-      users: Type.Array(UserPublicSafe),
+      users: Type.Array(PublicUserObject),
       nextCursor: Type.Union([Type.String(), Type.Null()]),
     }),
     404: NotFound,

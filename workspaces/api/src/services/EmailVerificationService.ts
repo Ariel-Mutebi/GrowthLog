@@ -1,16 +1,18 @@
 import { randomInt, createHash } from 'node:crypto';
 import type { PrismaClient } from '@growthlog/db';
 import { PrismaClientKnownRequestError } from '@growthlog/db';
+import type { Emailer } from '@growthlog/jobs';
 
 export class InvalidCode extends Error { };
 
 export class EmailVerificationService {
   constructor(
     private readonly prisma: PrismaClient,
+    private readonly emailer: Emailer,
   ) {}
 
   /** Random six-digit code */
-  generateCode () {
+  private generateCode () {
     return randomInt(100000, 1000000).toString();
   }
 
@@ -19,9 +21,10 @@ export class EmailVerificationService {
     return createHash('sha256').update(code).digest('hex');
   }
 
-  async issueCode(userId: string, code: string) {
-    await this.prisma.emailVerificationCode.deleteMany({ where: { userId } });
+  async issueCode(userId: string) {
+    const code = this.generateCode();
 
+    await this.prisma.emailVerificationCode.deleteMany({ where: { userId } });
     await this.prisma.emailVerificationCode.create({
       data: {
         userId,
@@ -29,6 +32,8 @@ export class EmailVerificationService {
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       },
     });
+
+    await this.emailer.sendVerificationEmail({ userId, code });
   }
 
   private async getCodeId(userId: string, code: string) {

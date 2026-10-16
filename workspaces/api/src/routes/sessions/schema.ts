@@ -1,21 +1,19 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { Email } from '../../typebox/inputs.js';
-import { UserClientSafe } from '../../typebox/userTypes.js';
-import { Unauthorized, RateLimited } from '../../typebox/responses.js';
+import { PersonalFields } from '../users/schema.js';
+import { meErrorResponses } from '../../typebox/responses.js';
 
 export const CreateSessionSchema = {
   summary: 'Log in',
   description: 'Authenticates with email and password and opens a session. Limited to 5 failed attempts per account per 15 minutes.',
   tags: ['Sessions'],
   body: Type.Object({
-    email: Email,
+    email: Type.String(),
     password: Type.String(),
   }),
   response: {
-    200: UserClientSafe,
-    401: Unauthorized,
-    429: RateLimited,
+    200: PersonalFields,
+    ...meErrorResponses,
   },
 } satisfies FastifySchema;
 
@@ -26,7 +24,6 @@ export const DeleteSessionSchema = {
   security: [{ session: [] }],
   response: {
     204: Type.Null(),
-    401: Unauthorized,
-    429: RateLimited,
+    ...meErrorResponses,
   },
 } satisfies FastifySchema;

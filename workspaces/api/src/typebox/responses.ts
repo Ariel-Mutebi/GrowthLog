@@ -1,5 +1,4 @@
 import { Type } from '@sinclair/typebox';
-import type { FastifySchema } from 'fastify';
 
 export const Conflict = Type.Object({
   error: Type.Literal('Conflict'),
@@ -44,12 +43,17 @@ export const UnprocessableEntity = Type.Object({
   message: Type.String(),
 });
 
-export const TooEarly = Type.Object({
-  error: Type.Literal('TooEarly'),
+export const Forbidden = Type.Object({
+  error: Type.Literal('Forbidden'),
   message: Type.String(),
 });
 
 export const generalErrorResponses = {
   429: RateLimited,
   500: InternalServerError,
-} satisfies FastifySchema['response'];
+};
+
+export const meErrorResponses = {
+  ...generalErrorResponses,
+  401: Unauthorized,
+};

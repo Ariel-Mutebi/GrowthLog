@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
 import type { JSONContent } from '@tiptap/core';
 import { TiptapTransformer } from '@hocuspocus/transformer';
-import { InvalidImageError, EmptyPostError } from './service.js';
+import { InvalidImageError, EmptyPostError } from './errors.js';
 
 export function yDocToJson(content: Uint8Array | null): JSONContent {
   if (!content) return {};

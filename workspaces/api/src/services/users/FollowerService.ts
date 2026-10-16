@@ -1,6 +1,7 @@
 import { type PrismaClient, PrismaClientKnownRequestError } from '@growthlog/db';
-import type { UserPublicSafe } from '../../typebox/userTypes.js';
-import { flattenAvatarKey, publicSafeSelect } from '../../utils/userSelectors.js';
+import { flattenAvatarKey } from './shared/helpers.js';
+import { publicSelect } from './shared/selectors.js';
+import type { PublicUser } from './shared/interfaces.js';
 
 export class SelfFollowError extends Error { };
 export class FollowTargetNotFoundError extends Error { }
@@ -10,7 +11,7 @@ export class FollowerService {
     private readonly prisma: PrismaClient,
   ) {}
 
-  public async getFollowers(userId: string): Promise<UserPublicSafe[]> {
+  public async getFollowers(userId: string): Promise<PublicUser[]> {
     const rows = await this.prisma.follow.findMany({
       where: {
         followingId: userId,
@@ -18,7 +19,7 @@ export class FollowerService {
       },
       select: {
         follower: {
-          select: publicSafeSelect,
+          select: publicSelect,
         },
       },
     });
@@ -26,7 +27,7 @@ export class FollowerService {
     return rows.map(row => flattenAvatarKey(row.follower));
   }
 
-  public async getFollowing(userId: string): Promise<UserPublicSafe[]> {
+  public async getFollowing(userId: string): Promise<PublicUser[]> {
     const rows = await this.prisma.follow.findMany({
       where: {
         followerId: userId,
@@ -34,7 +35,7 @@ export class FollowerService {
       },
       select: {
         following: {
-          select: publicSafeSelect,
+          select: publicSelect,
         },
       },
     });

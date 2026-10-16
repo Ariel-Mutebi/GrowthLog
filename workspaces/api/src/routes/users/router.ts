@@ -1,30 +1,22 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
+import { Register, GetUser, UserSearch } from './schema.js';
+import { RegistrationService } from '../../services/users/RegistrationService.js';
+import { DiscoveryService } from '../../services/users/DiscoveryService.js';
 import {
-  CreateUserSchema,
-  UpdateSelfSchema,
-  DeleteSelfSchema,
-  GetUserSchema,
-  GetSelfSchema,
-  UserSearchSchema,
-} from './schema.js';
-import {
-  UserService,
-  UserConflictError,
+  WeakPasswordError,
+  UsernameConflictError,
   EmailConflictError,
   UserNotFoundError,
-  PasswordTooWeakError,
-  UsernameConflictError,
-  UserMutationUnauthorizedError,
-} from './service.js';
+} from '../../services/users/shared/errors.js';
 
 const REGISTRATION_WINDOW_SECONDS = 24 * 3600;
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
-  const service = new UserService(app.prisma);
+  const registration = new RegistrationService(app.prisma);
+  const discovery = new DiscoveryService(app.prisma);
 
   app.post('/', {
-    schema: CreateUserSchema,
+    schema: Register,
   }, async (req, res) => {
     const slot = `${app.config.REDIS_KEY_PREFIX ?? ''}registration:${req.ip}`;
     const reserved = await app.redis.set(slot, '1', { NX: true, EX: REGISTRATION_WINDOW_SECONDS });
@@ -39,25 +31,18 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
 
     let created = false;
     try {
-      const user = await service.create(req.body);
+      const user = await registration.register(req.body);
       created = true;
       await req.logIn(user);
       return res.status(201).send(user);
     } catch (error) {
       if (!created) await app.redis.del(slot);
 
-      if (error instanceof PasswordTooWeakError) {
+      if (error instanceof WeakPasswordError) {
         return res.code(400).send({
           error: 'BadRequest',
           message: 'This password is too weak',
           suggestions: error.suggestions as string[],
-        });
-      }
-
-      if (error instanceof UserConflictError) {
-        return res.code(409).send({
-          error: 'Conflict',
-          message: 'This username or email is already in use',
         });
       }
 
@@ -84,29 +69,11 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.get('/', {
-    preHandler: isLoggedIn,
-    schema: GetSelfSchema,
-  }, async (req, res) => {
-    assertIsLoggedIn(req);
-
-    try {
-      const user = await service.getSelf(req.user.id);
-      return res.code(200).send(user);
-    } catch (error) {
-      req.log.error(error);
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
-    }
-  });
-
-  app.get('/:userId', {
-    schema: GetUserSchema,
+  app.get('/:id', {
+    schema: GetUser,
   }, async (req, res) => {
     try {
-      return await service.getOther(req.params.userId);
+      return await discovery.getUser(req.params.id);
     } catch (error) {
       if (error instanceof UserNotFoundError) {
         return res.code(404).send({
@@ -125,10 +92,10 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   });
 
   app.get('/search', {
-    schema: UserSearchSchema,
+    schema: UserSearch,
   }, async (req, res) => {
     try {
-      const result = await service.paginatedSearch(req.query);
+      const result = await discovery.paginatedSearch(req.query);
       res.code(200).send(result);
     } catch (error) {
       if (error instanceof UserNotFoundError) {
@@ -144,81 +111,6 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         error: 'InternalServerError',
         message: 'Something went wrong. Please try again.',
       }); 
-    }
-  });
-
-  app.patch('/', {
-    preHandler: isLoggedIn,
-    schema: UpdateSelfSchema,
-  }, async (req, res) => {
-    assertIsLoggedIn(req);
-
-    try {
-      const updatedUser = await service.update(req.user.id, req.body);
-
-      // This device's old session now predates the revocation, so issue it a new one.
-      if (req.body.password) {
-        await req.session.regenerate();
-        await req.logIn(updatedUser);
-      }
-
-      return res.code(200).send(updatedUser);
-    } catch (error) {
-      if (error instanceof UserMutationUnauthorizedError) {
-        return res.code(401).send({
-          error: 'Unauthorized',
-          message: 'Please provide your current password to update this field',
-        });
-      }
-
-      if (error instanceof PasswordTooWeakError) {
-        return res.code(400).send({
-          error: 'BadRequest',
-          message: 'Your desired new password is too weak',
-          suggestions: error.suggestions as string[],
-        });
-      }
-
-      if (error instanceof UserConflictError) {
-        return res.code(409).send({
-          error: 'Conflict',
-          message: 'Your desired username or email is already in use',
-        });
-      }
-
-      req.log.error(error);
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
-    }
-  });
-
-  app.delete('/', {
-    preHandler: isLoggedIn,
-    schema: DeleteSelfSchema,
-  }, async (req, res) => {
-    assertIsLoggedIn(req);
-
-    try {
-      const softDeletedUser = await service.softDelete(req.user.id, req.body.currentPassword);
-      await req.logOut();
-      await req.session.destroy();
-      res.clearCookie('sessionId');
-      return res.send(softDeletedUser);
-    } catch (error) {
-      if (error instanceof UserMutationUnauthorizedError) {
-        return res.code(401).send({
-          error: 'Unauthorized',
-          message: 'Please provide your account password to delete your account',
-        });
-      }
-
-      req.log.error(error);
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again',
-      });
     }
   });
 };

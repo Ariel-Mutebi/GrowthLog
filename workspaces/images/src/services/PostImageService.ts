@@ -1,8 +1,8 @@
 import { randomUUIDv7 } from 'node:crypto';
-import { FileTooLargeError } from '../../classes/errors.js';
+import { FileTooLargeError } from './errors.js';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { ImageUploadService } from '../../classes/ImageService.js';
+import { ImageUploadService } from './ImageService.js';
 
 export class PostNotFoundError extends Error {}
 
