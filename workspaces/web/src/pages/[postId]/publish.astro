@@ -13,16 +13,15 @@ if (!user) {
   return Astro.redirect("/login", 302);
 }
 
-const slug = Astro.params.slug!;
+const postId = Astro.params.postId!;
+const cookie = Astro.request.headers.get("cookie");
 
-const { data: prepublish } = await createApiClient(
-  Astro.request.headers.get("cookie"),
-).GET("/api/posts/{slug}/prepublish", {
+const { data: prepublish } = await createApiClient(cookie).GET("/api/me/drafts/publish/{id}", {
   params: {
     path: {
-      slug,
-    },
-  },
+      id: postId,
+    }
+  }
 });
 
 if (!prepublish) {
@@ -32,7 +31,7 @@ if (!prepublish) {
 
 <HeadLayout title="Publish your story | GrowthLog">
   <div class="min-h-dvh bg-amber-100 dark:bg-olive-900">
-    <LinkLogo backLink={`/${slug}/edit`} />
+    <LinkLogo backLink={`/${postId}/edit`} />
     <RibbonNav>
       <Avatar avatarKey={user.avatarKey} />
     </RibbonNav>

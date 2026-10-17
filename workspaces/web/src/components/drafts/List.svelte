@@ -21,7 +21,7 @@
     const { sortBy, order, isPrivate, isPublished } = filters;
     const published = isPrivate === isPublished ? undefined: isPublished;
 
-    apiClient.GET('/api/posts', {
+    apiClient.GET('/api/me/drafts', {
       params: {
         query: {
           sortBy,
@@ -52,7 +52,7 @@
         <ul>
           {#each drafts as draft}
             <Item
-              slug={draft.slug}
+              id={draft.id}
               title={draft.title}
               updatedAt={new Date(draft.updatedAt)}
               isPrivate={draft.publishedAt === null}

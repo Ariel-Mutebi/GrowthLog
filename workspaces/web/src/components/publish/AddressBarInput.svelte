@@ -15,7 +15,7 @@
     <input
       required
       type="text"
-      name="publishedSlug"
+      name="slug"
       class="border border-stone-300 dark:border-stone-500 focus:outline-none
         focus:border-stone-400 field-sizing-content"
     >

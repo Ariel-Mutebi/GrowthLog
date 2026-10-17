@@ -18,44 +18,45 @@
   import Submit from '../Submit.svelte';
 
   interface Props {
+    postId: string;
     initial: Prepublish;
     mockUrlBase: string;
   }
 
-  const { initial, mockUrlBase }: Props = $props();
+  const { postId, initial, mockUrlBase }: Props = $props();
 
   const { form, data, errors, isSubmitting } = createForm<PublishFormData>({
     extend: validator({ schema: createPublishSchema(Boolean(initial.coverImageId)) }),
     initialValues: {
+      slug: initial.slug,
       publishedTitle: initial.publishedTitle,
-      publishedSlug: initial.publishedSlug,
       publishedHook: initial.publishedHook,
     },
-    onSubmit: async ({ publishedSlug, publishedTitle, publishedHook, coverImage }) => {
+    onSubmit: async ({ slug, publishedTitle, publishedHook, coverImage }) => {
       let coverImageId: string;
 
       if (coverImage) {
-        const uploaded = await uploadPostImage(initial.postId, coverImage);
+        const uploaded = await uploadPostImage(postId, coverImage);
         coverImageId = uploaded.id;
       } else {
         coverImageId = initial.coverImageKey!;
       }
 
-      return await apiClient.POST('/api/posts/{id}/publish', {
+      return await apiClient.POST('/api/me/drafts/publish/{id}', {
         params: {
           path: {
-            id: initial.postId,
+            id: postId,
           },
         },
         body: {
-          publishedSlug,
+          slug,
           publishedTitle,
           publishedHook,
           coverImageId,
         },
       });
     },
-    onSuccess: () => navigate(`${initial.publishedSlug}/read`),
+    onSuccess: () => navigate(`${postId}/read`),
     onError: toastError,
   });
 </script>

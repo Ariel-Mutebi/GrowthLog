@@ -12,13 +12,13 @@
     creating = true;
 
     try {
-      const { data, error } = await apiClient.POST('/api/posts');
+      const { data: draft, error } = await apiClient.POST('/api/me/drafts');
 
-      if (error || !data) {
+      if (error || !draft) {
         return toast.error(error.error, { description: error.message });
       }
 
-      return navigate(`/edit/${data.slug}`);
+      return navigate(`${draft.id}/edit/`);
     } catch (networkError) {
       return toast.error(String(networkError));
     } finally {
@@ -35,7 +35,7 @@
    hover:bg-yellow-400 dark:hover:bg-yellow-200 shadow-[0px_4px_0px] shadow-stone-800
    active:shadow-none active:translate-y-1 disabled:cursor-not-allowed disabled:pointer-events-none
    disabled:shadow-none disabled:translate-y-1 disabled:bg-stone-200 disabled:text-stone-600
-   disabled:dark:bg-stone-600 disabled:dark:text-stone-200"
+   disabled:dark:bg-stone-600 disabled:dark:text-stone-200 cursor-pointer"
 >
   <SquarePlus />
   <span>Create new</span>

@@ -42,7 +42,7 @@
 
   onMount(async () => {
     try {
-      const { data } = await apiClient.GET('/api/jwt');
+      const { data } = await apiClient.GET('/api/me/jwt');
       if (!data) throw new Error('Unauthenticated');
 
       ydoc = new Y.Doc();

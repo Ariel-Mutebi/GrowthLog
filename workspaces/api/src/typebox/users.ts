@@ -1,7 +1,14 @@
 import { Type } from '@sinclair/typebox';
+import { SerializableDate } from './date.js';
 import { NameInput, Username, BioInput, Email } from './inputs.js';
+
 import type { TypeBoxModel } from './mapping.js';
-import type { Editable, IdentityProof, Personal, PublicUser } from '../services/users/shared/interfaces.js';
+import type {
+  Editable,
+  IdentityProof,
+  Personal,
+  PublicUser,
+} from '../services/users/shared/interfaces.js';
 
 export const EditableFields = Type.Object({
   forename: NameInput,
@@ -17,8 +24,9 @@ export const PublicUserObject = Type.Object({
   forename: Type.String(),
   surname: Type.String(),
   username: Type.String(),
+  createdAt: SerializableDate,
   bio: Type.Union([Type.String(), Type.Null()]),
-  createdAt: Type.Date(),
+  avatarKey: Type.Union([Type.String(), Type.Null()]),
 } satisfies TypeBoxModel<PublicUser>);
 
 export const PersonalFields = Type.Object({
@@ -26,9 +34,10 @@ export const PersonalFields = Type.Object({
   forename: Type.String(),
   surname: Type.String(),
   username: Type.String(),
-  bio: Type.Union([Type.String(), Type.Null()]),
   email: Type.String(),
-  createdAt: Type.Date(),
+  createdAt: SerializableDate,
+  bio: Type.Union([Type.String(), Type.Null()]),
+  avatarKey: Type.Union([Type.String(), Type.Null()]),
 } satisfies TypeBoxModel<Personal>);
 
 export const IdentityObject = Type.Object({

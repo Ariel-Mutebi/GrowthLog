@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest, PassportUser, preHandlerHookHandler } from 'fastify';
 import type { Static } from '@sinclair/typebox';
-import type { LoginFailure } from './authService.js';
-import type { UserClientSafe } from '../typebox/userTypes.js';
+import type { LoginFailure } from '../services/users/AuthService.js';
+import type { Personal } from '../services/users/shared/interfaces.js';
 import type { Locked, Unauthorized } from '../typebox/responses.js';
 
 export const isLoggedIn: preHandlerHookHandler = async (req, reply) => {
@@ -22,7 +22,7 @@ export const localStrategy = (app: FastifyInstance): preHandlerHookHandler =>
     req: FastifyRequest,
     res: FastifyReply,
     err: unknown,
-    user: UserClientSafe,
+    user: Personal,
     info: object,
   ) => {
     if (err) throw err;

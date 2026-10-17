@@ -7,7 +7,7 @@ async function uploadAvatar(avatar: File) {
   const {
     data: handoff,
     error: handoffError,
-  } = await apiClient.GET('/api/jwt');
+  } = await apiClient.GET('/api/me/jwt');
 
   if (!handoff && handoffError) {
     throw new HTTPError(handoffError);
@@ -66,7 +66,7 @@ async function uploadAvatar(avatar: File) {
 }
 
 export async function handleOnboardingSubmit({ username, bio, avatar }: OnboardingData) {
-  const { error: updateError } = await apiClient.PATCH('/api/users', {
+  const { error: updateError } = await apiClient.PATCH('/api/me', {
     body: { username, bio },
   });
 

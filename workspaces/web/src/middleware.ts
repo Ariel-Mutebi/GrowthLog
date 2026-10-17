@@ -12,7 +12,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     context.locals.user = hit.user;
   } else {
     try {
-      const { data: user } = await createApiClient(cookie).GET('/api/users');
+      const { data: user } = await createApiClient(cookie).GET('/api/me');
 
       if (user) {
         context.locals.user = user;

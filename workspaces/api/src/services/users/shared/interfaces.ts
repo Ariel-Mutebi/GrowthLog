@@ -14,6 +14,7 @@ export interface PublicUser {
   username: string;
   createdAt: Date;
   bio: string | null;
+  avatarKey: string | null;
 }
 
 export interface Personal extends PublicUser {

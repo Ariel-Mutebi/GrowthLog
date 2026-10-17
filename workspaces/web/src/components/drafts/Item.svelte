@@ -3,13 +3,13 @@
   import Globe from '@lucide/svelte/icons/globe';
 
   interface Props {
-    slug: string;
+    id: string;
     title: string;
     isPrivate: boolean;
     updatedAt: Date;
   }
 
-  const { slug, title, isPrivate, updatedAt }: Props = $props();
+  const { id, title, isPrivate, updatedAt }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const lastEdited = new Intl.DateTimeFormat('en-GB', {
@@ -21,7 +21,7 @@
 
 <li class="hover:bg-stone-100 active:bg-stone-100 hover:dark:bg-stone-900 dark:active:bg-stone-900">
   <a
-    href={`${slug}/edit`}
+    href={`${id}/edit`}
     class="flex items-center p-3 md:px-8 md:py-4 gap-3 md:gap-8 font-serif"
   >
     <p class="text-base sm:text-xl md:text-2xl grow">{title}</p>

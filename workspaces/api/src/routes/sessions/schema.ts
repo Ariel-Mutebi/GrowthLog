@@ -1,6 +1,6 @@
-import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { PersonalFields } from '../users/schema.js';
+import { Type } from '@sinclair/typebox';
+import { PersonalFields } from '../../typebox/users.js';
 import { meErrorResponses } from '../../typebox/responses.js';
 
 export const CreateSessionSchema = {

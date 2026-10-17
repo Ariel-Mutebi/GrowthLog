@@ -16,14 +16,13 @@ if (!user) {
   return Astro.redirect("/login", 302);
 }
 
-const slug = Astro.params.slug!;
+const postId = Astro.params.postId!;
+const cookie = Astro.request.headers.get("cookie");
 
-const { data: post } = await createApiClient(
-  Astro.request.headers.get("cookie"),
-).GET("/api/posts/{slug}", {
+const { data: post } = await createApiClient(cookie).GET("/api/me/drafts/{id}", {
   params: {
     path: {
-      slug,
+      id: postId,
     },
   },
 });
@@ -38,15 +37,15 @@ if (!post) {
     <LinkLogo backLink="/my-drafts" />
     <RibbonNav>
       <div class="flex px-2 py-1 gap-4 bg-lime-200 dark:bg-lime-800">
-        <Upload postId={post.id} client:load />
+        <Upload {postId} client:load />
         <UndoRedo client:load />
       </div>
-      <Publish {slug} client:load />
+      <Publish {postId} client:load />
       <Avatar avatarKey={user.avatarKey} />
     </RibbonNav>
     <VerticalRibbon />
     <div class="p-8 md:p-16 md:pl-32 flex justify-center">
-      <Editor {user} postId={post.id} initialTitle={post.title} client:load />
+      <Editor {user} {postId} initialTitle={post.title} client:load />
     </div>
   </div>
 </HeadLayout>
