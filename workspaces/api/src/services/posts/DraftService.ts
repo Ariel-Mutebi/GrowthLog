@@ -50,6 +50,7 @@ export class DraftService {
         where: {
           authorId,
           id: postId,
+          deletedAt: null,
         },
         data: {
           title: newTitle,
@@ -74,6 +75,7 @@ export class DraftService {
       where: {
         id,
         authorId,
+        deletedAt: null,
       },
       select: metadataSelector,
     });
@@ -85,7 +87,7 @@ export class DraftService {
 
   async getDrafts(authorId: string, options: Partial<DraftQueryOptions>): Promise<DraftMetadata[]> {
     const { sortBy = 'updatedAt', order = 'asc', published } = options;
-    const where: PostWhereInput = { authorId };
+    const where: PostWhereInput = { authorId, deletedAt: null };
 
     if (published !== undefined) {
       where.publishedAt = published ? { not: null } : null;
@@ -96,5 +98,26 @@ export class DraftService {
       select: metadataSelector,
       orderBy: [{ [sortBy]: order }],
     });
+  }
+
+  async deleteDraft(authorId: string, postId: string): Promise<void> {
+    try {
+      await this.prisma.post.update({
+        where: {
+          authorId,
+          id: postId,
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+        select: metadataSelector,
+      });
+    } catch (error) {
+      if (error  instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+        return;
+      }
+      throw error;
+    }
   }
 }

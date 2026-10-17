@@ -75,11 +75,11 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     assertIsLoggedIn(req);
 
     try {
-      const me = await service.deleteSelf(req.user.id, req.body.passwordAttempt);
+      await service.deleteSelf(req.user.id, req.body.passwordAttempt);
       await req.logOut();
       await req.session.destroy();
       res.clearCookie('sessionId');
-      return res.code(200).send(me);
+      return res.code(204).send(null);
     } catch (error) {
       if (error instanceof ForbiddenError) {
         return res.code(403).send({

@@ -92,3 +92,17 @@ export const GetDrafts = {
     ...meErrorResponses,
   },
 } satisfies FastifySchema;
+
+export const DeleteDraft = {
+  summary: 'Delete draft',
+  description: 'Soft-deletes a draft',
+  security,
+  tags,
+  params: Type.Object({
+    id: Type.String(),
+  }),
+  response: {
+    204: Type.Null(),
+    ...meErrorResponses,
+  },
+} satisfies FastifySchema;

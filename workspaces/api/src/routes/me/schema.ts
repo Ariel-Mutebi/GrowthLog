@@ -42,7 +42,7 @@ export const DeleteSelf = {
   tags,
   body: IdentityObject,
   response: {
-    200: PersonalFields,
+    204: Type.Null(),
     403: Forbidden,
     ...meErrorResponses,
   },

@@ -3,6 +3,7 @@ import { createApiClient } from "../../server/clients.ts";
 import HeadLayout from "../../layouts/HeadLayout.astro";
 import Editor from "../../components/write/Editor.svelte";
 import Avatar from "../../components/Avatar.astro";
+import Delete from "../../components/write/Delete.svelte";
 import UndoRedo from "../../components/write/UndoRedo.svelte";
 import Upload from "../../components/write/Upload.svelte";
 import Publish from "../../components/write/PublishButton.svelte";
@@ -37,6 +38,7 @@ if (!post) {
     <LinkLogo backLink="/my-drafts" />
     <RibbonNav>
       <div class="flex px-2 py-1 gap-4 bg-lime-200 dark:bg-lime-800">
+        <Delete {postId} client:load />
         <Upload {postId} client:load />
         <UndoRedo client:load />
       </div>

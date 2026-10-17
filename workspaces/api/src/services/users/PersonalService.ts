@@ -56,21 +56,26 @@ export class PersonalService {
     }
   }
 
-  public async deleteSelf(id: string, passwordAttempt: string): Promise<Personal> {
+  public async deleteSelf(id: string, passwordAttempt: string): Promise<void> {
     await this.assertCorrectPassword(id, passwordAttempt);
 
-    const deleted = await this.prisma.user.update({
-      where: {
-        id,
-        deletedAt: null,
-      },
-      data: {
-        deletedAt: new Date(),
-      },
-      select: personalSelect,
-    });
-
-    return flattenAvatarKey(deleted);
+    try {
+      await this.prisma.user.update({
+        where: {
+          id,
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+        select: personalSelect,
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+        return;
+      }
+      throw error;
+    }
   }
 
   private async assertCorrectPassword(id: string, attempt?: string) {

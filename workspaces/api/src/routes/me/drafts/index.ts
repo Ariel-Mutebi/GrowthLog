@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { assertIsLoggedIn } from '../../../auth/preHandler.js';
-import { CreateDraft, GetDraft, GetDrafts, UpdateDraft } from './schema.js';
+import { CreateDraft, DeleteDraft, GetDraft, GetDrafts, UpdateDraft } from './schema.js';
 import { DraftService } from '../../../services/posts/DraftService.js';
 import { PostNotFoundError, SlugConflictError } from '../../../services/posts/shared/errors.js';
 
@@ -91,6 +91,24 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
+      req.log.error(error);
+
+      return res.code(500).send({
+        error: 'InternalServerError',
+        message: 'Something went wrong. Please try again.',
+      });
+    }
+  });
+
+  app.delete('/:id', {
+    schema: DeleteDraft,
+  }, async (req, res) => {
+    assertIsLoggedIn(req);
+
+    try {
+      await service.deleteDraft(req.user.id, req.params.id);
+      return res.code(204).send(null);
+    } catch (error) {
       req.log.error(error);
 
       return res.code(500).send({
