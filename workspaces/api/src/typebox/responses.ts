@@ -1,4 +1,4 @@
-import { Type } from '@sinclair/typebox';
+import { type Static, Type } from '@sinclair/typebox';
 
 export const Conflict = Type.Object({
   error: Type.Literal('Conflict'),
@@ -57,3 +57,5 @@ export const meErrorResponses = {
   ...generalErrorResponses,
   401: Unauthorized,
 };
+
+export type InternalServerErrorType = Static<typeof InternalServerError>;

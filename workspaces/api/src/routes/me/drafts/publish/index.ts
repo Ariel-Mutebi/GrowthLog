@@ -9,7 +9,7 @@ import {
   SlugConflictError,
   TitleRequiredError,
 } from '../../../../services/posts/shared/errors.js';
-import { PublishDraft, Prepublish } from './schema.js';
+import { PublishDraft, Prepublish, Unpublish } from './schema.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new PublishService(
@@ -35,12 +35,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      req.log.error(error);
-
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
+      throw error;
     }
   });
 
@@ -88,13 +83,16 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      req.log.error(error);
-
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
+      throw error;
     }
+  });
+
+  app.delete('/:id', {
+    schema: Unpublish,
+  }, async (req, res) => {
+    assertIsLoggedIn(req);
+    await service.unpublish(req.user.id, req.params.id);
+    return res.code(204).send(null);
   });
 };
 

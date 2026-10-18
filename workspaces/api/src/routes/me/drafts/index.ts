@@ -2,7 +2,7 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { assertIsLoggedIn } from '../../../auth/preHandler.js';
 import { CreateDraft, DeleteDraft, GetDraft, GetDrafts, UpdateDraft } from './schema.js';
 import { DraftService } from '../../../services/posts/DraftService.js';
-import { PostNotFoundError, SlugConflictError } from '../../../services/posts/shared/errors.js';
+import { PostNotFoundError } from '../../../services/posts/shared/errors.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new DraftService(app.prisma);
@@ -11,36 +11,16 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: GetDrafts,
   }, async (req, res) => {
     assertIsLoggedIn(req);
-
-    try {
-      const drafts = await service.getDrafts(req.user.id, req.query);
-      return res.code(200).send(drafts);
-    } catch (error) {
-      req.log.error(error);
-
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
-    }
+    const drafts = await service.getDrafts(req.user.id, req.query);
+    return res.code(200).send(drafts);
   });
 
   app.post('/', {
     schema: CreateDraft,
   }, async (req, res) => {
     assertIsLoggedIn(req);
-
-    try {
-      const draft = await service.create(req.user.id);
-      return res.code(201).send(draft);
-    } catch (error) {
-      req.log.error(error);
-
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
-    }
+    const draft = await service.create(req.user.id);
+    return res.code(201).send(draft);
   });
 
   app.patch('/:id', {
@@ -59,19 +39,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      if (error instanceof SlugConflictError) {
-        return res.code(409).send({
-          error: 'Conflict',
-          message: 'That url-slug is already in use',
-        });
-      }
-
-      req.log.error(error);
-
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
+      throw error;
     }
   });
 
@@ -91,12 +59,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      req.log.error(error);
-
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
+      throw error;
     }
   });
 
@@ -104,18 +67,8 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: DeleteDraft,
   }, async (req, res) => {
     assertIsLoggedIn(req);
-
-    try {
-      await service.deleteDraft(req.user.id, req.params.id);
-      return res.code(204).send(null);
-    } catch (error) {
-      req.log.error(error);
-
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
-    }
+    await service.deleteDraft(req.user.id, req.params.id);
+    return res.code(204).send(null);
   });
 };
 

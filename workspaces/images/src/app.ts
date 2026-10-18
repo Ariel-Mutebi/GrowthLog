@@ -10,6 +10,7 @@ import { loadEnv } from '@growthlog/env';
 import { prismaPlugin } from './plugins/prisma.js';
 import { minioPlugin } from './plugins/minio.js';
 import { swaggerPlugin } from './plugins/swagger.js';
+import type { InternalServerErrorType } from './typebox/responses.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -54,6 +55,14 @@ export function buildApp() {
     dir: join(__dirname, 'routes'),
     dirNameRoutePrefix: true,
     options: { prefix: 'images/' },
+  });
+
+  app.setErrorHandler((error, req, res) => {
+    req.log.error(error);
+    return res.status(500).send({
+      error: 'InternalServerError',
+      message: 'Something went wrong. Please try again.',
+    } satisfies InternalServerErrorType);
   });
 
   app.ready(() => {

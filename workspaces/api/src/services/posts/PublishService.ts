@@ -1,3 +1,5 @@
+import slugify from 'slugify';
+import { randomInt } from 'node:crypto';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { generateHTML } from '@tiptap/html/server';
@@ -138,7 +140,6 @@ export class PublishService {
         authorId,
       },
       select: {
-        slug: true,
         title: true,
         draftContent: true,
         images: {
@@ -161,11 +162,31 @@ export class PublishService {
     const defaultCover = post.images.find((postImage) => postImage.image.status === 'UPLOADED');
 
     return {
-      slug: post.slug,
+      slug: `${slugify(post.title, { lower: true })}-${randomInt(1000, 10000)}`,
       publishedTitle: post.title,
       publishedHook: extractDefaultHook(json),
       coverImageId: defaultCover ? defaultCover.imageId : null,
       coverImageKey: defaultCover ? defaultCover.image.key : null,
     };
+  }
+
+  public async unpublish(authorId: string, id: string): Promise<void> {
+    try {
+      await this.prisma.post.update({
+        where: {
+          authorId,
+          id,
+        },
+        data: {
+          publishedAt: null,
+        },
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+        return;
+      }
+
+      throw error;
+    }
   }
 }

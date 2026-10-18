@@ -15,6 +15,7 @@ import { swaggerPlugin } from './plugins/swagger.js';
 import { rateLimitPlugin } from './plugins/rate.js';
 import { queuesPlugin } from './plugins/queues.js';
 import type { Config } from './types/config.js';
+import type { InternalServerErrorType } from './typebox/responses.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 type Overrides = Partial<Record<keyof Config, string>>;
@@ -63,6 +64,14 @@ export function buildApp(overrides?: Overrides) {
     dir: join(__dirname, 'routes'),
     dirNameRoutePrefix: true,
     options: { prefix: 'api/' },
+  });
+
+  app.setErrorHandler((error, req, res) => {
+    req.log.error(error);
+    return res.status(500).send({
+      error: 'InternalServerError',
+      message: 'Something went wrong. Please try again.',
+    } satisfies InternalServerErrorType);
   });
 
   app.ready(() => {    

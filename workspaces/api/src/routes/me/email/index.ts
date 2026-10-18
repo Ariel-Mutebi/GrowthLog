@@ -10,17 +10,8 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: RequestSchema,
   }, async (req, res) => {
     assertIsLoggedIn(req);
-
-    try {
-      await service.issueCode(req.user.id);
-      return res.code(204).send(null);
-    } catch (error) {
-      req.log.error(error);
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
-    }
+    await service.issueCode(req.user.id);
+    return res.code(204).send(null);
   });
 
   app.post('/confirm-token', {
@@ -39,11 +30,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      req.log.error(error);
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
+      throw error;
     }
   });
 };

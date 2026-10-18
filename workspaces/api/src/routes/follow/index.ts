@@ -10,29 +10,15 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   app.get('ers/:userId', {
     schema: GetFollowers,
   }, async (req, res) => {
-    try {
-      return res.code(200).send(await service.getFollowers(req.params.userId));
-    } catch (error) {
-      req.log.error(error);
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
-    }
+    const followers = await service.getFollowers(req.params.userId);
+    return res.code(200).send(followers);
   });
 
   app.get('ing/:userId', {
     schema: GetFollowing,
   }, async (req, res) => {
-    try {
-      return res.code(200).send(await service.getFollowing(req.params.userId));
-    } catch (error) {
-      req.log.error(error);
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
-    }
+    const following = await service.getFollowing(req.params.userId);
+    return res.code(200).send(following);
   });
 
   app.put('/:userId', {
@@ -59,11 +45,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      req.log.error(error);
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
+      throw error;
     }
   });
 
@@ -72,17 +54,8 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     preHandler: isLoggedIn,
   }, async (req, res) => {
     assertIsLoggedIn(req);
-
-    try {
-      await service.unfollow(req.user.id, req.params.userId);
-      return res.code(204).send(null);
-    } catch (error) {
-      req.log.error(error);
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });
-    }
+    await service.unfollow(req.user.id, req.params.userId);
+    return res.code(204).send(null);
   });
 };
 

@@ -1,4 +1,4 @@
-import { Type } from '@sinclair/typebox';
+import { Type, type Static } from '@sinclair/typebox';
 
 export const BadRequest = Type.Object({
   error: Type.Literal('BadRequest'),
@@ -39,3 +39,5 @@ export const TooEarly = Type.Object({
   error: Type.Literal('TooEarly'),
   message: Type.String(),
 });
+
+export type InternalServerErrorType = Static<typeof InternalServerError>;

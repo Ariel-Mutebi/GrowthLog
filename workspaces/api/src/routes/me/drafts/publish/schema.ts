@@ -14,14 +14,16 @@ import type { PrePublishDefaults, PublishSnapshot } from '../../../../services/p
 
 const tags = ['Me', 'Drafts', 'Publish'];
 
+const params = Type.Object({
+  id: Type.String(),
+});
+
 export const PublishDraft = {
   summary: 'Publish draft',
   description: 'Make your draft publicly discoverable',
   security,
   tags,
-  params: Type.Object({
-    id: Type.String(),
-  }),
+  params,
   body: Type.Object({
     slug: Type.String(),
     publishedTitle: Type.String(),
@@ -43,9 +45,7 @@ export const Prepublish = {
   description: 'Get reasonable defaults for publish data to reduce user friction',
   security,
   tags,
-  params: Type.Object({
-    id: Type.String(),
-  }),
+  params,
   response: {
     200: Type.Object({
       slug: Type.String(),
@@ -55,6 +55,18 @@ export const Prepublish = {
       coverImageKey: Type.Union([Type.String(), Type.Null()]),
     } satisfies TypeBoxModel<PrePublishDefaults>),
     404: NotFound,
+    ...meErrorResponses,
+  },
+} satisfies FastifySchema;
+
+export const Unpublish = {
+  summary: 'Unpublish',
+  description: 'Make a published accessible only to its editors again',
+  security,
+  tags,
+  params,
+  response: {
+    204: Type.Null(),
     ...meErrorResponses,
   },
 } satisfies FastifySchema;

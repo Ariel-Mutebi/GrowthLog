@@ -1,5 +1,4 @@
 import { randomInt } from 'node:crypto';
-import slugify from 'slugify';
 import { PrismaClientKnownRequestError } from '@growthlog/db';
 import { PostNotFoundError } from './shared/errors.js';
 import type { PostWhereInput, PrismaClient } from '@growthlog/db';
@@ -44,7 +43,7 @@ export class DraftService {
     });
   }
 
-  async update(authorId: string, postId: string, newTitle: string): Promise<DraftMetadata> {
+  async update(authorId: string, postId: string, title: string): Promise<DraftMetadata> {
     try {
       return await this.prisma.post.update({
         where: {
@@ -53,17 +52,12 @@ export class DraftService {
           deletedAt: null,
         },
         data: {
-          title: newTitle,
-          slug: `${slugify(newTitle, { lower: true })}-${randomInt(1000, 10000)}`,
+          title,
         },
       });
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
         throw new PostNotFoundError();
-      }
-
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-        return this.update(authorId, postId, newTitle);
       }
 
       throw error;
