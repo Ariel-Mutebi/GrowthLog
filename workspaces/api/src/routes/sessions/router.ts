@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { isLoggedIn, localStrategy } from '../../auth/preHandler.js';
+import { isLoggedIn, localStrategy } from '@/auth/preHandler.js';
 import { CreateSessionSchema, DeleteSessionSchema } from './schema.js';
 
 /*

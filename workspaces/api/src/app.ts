@@ -64,6 +64,7 @@ export function buildApp(overrides?: Overrides) {
     dir: join(__dirname, 'routes'),
     dirNameRoutePrefix: true,
     options: { prefix: 'api/' },
+    routeParams: true,
   });
 
   app.setErrorHandler((error, req, res) => {

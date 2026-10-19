@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { Handoff } from './schema.js';
-import { assertIsLoggedIn } from '../../../auth/preHandler.js';
+import { assertIsLoggedIn } from '@/auth/preHandler.js';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {

@@ -16,7 +16,7 @@ if (!user) {
 const postId = Astro.params.postId!;
 const cookie = Astro.request.headers.get("cookie");
 
-const { data: prepublish } = await createApiClient(cookie).GET("/api/me/drafts/publish/{id}", {
+const { data: prepublish } = await createApiClient(cookie).GET("/api/me/drafts/{id}/publish", {
   params: {
     path: {
       id: postId,
@@ -41,6 +41,7 @@ if (!prepublish) {
         Publish
       </h1>
       <Publish
+        {postId}
         initial={prepublish}
         mockUrlBase={`https://growthlog.com/@${user.username}/`}
         client:load

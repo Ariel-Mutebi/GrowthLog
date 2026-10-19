@@ -1,8 +1,11 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { assertIsLoggedIn, isLoggedIn } from '../../auth/preHandler.js';
+import { assertIsLoggedIn, isLoggedIn } from '@/auth/preHandler.js';
 import { Follow, Unfollow, GetFollowers, GetFollowing } from './schema.js';
-import { FollowerService, SelfFollowError, FollowTargetNotFoundError } from '../../services/users/FollowerService.js';
-
+import {
+  FollowerService,
+  SelfFollowError,
+  FollowTargetNotFoundError,
+} from '@/services/users/FollowerService.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new FollowerService(app.prisma);

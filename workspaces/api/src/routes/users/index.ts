@@ -1,13 +1,13 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { Register, GetUser, UserSearch } from './schema.js';
-import { RegistrationService } from '../../services/users/RegistrationService.js';
-import { DiscoveryService } from '../../services/users/DiscoveryService.js';
+import { RegistrationService } from '@/services/users/RegistrationService.js';
+import { DiscoveryService } from '@/services/users/DiscoveryService.js';
 import {
   WeakPasswordError,
   UsernameConflictError,
   EmailConflictError,
   UserNotFoundError,
-} from '../../services/users/shared/errors.js';
+} from '@/services/users/shared/errors.js';
 
 const REGISTRATION_WINDOW_SECONDS = 24 * 3600;
 

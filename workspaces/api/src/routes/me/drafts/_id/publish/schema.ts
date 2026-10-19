@@ -5,12 +5,12 @@ import {
   NotFound,
   Unauthorized,
   UnprocessableEntity,
-} from '../../../../typebox/responses.js';
-import { security } from '../../../../typebox/constants.js';
+} from '@/typebox/responses.js';
+import { security } from '@/typebox/constants.js';
 
 import type { FastifySchema } from 'fastify';
-import type { TypeBoxModel } from '../../../../typebox/mapping.js';
-import type { PrePublishDefaults, PublishSnapshot } from '../../../../services/posts/PublishService.js';
+import type { TypeBoxModel } from '@/typebox/mapping.js';
+import type { PrePublishDefaults, PublishSnapshot } from '@/services/posts/PublishService.js';
 
 const tags = ['Me', 'Drafts', 'Publish'];
 

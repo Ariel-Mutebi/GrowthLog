@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { assertIsLoggedIn } from '../../../../auth/preHandler.js';
-import { PublishService } from '../../../../services/posts/PublishService.js';
+import { assertIsLoggedIn } from '@/auth/preHandler.js';
+import { PublishService } from '@/services/posts/PublishService.js';
 import {
   EmptyPostError,
   InvalidCoverImageError,
@@ -8,7 +8,7 @@ import {
   PostNotFoundError,
   SlugConflictError,
   TitleRequiredError,
-} from '../../../../services/posts/shared/errors.js';
+} from '@/services/posts/shared/errors.js';
 import { PublishDraft, Prepublish, Unpublish } from './schema.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
@@ -19,7 +19,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     app.config.PUBLIC_IMAGE_BUCKET,
   );
 
-  app.get('/:id', {
+  app.get('/', {
     schema: Prepublish,
   }, async (req, res) => {
     assertIsLoggedIn(req);
@@ -39,7 +39,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.post('/:id', {
+  app.post('/', {
     schema: PublishDraft,
   }, async (req, res) => {
     assertIsLoggedIn(req);
@@ -87,7 +87,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     }
   });
 
-  app.delete('/:id', {
+  app.delete('/', {
     schema: Unpublish,
   }, async (req, res) => {
     assertIsLoggedIn(req);

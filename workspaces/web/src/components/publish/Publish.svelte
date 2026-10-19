@@ -42,7 +42,7 @@
         coverImageId = initial.coverImageKey!;
       }
 
-      return await apiClient.POST('/api/me/drafts/publish/{id}', {
+      return await apiClient.POST('/api/me/drafts/{id}/publish', {
         params: {
           path: {
             id: postId,

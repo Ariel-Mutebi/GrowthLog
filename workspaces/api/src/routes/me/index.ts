@@ -1,8 +1,8 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { assertIsLoggedIn } from '../../auth/preHandler.js';
-import { PersonalService } from '../../services/users/PersonalService.js';
+import { assertIsLoggedIn } from '@/auth/preHandler.js';
+import { PersonalService } from '@/services/users/PersonalService.js';
 import { DeleteSelf, GetSelf, UpdateSelf } from './schema.js';
-import { ForbiddenError, UserConflictError, WeakPasswordError } from '../../services/users/shared/errors.js';
+import { ForbiddenError, UserConflictError, WeakPasswordError } from '@/services/users/shared/errors.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new PersonalService(app.prisma);

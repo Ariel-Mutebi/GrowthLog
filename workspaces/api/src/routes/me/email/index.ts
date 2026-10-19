@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { assertIsLoggedIn } from '../../../auth/preHandler.js';
+import { assertIsLoggedIn } from '@/auth/preHandler.js';
 import { ConfirmSchema, RequestSchema } from './schema.js';
-import { EmailVerificationService, InvalidCode } from '../../../services/EmailVerificationService.js';
+import { EmailVerificationService, InvalidCode } from '@/services/EmailVerificationService.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new EmailVerificationService(app.prisma, app.emailer);
