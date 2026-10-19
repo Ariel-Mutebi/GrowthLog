@@ -1,6 +1,6 @@
 import type { FastifySchema } from 'fastify';
 import { Type } from '@sinclair/typebox';
-import { PersonalFields } from '../../typebox/users.js';
+import { PersonalObject } from '../../typebox/users.js';
 import { meErrorResponses } from '../../typebox/responses.js';
 
 export const CreateSessionSchema = {
@@ -12,7 +12,7 @@ export const CreateSessionSchema = {
     password: Type.String(),
   }),
   response: {
-    200: PersonalFields,
+    200: PersonalObject,
     ...meErrorResponses,
   },
 } satisfies FastifySchema;

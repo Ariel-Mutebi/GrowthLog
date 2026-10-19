@@ -8,7 +8,7 @@ import {
   generalErrorResponses,
 } from '../../typebox/responses.js';
 import { NameInput, Username } from '../../typebox/inputs.js';
-import { EditableFields, PersonalFields, PublicUserObject } from '../../typebox/users.js';
+import { EditableFields, PersonalObject, PublicUserObject } from '../../typebox/users.js';
 
 export const Register = {
   summary: 'Register',
@@ -16,7 +16,7 @@ export const Register = {
   tags: ['Users'],
   body: EditableFields,
   response: {
-    201: PersonalFields,
+    201: PersonalObject,
     400: BadRequest,
     409: Conflict,
     ...generalErrorResponses,

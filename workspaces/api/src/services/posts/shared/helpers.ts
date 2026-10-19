@@ -3,6 +3,8 @@ import type { JSONContent } from '@tiptap/core';
 import { TiptapTransformer } from '@hocuspocus/transformer';
 import { InvalidImageError, EmptyPostError } from './errors.js';
 
+const WORDS_PER_MINUTE = 238;
+
 export function yDocToJson(content: Uint8Array | null): JSONContent {
   if (!content) return {};
   const ydoc = new Y.Doc();
@@ -39,7 +41,7 @@ export function assertPublishable(doc: JSONContent, srcPrefix: string) {
 function textOf(node: JSONContent): string {
   if (node.type === 'text') return node.text ?? '';
   if (node.type === 'hardBreak') return ' ';
-  return node.content?.map(textOf).join('') ?? '';
+  return node.content?.map(textOf).join(' ') ?? '';
 }
 
 /**
@@ -54,4 +56,9 @@ export function extractDefaultHook(doc: JSONContent, maxLength = 120): string {
 
   const cut = text.lastIndexOf(' ', maxLength);
   return text.slice(0, cut).trimEnd() + '…';
+}
+
+export function readingTimeMinutes(doc: JSONContent): number {
+  const words = textOf(doc).trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / WORDS_PER_MINUTE));
 }

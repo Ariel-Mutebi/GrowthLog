@@ -11,7 +11,7 @@ import {
   EmptyPostError,
   InvalidCoverImageError,
 } from './shared/errors.js';
-import { yDocToJson, assertPublishable, extractDefaultHook } from './shared/helpers.js';
+import { yDocToJson, assertPublishable, extractDefaultHook, readingTimeMinutes } from './shared/helpers.js';
 
 import type { Extensions } from '@tiptap/core';
 import type { Cleaner } from '@growthlog/jobs';
@@ -80,19 +80,27 @@ export class PublishService {
       throw new EmptyPostError();
     }
 
+    await this.assertCoverImageValid(postId, snapshot.coverImageId);
+
     const json = yDocToJson(post.draftContent);
     assertPublishable(json, `${this.srcPrefix}/${postId}`);
 
     const publishedHtml = generateHTML(json, this.extensions);
-    const publishedPost = this.publishPost(postId, publishedHtml, snapshot);
+    const readingTime = readingTimeMinutes(json);
+    const publishedPost = this.publishPost({ postId, publishedHtml, readingTime, snapshot });
 
     await this.cleaner.purgeUnusedImages({ postId });
     return publishedPost;
   }
 
-  private async publishPost(postId: string, publishedHtml: string, snapshot: PublishSnapshot) {
+  private async publishPost(params: {
+    postId: string;
+    publishedHtml: string;
+    readingTime: number;
+    snapshot: PublishSnapshot;
+  }) {
+    const { postId, publishedHtml, readingTime, snapshot } = params;
     const { slug, publishedTitle, coverImageId, publishedHook } = snapshot;
-    await this.assertCoverImageValid(postId, coverImageId);
 
     try {
       await this.prisma.post.update({
@@ -106,6 +114,7 @@ export class PublishService {
           publishedTitle,
           publishedHook,
           coverImageId,
+          readingTime,
           publishedAt: new Date(),
         },
       });
@@ -170,7 +179,7 @@ export class PublishService {
     };
   }
 
-  public async unpublish(authorId: string, id: string): Promise<void> {
+  public async unpublish(authorId: string, id: string) {
     try {
       await this.prisma.post.update({
         where: {

@@ -50,20 +50,21 @@ model Follow {
 }
 
 model Post {
-  id             String    @id @default(cuid())
-  authorId       String
-  title          String
+  id           String    @id @default(cuid())
+  authorId     String
+  title        String
+  draftContent Bytes?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
   slug           String    @unique
   coverImageId   String?   @unique
-  draftContent   Bytes?
-  publishedSlug  String?   @unique
   publishedTitle String?
   publishedHook  String?
   publishedHtml  String?
   publishedAt    DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  deletedAt      DateTime?
+  readingTime    Int?
 
   author   User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   tags     Tag[]
@@ -93,19 +94,28 @@ model Like {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   postId    String
   authorId  String
   text      String
-  createdAt DateTime @default(now())
+  parentId  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author  User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("Replies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("Replies")
+
+  @@index([postId, parentId, createdAt])
+  @@index([parentId, createdAt])
 }
 
 enum ViewType {
-  GLANCE
-  COMPLETE_READ
+  SAW
+  OPENED
+  READ
 }
 
 model View {

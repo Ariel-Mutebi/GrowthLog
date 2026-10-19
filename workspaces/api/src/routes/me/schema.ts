@@ -1,7 +1,7 @@
 import type { FastifySchema } from 'fastify';
 import { Type } from '@sinclair/typebox';
 import { security } from '../../typebox/constants.js';
-import { PersonalFields } from '../../typebox/users.js';
+import { PersonalObject } from '../../typebox/users.js';
 import { EditableFields, IdentityObject } from '../../typebox/users.js';
 import { BadRequest, Conflict, Forbidden, meErrorResponses } from '../../typebox/responses.js';
 
@@ -13,7 +13,7 @@ export const GetSelf = {
   security,
   tags,
   response: {
-    200: PersonalFields,
+    200: PersonalObject,
     ...meErrorResponses,
   },
 } satisfies FastifySchema;
@@ -28,7 +28,7 @@ export const UpdateSelf = {
     Type.Partial(EditableFields),
   ], { additionalProperties: false }),
   response: {
-    200: PersonalFields,
+    200: PersonalObject,
     400: BadRequest,
     403: Forbidden,
     409: Conflict,

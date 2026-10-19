@@ -29,7 +29,7 @@ export const PublicUserObject = Type.Object({
   avatarKey: Type.Union([Type.String(), Type.Null()]),
 } satisfies TypeBoxModel<PublicUser>);
 
-export const PersonalFields = Type.Object({
+export const PersonalObject = Type.Object({
   id: Type.String(),
   forename: Type.String(),
   surname: Type.String(),
