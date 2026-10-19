@@ -19,6 +19,7 @@ import type { PrismaClient } from '@growthlog/db';
 
 export interface PublishSnapshot {
   slug: string;
+  tags: string[];
   coverImageId: string;
   publishedTitle: string;
   publishedHook: string;
@@ -100,7 +101,7 @@ export class PublishService {
     snapshot: PublishSnapshot;
   }) {
     const { postId, publishedHtml, readingTime, snapshot } = params;
-    const { slug, publishedTitle, coverImageId, publishedHook } = snapshot;
+    const { slug, publishedTitle, coverImageId, publishedHook, tags } = snapshot;
 
     try {
       await this.prisma.post.update({
@@ -116,6 +117,12 @@ export class PublishService {
           coverImageId,
           readingTime,
           publishedAt: new Date(),
+          tags: {
+            connectOrCreate: tags.map((name) => ({
+              where: { name },
+              create: { name },
+            })),
+          },
         },
       });
     } catch (error) {

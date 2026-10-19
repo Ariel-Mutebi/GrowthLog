@@ -29,6 +29,7 @@ export const PublishDraft = {
     publishedTitle: Type.String(),
     publishedHook: Type.String(),
     coverImageId: Type.String(),
+    tags: Type.Array(Type.String()),
   } satisfies TypeBoxModel<PublishSnapshot>),
   response: {
     204: Type.Null(),
