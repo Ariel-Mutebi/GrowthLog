@@ -1,5 +1,10 @@
 import { Type } from '@sinclair/typebox';
 
+export const TagInput = Type.String({
+  pattern: '^[a-z0-9]+$',
+  minLength: 1,
+  maxLength: 25,
+});
 export const NameInput = Type.String({
   pattern: '^[A-Za-z]+$',
   minLength: 2,

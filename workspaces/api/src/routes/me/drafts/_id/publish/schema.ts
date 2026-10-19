@@ -1,9 +1,9 @@
 import { Type } from '@sinclair/typebox';
+import { TagInput } from '@/typebox/inputs.js';
 import {
   Conflict,
   meErrorResponses,
   NotFound,
-  Unauthorized,
   UnprocessableEntity,
 } from '@/typebox/responses.js';
 import { security } from '@/typebox/constants.js';
@@ -29,12 +29,10 @@ export const PublishDraft = {
     publishedTitle: Type.String(),
     publishedHook: Type.String(),
     coverImageId: Type.String(),
-    tags: Type.Array(Type.String()),
+    tags: Type.Array(TagInput),
   } satisfies TypeBoxModel<PublishSnapshot>),
   response: {
     204: Type.Null(),
-    400: NotFound,
-    404: Unauthorized,
     409: Conflict,
     422: UnprocessableEntity,
     ...meErrorResponses,
