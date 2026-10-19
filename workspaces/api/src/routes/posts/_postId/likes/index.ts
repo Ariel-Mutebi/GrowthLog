@@ -12,7 +12,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: LikePost,
   }, async (req, res) => {
     assertIsLoggedIn(req);
-    await service.like(req.params.id, req.user.id);
+    await service.like(req.params.postId, req.user.id);
     return res.code(204).send(null);
   });
 
@@ -20,7 +20,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: UnlikePost,
   }, async (req, res) => {
     assertIsLoggedIn(req);
-    await service.unlike(req.params.id, req.user.id);
+    await service.unlike(req.params.postId, req.user.id);
     return res.code(204).send(null);
   });
 };

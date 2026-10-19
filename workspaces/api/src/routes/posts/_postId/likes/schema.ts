@@ -9,7 +9,7 @@ const schema = {
   security,
   tags,
   params: Type.Object({
-    id: Type.String(),
+    postId: Type.String(),
   }),
   response: {
     204: Type.Null(),

@@ -2,7 +2,7 @@
 import { commentSelect, toComment } from './selectors.js';
 import type { PrismaClient } from '@growthlog/db';
 import type { Comment } from './interfaces.js';
-import { ReplyTargetNotFound } from './errors.js';
+import { ReplyTargetNotFound, ForbiddenError } from './errors.js';
 
 interface CommentData {
   text: string;
@@ -53,7 +53,7 @@ export class CommentService {
     return toComment(row);
   }
 
-  public async listComments(postId: string, cursor?: string, take = 10): Promise<Comment[]> {
+  public async getComments(postId: string, cursor?: string, take = 10): Promise<Comment[]> {
     const rows = await this.prisma.comment.findMany({
       where: {
         postId,
@@ -73,7 +73,7 @@ export class CommentService {
     return rows.map(toComment);
   }
 
-  public async listReplies(parentId: string, cursor?: string, take = 10): Promise<Comment[]> {
+  public async getReplies(parentId: string, cursor?: string, take = 10): Promise<Comment[]> {
     const rows = await this.prisma.comment.findMany({
       where: {
         parentId,
@@ -89,16 +89,49 @@ export class CommentService {
   }
 
   public async like(commentId: string, userId: string) {
-    await this.prisma.commentLike.create({
-      data: {
+    await this.prisma.commentLike.upsert({
+      where: {
+        userId_commentId: {
+          userId,
+          commentId,
+        },
+      },
+      create: {
+        commentId,
+        userId,
+      },
+      update: {},
+    });
+  }
+
+  public async unlike(commentId: string, userId: string) {
+    await this.prisma.commentLike.deleteMany({
+      where: {
         commentId,
         userId,
       },
     });
   }
 
+  public async edit(id: string, commenterId: string, text: string): Promise<Comment> {
+    await this.assertIsOriginalCommenter(id, commenterId);
+
+    const edited = await this.prisma.comment.update({
+      where: {
+        id,
+        commenterId,
+      },
+      data: { text },
+      select: commentSelect,
+    });
+
+    return toComment(edited);
+  }
+
   public async delete(id: string, commenterId: string) {
-    await this.prisma.comment.updateMany({
+    await this.assertIsOriginalCommenter(id, commenterId);
+
+    await this.prisma.comment.update({
       where: {
         id,
         commenterId,
@@ -108,5 +141,15 @@ export class CommentService {
         text: '',
       },
     });
+  }
+
+  private async assertIsOriginalCommenter(id: string, commenterId: string) {
+    const comment = await this.prisma.comment.findFirst({
+      where: { id },
+      select: { commenterId: true },
+    });
+
+    if (!comment) return;
+    if (comment.commenterId !== commenterId) throw new ForbiddenError();
   }
 }
