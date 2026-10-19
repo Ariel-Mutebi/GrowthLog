@@ -7,6 +7,7 @@ import type { TypeBoxModel } from '@/typebox/mapping.js';
 import type { ReadingView } from '@/services/posts/ReadService.js';
 
 const Read = Type.Object({
+  id: Type.String(),
   author: PublicUserObject,
   title: Type.String(),
   likes: Type.Number(),

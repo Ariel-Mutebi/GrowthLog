@@ -6,11 +6,11 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new ReadService(app.prisma);
 
-  app.get('/', {
+  app.get('/:slug', {
     schema: ReadPost,
   }, async (req, res) => {
     try {
-      const data = await service.readPost(req.params.slug, req.user?.id);
+      const data = await service.read(req.params.slug, req.user?.id);
       return res.status(200).send(data);
     } catch (error) {
       if (error instanceof PostNotFoundError) {

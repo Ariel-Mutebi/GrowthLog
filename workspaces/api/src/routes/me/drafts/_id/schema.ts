@@ -10,7 +10,7 @@ import { security } from '@/typebox/constants.js';
 import type { FastifySchema } from 'fastify';
 import { DraftMetadataObject } from '../schema.js';
 
-const tags = ['Me', 'Draft'];
+const tags = ['Me', 'Drafts'];
 
 export const UpdateDraft = {
   summary: 'Update draft',

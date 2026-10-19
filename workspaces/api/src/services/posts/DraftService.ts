@@ -95,23 +95,15 @@ export class DraftService {
   }
 
   async deleteDraft(authorId: string, postId: string): Promise<void> {
-    try {
-      await this.prisma.post.update({
-        where: {
-          authorId,
-          id: postId,
-          deletedAt: null,
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-        select: metadataSelector,
-      });
-    } catch (error) {
-      if (error  instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        return;
-      }
-      throw error;
-    }
+    await this.prisma.post.updateMany({
+      where: {
+        authorId,
+        id: postId,
+        deletedAt: null,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
   }
 }

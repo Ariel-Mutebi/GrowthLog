@@ -6,6 +6,7 @@ import type { PrismaClient } from '@growthlog/db';
 import type { PublicUser } from '../users/shared/interfaces.js';
 
 export interface ReadingView {
+  id: string;
   title: string;
   author: PublicUser;
   likes: number;
@@ -16,7 +17,7 @@ export interface ReadingView {
 export class ReadService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  public async readPost(slug: string, userId?: string): Promise<ReadingView> {
+  public async read(slug: string, userId?: string): Promise<ReadingView> {
     const post = await this.prisma.post.findFirst({
       where: {
         slug,
@@ -50,6 +51,7 @@ export class ReadService {
     }
 
     return {
+      id: post.id,
       author: flattenAvatarKey(post.author),
       title: post.publishedTitle!,
       publishedHtml: post.publishedHtml!,
