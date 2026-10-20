@@ -20,6 +20,7 @@ const coverFile = z
 export const createPublishSchema = (hasExistingCover: boolean) =>
   z.object({
     slug: z.string().min(1),
+    tags: z.array(z.string().min(1)),
     publishedTitle: z.string().min(1),
     publishedHook: z.string().max(120),
     coverImage: hasExistingCover ? coverFile.optional() : coverFile,

@@ -32,7 +32,7 @@
       publishedTitle: initial.publishedTitle,
       publishedHook: initial.publishedHook,
     },
-    onSubmit: async ({ slug, publishedTitle, publishedHook, coverImage }) => {
+    onSubmit: async ({ slug, tags, publishedTitle, publishedHook, coverImage }) => {
       let coverImageId: string;
 
       if (coverImage) {
@@ -50,6 +50,7 @@
         },
         body: {
           slug,
+          tags,
           publishedTitle,
           publishedHook,
           coverImageId,
