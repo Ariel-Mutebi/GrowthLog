@@ -13,7 +13,7 @@
   const saveTitle = debounce(async (value: string) => {
     if (value.length === 0) return;
 
-    const { data: updated, error } = await apiClient.PATCH('/api/posts/{id}', {
+    const { data: updated, error } = await apiClient.PATCH('/api/me/drafts/{id}', {
       params: { path: { id } },
       body: { title: value },
     });
@@ -23,7 +23,6 @@
     }
 
     document.title = `Editing ${updated.title} | GrowthLog`;
-    window.history.replaceState(null, '', '/edit/' + updated.slug);
   }, 10000);
 </script>
 

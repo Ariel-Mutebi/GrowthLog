@@ -10,6 +10,7 @@
 <Popover.Root bind:open>
   <Popover.Trigger>
     <button
+      title="Filters"
       aria-pressed={open}
       aria-label="Open filters"
       class="p-2 rounded-full aria-pressed:bg-stone-200 aria-pressed:dark:bg-stone-800"

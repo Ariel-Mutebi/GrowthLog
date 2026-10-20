@@ -42,7 +42,7 @@
         coverImageId = initial.coverImageKey!;
       }
 
-      return await apiClient.POST('/api/me/drafts/{id}/publish', {
+      await apiClient.POST('/api/me/drafts/{id}/publish', {
         params: {
           path: {
             id: postId,
@@ -55,8 +55,9 @@
           coverImageId,
         },
       });
+
+      navigate(`/${slug}/read`);
     },
-    onSuccess: () => navigate(`${postId}/read`),
     onError: toastError,
   });
 </script>
