@@ -8,7 +8,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   app.get('/', {
     schema: TagSearch,
   }, async (req, res) => {
-    const result = await service.searchTags(req.body.search);
+    const result = await service.searchTags(req.query.search);
     return res.status(200).send(result);
   });
 };

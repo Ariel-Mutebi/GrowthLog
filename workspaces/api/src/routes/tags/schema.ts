@@ -16,7 +16,7 @@ export const TagSearch = {
   summary: 'Tag search',
   description: 'Get the tags which match the search string, with their number of posts',
   tags: ['Tags'],
-  body: Type.Object({
+  querystring: Type.Object({
     search: TagInput,
   }),
   response: {
