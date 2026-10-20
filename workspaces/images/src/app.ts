@@ -17,7 +17,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export function buildApp() {
   const app = Fastify({
     logger: {
-      level: 'warn',
+      level: 'info',
     },
     trustProxy: true,
     routerOptions: {

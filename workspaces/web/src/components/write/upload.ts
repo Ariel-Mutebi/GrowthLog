@@ -6,7 +6,7 @@ export async function uploadPostImage(postId: string, file: File) {
   const {
     data: handoff,
     error: handoffError,
-  } = await apiClient.GET('/api/jwt');
+  } = await apiClient.GET('/api/me/jwt');
 
   if (!handoff && handoffError) {
     throw new HTTPError(handoffError);

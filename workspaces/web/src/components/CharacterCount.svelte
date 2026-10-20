@@ -7,7 +7,7 @@
   const { current, maximum }: Props = $props();
 </script>
 
-<p class="text-stone-400 text-sm md:text-base font-mono">
+<p class="text-stone-500 text-sm md:text-base font-mono">
   {current}/{maximum}
   <span class="hidden md:inline">characters</span>
 </p>

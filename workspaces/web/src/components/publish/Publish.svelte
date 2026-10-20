@@ -15,6 +15,7 @@
   import Textarea from '../Textarea.svelte';
   import CoverImagePicker from './CoverImagePicker.svelte';
   import TextareaLimited from '../TextareaLimited.svelte';
+  import Tags from './Tags.svelte';
   import Submit from '../Submit.svelte';
 
   interface Props {
@@ -25,10 +26,11 @@
 
   const { postId, initial, mockUrlBase }: Props = $props();
 
-  const { form, data, errors, isSubmitting } = createForm<PublishFormData>({
+  const { form, data, errors, isSubmitting, setFields } = createForm<PublishFormData>({
     extend: validator({ schema: createPublishSchema(Boolean(initial.coverImageId)) }),
     initialValues: {
       slug: initial.slug,
+      tags: [],
       publishedTitle: initial.publishedTitle,
       publishedHook: initial.publishedHook,
     },
@@ -57,9 +59,15 @@
         },
       });
 
-      navigate(`/${slug}/read`);
+      navigate(`/${slug}`);
     },
     onError: toastError,
+  });
+
+  let selectedTags = $state<string[]>([]);
+
+  $effect(() => {
+    setFields('tags', [...selectedTags]);
   });
 </script>
 
@@ -89,6 +97,7 @@
         maximum={120}
         errors={$errors.publishedHook}
       />
+      <Tags bind:value={selectedTags} />
       <Submit
         text="Publish"
         isSubmitting={$isSubmitting}

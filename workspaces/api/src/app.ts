@@ -23,7 +23,7 @@ type Overrides = Partial<Record<keyof Config, string>>;
 export function buildApp(overrides?: Overrides) {
   const app = Fastify({
     logger: {
-      level: 'warn',
+      level: 'info',
     },
     trustProxy: true,
     routerOptions: {

@@ -1,11 +1,16 @@
 import type { HTMLInputAttributes } from 'svelte/elements';
 
+export type TagSuggestion = {
+	name: string;
+	postCount: number;
+}
+
 export type TagsInputPropsWithoutHTML = {
 	value?: string[];
 	validate?: (val: string, tags: string[]) => string | undefined;
 	onValueChange?: (value: string[]) => void;
-	suggestions?: string[];
-	filterSuggestions?: (inputValue: string, suggestions: string[]) => string[];
+	suggestions?: TagSuggestion[];
+	filterSuggestions?: (inputValue: string, suggestions: TagSuggestion[]) => TagSuggestion[];
 	restrictToSuggestions?: boolean;
 };
 

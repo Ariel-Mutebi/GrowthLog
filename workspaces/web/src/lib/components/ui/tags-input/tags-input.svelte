@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn } from '$lib/utils.js';
-	import type { TagsInputProps } from './types';
+	import type { TagsInputProps, TagSuggestion } from './types';
 	import TagsInputTag from './tags-input-tag.svelte';
 	import TagsInputSuggestion from './tags-input-suggestion.svelte';
 	import { untrack } from 'svelte';
@@ -22,7 +22,7 @@
 		suggestions
 	) => {
 		const lower = inputValue.toLowerCase();
-		return suggestions.filter((s) => s.toLowerCase().includes(lower));
+		return suggestions.filter((s) => s.name.toLowerCase().includes(lower));
 	};
 
 	let {
@@ -57,7 +57,7 @@
 	const filteredSuggestions = $derived.by(() => {
 		if (!suggestions) return [];
 
-		const available = suggestions.filter((s) => !value.includes(s));
+		const available = suggestions.filter((s) => !value.includes(s.name));
 
 		if (inputValue.length === 0) return available;
 
@@ -88,8 +88,8 @@
 		});
 	});
 
-	const selectSuggestion = (val: string) => {
-		const validated = validate(val, value);
+	const selectSuggestion = (val: TagSuggestion) => {
+		const validated = validate(val.name, value);
 
 		if (!validated) return;
 
@@ -108,7 +108,7 @@
 		}
 
 		if (restrictToSuggestions && suggestions) {
-			const match = suggestions.find((s) => s.toLowerCase() === inputValue.trim().toLowerCase());
+			const match = suggestions.find((s) => s.name.toLowerCase() === inputValue.trim().toLowerCase());
 
 			if (!match) {
 				invalid = true;
@@ -314,7 +314,7 @@
 
 <div
 	class={cn(
-		'border-input bg-background selection:bg-primary dark:bg-input/30 relative flex min-h-[36px] w-full flex-wrap place-items-center gap-1 rounded-md border py-0.5 pr-1 pl-1 disabled:opacity-50 aria-disabled:cursor-not-allowed',
+		'border-input bg-background selection:bg-primary dark:bg-input/30 relative flex min-h-9 w-full flex-wrap place-items-center gap-1 rounded-md border py-0.5 pr-1 pl-1 disabled:opacity-50 aria-disabled:cursor-not-allowed',
 		className
 	)}
 	aria-disabled={disabled}
@@ -349,12 +349,13 @@
 			role="listbox"
 			class="bg-popover text-popover-foreground absolute top-full right-0 left-0 z-50 mt-1 max-h-50 overflow-y-auto rounded-md border p-1 shadow-md"
 		>
-			{#each filteredSuggestions as suggestion, i (suggestion)}
+			{#each filteredSuggestions as suggestion, i (suggestion.name)}
 				<TagsInputSuggestion
 					id="{listboxId}-{i}"
-					value={suggestion}
+					value={suggestion.name}
+					postCount={suggestion.postCount}
 					active={i === suggestionIndex}
-					onSelect={selectSuggestion}
+					onSelect={() => selectSuggestion(suggestion)}
 				/>
 			{/each}
 		</div>
