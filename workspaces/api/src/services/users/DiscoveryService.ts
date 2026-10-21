@@ -1,4 +1,5 @@
 import { PrismaClientKnownRequestError } from '@growthlog/db';
+import { escapeLike } from '@/utils/sanitize.js';
 import { UserNotFoundError } from './shared/errors.js';
 import { publicSelect } from './shared/selectors.js';
 import { flattenAvatarKey } from './shared/helpers.js';
@@ -38,7 +39,7 @@ export class DiscoveryService {
     const filters: UserWhereInput[] = [];
 
     if (name) {
-      const terms = name.trim().split(/\s+/);
+      const terms = name.trim().split(/\s+/).map(escapeLike);
       filters.push(
         ...terms.map((term) => ({
           OR: [
@@ -74,21 +75,35 @@ export class DiscoveryService {
         deletedAt: null,
         AND: filters,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
     };
 
     if (cursor) {
-      findManyArgs.cursor = { id: cursor };
-      findManyArgs.skip = 1;
+      const cursorUser = await this.prisma.user.findUnique({
+        where: { id: cursor },
+        select: { id: true, createdAt: true },
+      });
+
+      if (!cursorUser) throw new UserNotFoundError();
+
+      findManyArgs.where = {
+        ...findManyArgs.where,
+        OR: [
+          { createdAt: { lt: cursorUser.createdAt } },
+          {
+            createdAt: cursorUser.createdAt,
+            id: { lt: cursorUser.id },
+          },
+        ],
+      };
     }
 
     const rows = await this.prisma.user.findMany({
       ...findManyArgs,
       select: publicSelect,
     });
+
     const flat = rows.map(user => flattenAvatarKey(user));
     const users = flat.length > limit ? flat.slice(0, limit): flat;
 

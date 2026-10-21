@@ -47,6 +47,7 @@ export class PersonalService {
         },
         data: {
           ...updates,
+          ...(updates.email ? { email: updates.email.toLocaleLowerCase() } : {}),
           ...(updates.email ? { emailVerifiedAt: null } : {}),
           ...(updates.password ? { sessionsRevokedAt: new Date() } : {}),
         },

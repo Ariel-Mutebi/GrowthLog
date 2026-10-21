@@ -26,17 +26,19 @@ export class RegistrationService {
   }
 
   private async createUser(fields: Editable): Promise<Personal>  {
-    const { username, forename, surname, ...rest } = fields;
+    const { username, forename, surname, bio, email, password } = fields;
 
     try {
       const user = await this.prisma.user.create({
         data: {
-          ...rest,
           forename,
           surname,
+          password,
+          email: email.toLocaleLowerCase(),
           username:
             username ||
-            `${slugify(`${forename} ${surname}`, { lower: true })}-${randomInt(1000, 10000)}`,
+            `${slugify(`${forename} ${surname}`, { lower: true, strict: true })}-${randomInt(1000, 10000)}`,
+          ...(bio ? { bio } : {}),
         },
         select: personalSelect,
       });

@@ -33,6 +33,7 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<LoginResult> {
+    email = email.toLocaleLowerCase();
     const key = this.attemptsKey(email);
 
     /*

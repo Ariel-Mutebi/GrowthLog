@@ -5,8 +5,9 @@ export const TagInput = Type.String({
   minLength: 1,
   maxLength: 25,
 });
+
 export const NameInput = Type.String({
-  pattern: '^[A-Za-z]+$',
+  pattern: '^\\p{L}[\\p{L}\\p{M}]*(?:[ \'’-]\\p{L}[\\p{L}\\p{M}]*)*$',
   minLength: 2,
   maxLength: 10,
 });

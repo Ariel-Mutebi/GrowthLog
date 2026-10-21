@@ -29,14 +29,12 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       });
     }
 
-    let created = false;
     try {
       const user = await registration.register(req.body);
-      created = true;
       await req.logIn(user);
       return res.status(201).send(user);
     } catch (error) {
-      if (!created) await app.redis.del(slot);
+      await app.redis.del(slot);
 
       if (error instanceof WeakPasswordError) {
         return res.code(400).send({

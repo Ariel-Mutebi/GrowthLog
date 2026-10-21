@@ -90,7 +90,7 @@ export class DraftService {
     return await this.prisma.post.findMany({
       where,
       select: metadataSelector,
-      orderBy: [{ [sortBy]: order }],
+      orderBy: [{ [sortBy]: order }, { id: 'desc' }],
     });
   }
 

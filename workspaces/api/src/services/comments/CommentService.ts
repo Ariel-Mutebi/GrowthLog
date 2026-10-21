@@ -65,7 +65,7 @@ export class CommentService {
         ],
       },
       take,
-      orderBy: [{ createdAt: 'desc' }],
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       ...(cursor && { cursor: { id: cursor }, skip: 1 }),
       select: commentSelect,
     });
@@ -80,7 +80,7 @@ export class CommentService {
         deletedAt: null,
       },
       take,
-      orderBy: [{ createdAt: 'desc' }],
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       ...(cursor && { cursor: { id: cursor }, skip: 1 }),
       select: commentSelect,
     });

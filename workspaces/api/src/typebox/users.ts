@@ -17,7 +17,7 @@ export const EditableFields = Type.Object({
   bio: Type.Optional(BioInput),
   email: Email,
   password: Type.String(),
-} satisfies TypeBoxModel<Editable>);
+} satisfies TypeBoxModel<Editable>, { additionalProperties: false });
 
 export const PublicUserObject = Type.Object({
   id: Type.String(),

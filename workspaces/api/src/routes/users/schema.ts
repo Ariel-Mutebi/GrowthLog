@@ -7,7 +7,7 @@ import {
   Unauthorized,
   generalErrorResponses,
 } from '../../typebox/responses.js';
-import { NameInput, Username } from '../../typebox/inputs.js';
+import { TagInput } from '../../typebox/inputs.js';
 import { EditableFields, PersonalObject, PublicUserObject } from '../../typebox/users.js';
 
 export const Register = {
@@ -44,8 +44,8 @@ export const UserSearch = {
   tags: ['Users'],
   querystring: Type.Partial(Type.Object(
     {
-      name: Username,
-      interests: Type.Array(NameInput),
+      name: Type.String({ minLength: 1, maxLength: 50, pattern: '\\S' }),
+      interests: Type.Array(TagInput),
       cursor: Type.String(),
       limit: Type.Integer({ minimum: 1, maximum: 50, default: 20 }),
     },
