@@ -1,14 +1,19 @@
 import { compare, hash } from 'bcrypt';
 import { personalSelect } from './shared/selectors.js';
-import { ForbiddenError, UserConflictError } from './shared/errors.js';
-import { HASHING_ROUNDS } from './shared/constants.js';
+import { HASHING_ROUNDS, MAX_ATTEMPTS, LOCK_WINDOW_SECONDS } from './shared/constants.js';
+import { ForbiddenError, UserConflictError, AccountLockedError } from './shared/errors.js';
 import { assertStrongPassword, flattenAvatarKey } from './shared/helpers.js';
 
 import { PrismaClientKnownRequestError, type PrismaClient } from '@growthlog/db';
+import type { RedisClientType } from 'redis';
 import type { Editable, Personal, IdentityProof } from './shared/interfaces.js';
 
 export class PersonalService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly redis: RedisClientType,
+    private readonly prefix = '',
+  ) {}
 
   public async getSelf(id: string): Promise<Personal> {
     const self = await this.prisma.user.findUniqueOrThrow({
@@ -26,7 +31,7 @@ export class PersonalService {
     const { passwordAttempt, ...updates } = data;
 
     if (updates.email || updates.password) {
-      await this.assertCorrectPassword(id, passwordAttempt);
+      await this.checkPassword(id, passwordAttempt);
     }
 
     if (updates.password) {
@@ -42,6 +47,7 @@ export class PersonalService {
         },
         data: {
           ...updates,
+          ...(updates.email ? { emailVerifiedAt: null } : {}),
           ...(updates.password ? { sessionsRevokedAt: new Date() } : {}),
         },
         select: personalSelect,
@@ -57,7 +63,7 @@ export class PersonalService {
   }
 
   public async deleteSelf(id: string, passwordAttempt: string): Promise<void> {
-    await this.assertCorrectPassword(id, passwordAttempt);
+    await this.checkPassword(id, passwordAttempt);
 
     await this.prisma.user.updateMany({
       where: {
@@ -70,8 +76,24 @@ export class PersonalService {
     });
   }
 
-  private async assertCorrectPassword(id: string, attempt?: string) {
+  private attemptsKey(id: string) {
+    return `${this.prefix}failed_password_check:${id}`;
+  }
+
+  private async checkPassword(id: string, attempt?: string) {
     if (!attempt) throw new ForbiddenError();
+
+    const key = this.attemptsKey(id);
+    const [attempts] = await this.redis
+      .multi()
+      .incr(key)
+      .expire(key, LOCK_WINDOW_SECONDS, 'NX')
+      .ttl(key)
+      .exec();
+
+    if (Number(attempts) > MAX_ATTEMPTS) {
+      throw new AccountLockedError();
+    }
 
     const { password } = await this.prisma.user.findUniqueOrThrow({
       where: { id },
@@ -79,5 +101,7 @@ export class PersonalService {
     });
 
     if (!(await compare(attempt, password))) throw new ForbiddenError();
+
+    await this.redis.del(key);
   }
 }

@@ -10,10 +10,10 @@ import {
   signedInDevice,
   sessionOf,
   profileWithSession,
+  confirmPassword,
 } from './helpers/user.js';
 
 const wrongPassword = { ...ADA_LOGIN, password: WRONG_PASSWORD };
-const confirmPassword = { currentPassword: STRONG_PASSWORD };
 
 const failedLoginKey = (env: TestEnv, email: string) => `${env.redisPrefix}failed_login:${email}`;
 
@@ -204,11 +204,11 @@ describe('session', () => {
   test('authenticates later requests, and rejects missing or forged cookies', async ({ env }) => {
     const { device } = await signedInDevice(env);
 
-    const me = await device.get('/api/users');
+    const me = await device.get('/api/me');
     expect(me.statusCode).toBe(200);
     expect(me.json().email).toBe(ADA_LOGIN.email);
 
-    expect((await env.device().get('/api/users')).statusCode, 'no cookie').toBe(401);
+    expect((await env.device().get('/api/me')).statusCode, 'no cookie').toBe(401);
     expect((await profileWithSession(env, 'forged-session-id')).statusCode, 'forged cookie').toBe(401);
   });
 
@@ -223,7 +223,7 @@ describe('session', () => {
 
       expect(sessionOf(device), 'session id must rotate on re-login').not.toBe(before);
       expect((await profileWithSession(env, before)).statusCode, 'old id must be dead').toBe(401);
-      expect((await device.get('/api/users')).statusCode, 'new id works').toBe(200);
+      expect((await device.get('/api/me')).statusCode, 'new id works').toBe(200);
     });
   });
 });
@@ -231,7 +231,7 @@ describe('session', () => {
 describe('soft-delete restore', () => {
   test('re-login within the recovery window restores the account and opens a session', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
-    const deleted = await device.delete('/api/users', confirmPassword);
+    const deleted = await device.delete('/api/me', confirmPassword);
     expect(deleted.statusCode).toBeLessThan(300);
 
     const restored = env.device();
@@ -239,7 +239,7 @@ describe('soft-delete restore', () => {
 
     expect(res.statusCode, 're-login should succeed within the recovery window').toBe(200);
     expect(restored.cookies.has(SESSION), 'a new session should be established').toBe(true);
-    expect((await restored.get('/api/users')).statusCode, 'restored account must authenticate').toBe(200);
+    expect((await restored.get('/api/me')).statusCode, 'restored account must authenticate').toBe(200);
 
     const user = await env.app.prisma.user.findUniqueOrThrow({ where: { id } });
     expect(user.deletedAt).toBeNull();
@@ -247,7 +247,7 @@ describe('soft-delete restore', () => {
 
   test('still restores a deletion that is 6 days old', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
-    await device.delete('/api/users', confirmPassword);
+    await device.delete('/api/me', confirmPassword);
     await backdateDeletion(env, id, 6);
 
     const res = await env.device().post('/api/sessions', ADA_LOGIN);
@@ -256,7 +256,7 @@ describe('soft-delete restore', () => {
 
   test('rejects re-login 8 days after deletion with 401 and leaves the account deleted', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
-    await device.delete('/api/users', confirmPassword);
+    await device.delete('/api/me', confirmPassword);
     await backdateDeletion(env, id, 8);
 
     const res = await env.device().post('/api/sessions', ADA_LOGIN);
@@ -271,13 +271,13 @@ describe('soft-delete restore', () => {
     const { device: deviceA } = await signedInDevice(env);
     const deviceB = env.device();
     await deviceB.post('/api/sessions', ADA_LOGIN);
-    expect((await deviceB.get('/api/users')).statusCode).toBe(200);
+    expect((await deviceB.get('/api/me')).statusCode).toBe(200);
 
-    await deviceA.delete('/api/users', confirmPassword);
+    await deviceA.delete('/api/me', confirmPassword);
 
     expect(deviceA.cookies.has(SESSION), 'the deleting device has its cookie cleared').toBe(false);
     expect(
-      (await deviceB.get('/api/users')).statusCode,
+      (await deviceB.get('/api/me')).statusCode,
       'the other device must not keep a working session after the account is deleted',
     ).toBe(401);
   });
@@ -308,7 +308,7 @@ describe('logout', () => {
 
     await deviceA.delete('/api/sessions');
 
-    expect((await deviceA.get('/api/users')).statusCode).toBe(401);
-    expect((await deviceB.get('/api/users')).statusCode).toBe(200);
+    expect((await deviceA.get('/api/me')).statusCode).toBe(401);
+    expect((await deviceB.get('/api/me')).statusCode).toBe(200);
   });
 });

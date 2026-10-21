@@ -3,7 +3,7 @@ import { Type } from '@sinclair/typebox';
 import { security } from '../../typebox/constants.js';
 import { PersonalObject } from '../../typebox/users.js';
 import { EditableFields, IdentityObject } from '../../typebox/users.js';
-import { BadRequest, Conflict, Forbidden, meErrorResponses } from '../../typebox/responses.js';
+import { BadRequest, Conflict, Forbidden, Locked, meErrorResponses } from '../../typebox/responses.js';
 
 const tags = ['Users', 'Me'];
 
@@ -32,6 +32,7 @@ export const UpdateSelf = {
     400: BadRequest,
     403: Forbidden,
     409: Conflict,
+    423: Locked,
     ...meErrorResponses,
   },
 } satisfies FastifySchema;
@@ -44,6 +45,7 @@ export const DeleteSelf = {
   response: {
     204: Type.Null(),
     403: Forbidden,
+    423: Locked,
     ...meErrorResponses,
   },
 } satisfies FastifySchema;

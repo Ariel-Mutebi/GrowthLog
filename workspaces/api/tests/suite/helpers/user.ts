@@ -55,11 +55,13 @@ export function sessionOf(device: Device) {
 export function profileWithSession(env: TestEnv, sessionId: string) {
   const device = env.device();
   device.cookies.set(SESSION, sessionId);
-  return device.get('/api/users');
+  return device.get('/api/me');
 }
+
+export const confirmPassword = { passwordAttempt: STRONG_PASSWORD };
 
 /** Deletes the device's account, asserting success. */
 export async function deleteAccount(device: Device) {
-  const res = await device.delete('/api/users', { currentPassword: STRONG_PASSWORD });
-  expect(res.statusCode, `account deletion failed: ${res.body}`).toBe(200);
+  const res = await device.delete('/api/me', confirmPassword);
+  expect(res.statusCode, `account deletion failed: ${res.body}`).toBe(204);
 }

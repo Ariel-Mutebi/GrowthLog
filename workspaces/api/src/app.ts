@@ -15,7 +15,7 @@ import { swaggerPlugin } from './plugins/swagger.js';
 import { rateLimitPlugin } from './plugins/rate.js';
 import { queuesPlugin } from './plugins/queues.js';
 import type { Config } from './types/config.js';
-import type { InternalServerErrorType } from './typebox/responses.js';
+import { errorHandler } from './utils/errorHandler.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 type Overrides = Partial<Record<keyof Config, string>>;
@@ -23,7 +23,7 @@ type Overrides = Partial<Record<keyof Config, string>>;
 export function buildApp(overrides?: Overrides) {
   const app = Fastify({
     logger: {
-      level: 'info',
+      level: 'warn',
     },
     trustProxy: true,
     routerOptions: {
@@ -65,15 +65,11 @@ export function buildApp(overrides?: Overrides) {
     dirNameRoutePrefix: true,
     options: { prefix: 'api/' },
     routeParams: true,
+    autoHooks: true,
+    cascadeHooks: true,
   });
 
-  app.setErrorHandler((error, req, res) => {
-    req.log.error(error);
-    return res.status(500).send({
-      error: 'InternalServerError',
-      message: 'Something went wrong. Please try again.',
-    } satisfies InternalServerErrorType);
-  });
+  app.setErrorHandler(errorHandler);
 
   app.ready(() => {    
     if (app.config.NODE_ENV === 'development') {

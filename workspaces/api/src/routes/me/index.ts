@@ -2,10 +2,19 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { assertIsLoggedIn } from '@/auth/preHandler.js';
 import { PersonalService } from '@/services/users/PersonalService.js';
 import { DeleteSelf, GetSelf, UpdateSelf } from './schema.js';
-import { ForbiddenError, UserConflictError, WeakPasswordError } from '@/services/users/shared/errors.js';
+import {
+  AccountLockedError,
+  ForbiddenError,
+  UserConflictError,
+  WeakPasswordError,
+} from '@/services/users/shared/errors.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
-  const service = new PersonalService(app.prisma);
+  const service = new PersonalService(
+    app.prisma,
+    app.redis,
+    app.config.REDIS_KEY_PREFIX,
+  );
 
   app.get('/', {
     schema: GetSelf,
@@ -52,6 +61,13 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
+      if (error instanceof AccountLockedError) {
+        return res.code(423).send({
+          error: 'Locked',
+          message: 'Please wait before you make another attempt at your password',
+        });
+      }
+
       throw error;
     }
   });
@@ -72,6 +88,13 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         return res.code(403).send({
           error: 'Forbidden',
           message: 'Please provide your current password to delete your account',
+        });
+      }
+
+      if (error instanceof AccountLockedError) {
+        return res.code(423).send({
+          error: 'Locked',
+          message: 'Please wait before you make another attempt at your password',
         });
       }
 

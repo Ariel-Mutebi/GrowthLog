@@ -4,16 +4,13 @@ import type { PrismaClient } from '@growthlog/db';
 import type { Personal } from './shared/interfaces.js';
 import { personalSelect } from './shared/selectors.js';
 import { flattenAvatarKey } from './shared/helpers.js';
-import { HASHING_ROUNDS } from './shared/constants.js';
+import { HASHING_ROUNDS, LOCK_WINDOW_SECONDS, MAX_ATTEMPTS } from './shared/constants.js';
 
 /**
  * Timing attack hardening: always run compare, even when no user is found, so
  * response time is consistent regardless of whether the email is registered.
  */
 const DUMMY_HASH = hashSync('invalid', HASHING_ROUNDS);
-
-const MAX_ATTEMPTS = 5;
-const LOCK_WINDOW_SECONDS = 15 * 60;
 const RESTORE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 export type LoginResult =

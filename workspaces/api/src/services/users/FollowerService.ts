@@ -15,6 +15,7 @@ export class FollowerService {
     const rows = await this.prisma.follow.findMany({
       where: {
         followingId: userId,
+        following: { deletedAt: null },
         follower: { deletedAt: null },
       },
       select: {
@@ -31,6 +32,7 @@ export class FollowerService {
     const rows = await this.prisma.follow.findMany({
       where: {
         followerId: userId,
+        follower: { deletedAt: null },
         following: { deletedAt: null },
       },
       select: {

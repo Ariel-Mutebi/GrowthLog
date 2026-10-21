@@ -58,4 +58,6 @@ export const meErrorResponses = {
   401: Unauthorized,
 };
 
+export type BadRequestType = Static<typeof BadRequest>;
+export type RateLimitedType = Static<typeof RateLimited>;
 export type InternalServerErrorType = Static<typeof InternalServerError>;

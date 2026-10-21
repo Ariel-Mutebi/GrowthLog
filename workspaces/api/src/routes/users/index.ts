@@ -82,12 +82,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      req.log.error(error);
-
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      });      
+      throw error;
     }
   });
 
@@ -105,12 +100,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         });
       }
 
-      req.log.error(error);
-
-      return res.code(500).send({
-        error: 'InternalServerError',
-        message: 'Something went wrong. Please try again.',
-      }); 
+      throw error;
     }
   });
 };
