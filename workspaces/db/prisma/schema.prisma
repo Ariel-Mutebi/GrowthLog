@@ -138,7 +138,6 @@ model CommentLike {
 }
 
 enum ViewType {
-  SAW
   OPENED
   READ
 }

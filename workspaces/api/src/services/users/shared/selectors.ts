@@ -1,6 +1,6 @@
 import type { UserSelect } from '@growthlog/db';
 
-const avatarSelect = {
+export const avatarSelect = {
   avatar: {
     select: {
       image: {
