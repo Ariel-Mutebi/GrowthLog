@@ -1,4 +1,6 @@
-import { Type, type Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
+import { ImageModel } from './models.js';
+import type { FastifySchema } from 'fastify';
 
 export const BadRequest = Type.Object({
   error: Type.Literal('BadRequest'),
@@ -40,4 +42,24 @@ export const TooEarly = Type.Object({
   message: Type.String(),
 });
 
-export type InternalServerErrorType = Static<typeof InternalServerError>;
+export const RequestUploadResponse = {
+  200: Type.Object({
+    imageId: Type.String(),
+    uploadUrl: Type.String(),
+  }),
+  400: BadRequest,
+  401: Unauthorized,
+  413: PayloadTooLarge,
+  500: InternalServerError,
+} satisfies FastifySchema['response'];
+
+export const ConfirmResponse = {
+  200: ImageModel,
+  401: Unauthorized,
+  404: NotFound,
+  409: Conflict,
+  413: PayloadTooLarge,
+  422: UnprocessableEntity,
+  425: TooEarly,
+  500: InternalServerError,
+} satisfies FastifySchema['response'];

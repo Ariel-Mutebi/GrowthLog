@@ -15,12 +15,12 @@ interface ConfirmUploadParams {
   imageId: string;
 }
 
-export class AvatarService extends ImageUploadService<ConfirmUploadParams> {
+export class AvatarService extends ImageUploadService<RequestUploadParams, ConfirmUploadParams> {
   async requestUpload(params: RequestUploadParams) {
     const { userId, mimeType, sizeBytes } = params;
 
     if (sizeBytes > this.deps.maxSizeBytes) {
-      throw new FileTooLargeError();
+      throw new FileTooLargeError(this.deps.maxSizeBytes);
     }
 
     const key = `${userId}/${randomUUIDv7()}`;

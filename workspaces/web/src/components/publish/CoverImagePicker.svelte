@@ -30,7 +30,7 @@
   const previewUrl = $derived(localUrl ?? defaultUrl);
 </script>
 
-<div class="relative w-full grid justify-center">
+<div class="relative w-full flex flex-col items-center gap-2">
   <label
     for="cover-image"
     class="w-full aspect-4/3 max-w-100 bg-stone-100 hover:bg-stone-200 dark:bg-stone-700

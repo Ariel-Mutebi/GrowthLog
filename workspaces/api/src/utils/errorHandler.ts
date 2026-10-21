@@ -1,5 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import type { InternalServerErrorType, RateLimitedType, BadRequestType } from '../typebox/responses.js';
+import type { Static } from '@sinclair/typebox';
+import type { BadRequest, InternalServerError, RateLimited } from '../typebox/responses.js';
 
 interface Error {
   statusCode?: number;
@@ -14,20 +15,20 @@ export function errorHandler(error: Error, req: FastifyRequest, res: FastifyRepl
       return res.status(400).send({
         error: 'BadRequest',
         message: error.message,
-      } satisfies BadRequestType);
+      } satisfies Static<typeof BadRequest>);
 
     case 429:
       return res.status(429).send({
         error: 'RateLimited',
         message: error.message,
-      } satisfies RateLimitedType);
+      } satisfies Static<typeof RateLimited>);
 
     case 500:
       req.log.error(error);
       return res.status(500).send({
         error: 'InternalServerError',
         message: 'Something went wrong. Please try again.',
-      } satisfies InternalServerErrorType);     
+      } satisfies Static<typeof InternalServerError>);     
     
   
     default:

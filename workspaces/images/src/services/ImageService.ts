@@ -31,13 +31,13 @@ interface RequestUploadReturn {
   uploadUrl: string;
 }
 
-export abstract class ImageUploadService<T> {
+export abstract class ImageUploadService<RequestParams, ConfirmParams> {
   constructor (protected readonly deps: ServiceDependencies) {}
 
-  abstract requestUpload(params: never): Promise<RequestUploadReturn>;
-  protected abstract findImage(params: T): Promise<Image | null>;
+  abstract requestUpload(params: RequestParams): Promise<RequestUploadReturn>;
+  protected abstract findImage(params: ConfirmParams): Promise<Image | null>;
 
-  async confirmUpload(params: T): Promise<Image> {
+  async confirmUpload(params: ConfirmParams): Promise<Image> {
     const image = await this.findImage(params);
 
     if (!image) {
@@ -90,7 +90,7 @@ export abstract class ImageUploadService<T> {
     );
 
     if (!ContentLength) throw new ObjectNotUploadedError();
-    if (ContentLength > this.deps.maxSizeBytes) throw new FileTooLargeError();
+    if (ContentLength > this.deps.maxSizeBytes) throw new FileTooLargeError(this.deps.maxSizeBytes);
 
     return ContentLength;
   }

@@ -19,12 +19,12 @@ interface ConfirmUploadParams {
   imageId: string;
 }
 
-export class PostImageService extends ImageUploadService<ConfirmUploadParams> {
+export class PostImageService extends ImageUploadService<RequestUploadParams, ConfirmUploadParams> {
   async requestUpload(params: RequestUploadParams) {
     const { authorId, postId, mimeType, sizeBytes } = params;
 
     if (sizeBytes > this.deps.maxSizeBytes) {
-      throw new FileTooLargeError();
+      throw new FileTooLargeError(this.deps.maxSizeBytes);
     }
 
     const key = `${authorId}/${randomUUIDv7()}`;
