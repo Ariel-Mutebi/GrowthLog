@@ -2,15 +2,7 @@ import { randomInt } from 'node:crypto';
 import { PrismaClientKnownRequestError } from '@growthlog/db';
 import { PostNotFoundError } from './shared/errors.js';
 import type { PostWhereInput, PrismaClient } from '@growthlog/db';
-
-export interface DraftMetadata {
-  id: string;
-  title: string;
-  slug: string;
-  createdAt: Date;
-  updatedAt: Date;
-  publishedAt: Date | null;
-}
+import type { DraftMetadata, DraftQueryOptions } from './shared/interfaces.js';
 
 const metadataSelector = {
   id: true,
@@ -21,26 +13,28 @@ const metadataSelector = {
   updatedAt: true,
 } satisfies Record<keyof DraftMetadata, boolean>;
 
-interface DraftQueryOptions {
-  sortBy: 'title' | 'updatedAt';
-  order: 'asc' | 'desc';
-  published: boolean;
-}
-
 export class DraftService {
   constructor(
     private readonly prisma: PrismaClient,
   ) {}
 
   async create(authorId: string): Promise<DraftMetadata> {
-    return await this.prisma.post.create({
-      data: {
-        authorId,
-        title: 'Untitled',
-        slug: `untitled-${randomInt(1000, 10000)}`,
-      },
-      select: metadataSelector,
-    });
+    try {
+      return await this.prisma.post.create({
+        data: {
+          authorId,
+          title: 'Untitled',
+          slug: `untitled-${randomInt(1000, 10000)}`,
+        },
+        select: metadataSelector,
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+        return this.create(authorId);
+      }
+
+      throw error;
+    }
   }
 
   async update(authorId: string, postId: string, title: string): Promise<DraftMetadata> {
@@ -51,9 +45,8 @@ export class DraftService {
           id: postId,
           deletedAt: null,
         },
-        data: {
-          title,
-        },
+        data: { title },
+        select: metadataSelector,
       });
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {

@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { TagInput } from '@/typebox/inputs.js';
+import { CUID, NonEmpty, Title, TagInput, Hook } from '@/typebox/inputs.js';
 import {
   Conflict,
   meErrorResponses,
@@ -13,10 +13,7 @@ import type { TypeBoxModel } from '@/typebox/mapping.js';
 import type { PrePublishDefaults, PublishSnapshot } from '@/services/posts/PublishService.js';
 
 const tags = ['Draft', 'Publish'];
-
-const params = Type.Object({
-  id: Type.String(),
-});
+const params = Type.Object({ id: CUID });
 
 export const PublishDraft = {
   summary: 'Publish draft',
@@ -25,10 +22,10 @@ export const PublishDraft = {
   tags,
   params,
   body: Type.Object({
-    slug: Type.String(),
-    publishedTitle: Type.String(),
-    publishedHook: Type.String(),
-    coverImageId: Type.String(),
+    slug: NonEmpty,
+    publishedTitle: Title,
+    publishedHook: Hook,
+    coverImageId: CUID,
     tags: Type.Array(TagInput),
   } satisfies TypeBoxModel<PublishSnapshot>),
   response: {

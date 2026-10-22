@@ -1,14 +1,15 @@
 import { Type } from '@sinclair/typebox';
-import { meErrorResponses } from '../../../typebox/responses.js';
-import { security } from '../../../typebox/constants.js';
-import { OptionalDate, SerializableDate } from '../../../typebox/date.js';
+import { CUID } from '@/typebox/inputs.js';
+import { security } from '@/typebox/constants.js';
+import { meErrorResponses } from '@/typebox/responses.js';
+import { OptionalDate, SerializableDate } from '@/typebox/date.js';
 
 import type { FastifySchema } from 'fastify';
-import type { TypeBoxModel } from '../../../typebox/mapping.js';
-import type { DraftMetadata } from '../../../services/posts/DraftService.js';
+import type { TypeBoxModel } from '@/typebox/mapping.js';
+import type { DraftMetadata } from '@/services/posts/shared/interfaces.js';
 
 export const DraftMetadataObject = Type.Object({
-  id: Type.String(),
+  id: CUID,
   title: Type.String(),
   slug: Type.String(),
   createdAt: SerializableDate,
@@ -39,7 +40,7 @@ const GetDraftsQuery = Type.Partial(Type.Object({
     Type.Literal('desc'),
   ]),
   published: Type.Boolean(),
-}));
+}, { additionalProperties: false }));
 
 export const GetDrafts = {
   summary: 'Get drafts',

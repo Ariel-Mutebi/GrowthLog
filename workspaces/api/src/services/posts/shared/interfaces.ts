@@ -11,6 +11,7 @@ export interface ReadingView {
   author: Author;
   likes: number;
   comments: number;
+  coverKey: string;
   readingTime: number;
   publishedAt: Date;
   publishedHtml: string;
@@ -22,4 +23,20 @@ export interface FeedView {
   tags: string[];
   author: Author;
   readingTime: number;
+  coverKey: string;
+}
+
+export interface DraftMetadata {
+  id: string;
+  title: string;
+  slug: string;
+  createdAt: Date;
+  updatedAt: Date;
+  publishedAt: Date | null;
+}
+
+export interface DraftQueryOptions {
+  sortBy: 'title' | 'updatedAt';
+  order: 'asc' | 'desc';
+  published: boolean;
 }

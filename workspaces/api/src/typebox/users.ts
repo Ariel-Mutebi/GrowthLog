@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { SerializableDate } from './date.js';
-import { NameInput, Username, BioInput, Email } from './inputs.js';
+import { NameInput, Username, BioInput, Email, NonEmpty } from './inputs.js';
 
 import type { TypeBoxModel } from './mapping.js';
 import type {
@@ -16,7 +16,7 @@ export const EditableFields = Type.Object({
   username: Type.Optional(Username),
   bio: Type.Optional(BioInput),
   email: Email,
-  password: Type.String(),
+  password: NonEmpty,
 } satisfies TypeBoxModel<Editable>, { additionalProperties: false });
 
 export const PublicUserObject = Type.Object({

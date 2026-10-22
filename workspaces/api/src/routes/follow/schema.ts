@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
+import { CUID } from '@/typebox/inputs.js';
 import { security } from '../../typebox/constants.js';
 import { PublicUserObject } from '../../typebox/users.js';
 import { BadRequest, NotFound, Unauthorized, generalErrorResponses } from '../../typebox/responses.js';
@@ -12,7 +13,7 @@ export const Follow = {
   tags,
   security,
   params: Type.Object({
-    userId: Type.String(),
+    userId: CUID,
   }),
   response: {
     204: Type.Null(),
@@ -29,7 +30,7 @@ export const Unfollow = {
   tags,
   security,
   params: Type.Object({
-    userId: Type.String(),
+    userId: CUID,
   }),
   response: {
     204: Type.Null(),
@@ -42,7 +43,7 @@ export const GetFollowers = {
   summary: 'Get followers',
   description: 'Get a list of the followers of a user',
   params: Type.Object({
-    userId: Type.String(),
+    userId: CUID,
   }),
   tags,
   response: {
@@ -55,7 +56,7 @@ export const GetFollowing = {
   summary: 'Get following',
   description: 'Get a list of who a user follows',
   params: Type.Object({
-    userId: Type.String(),
+    userId: CUID,
   }),
   tags,
   response: {

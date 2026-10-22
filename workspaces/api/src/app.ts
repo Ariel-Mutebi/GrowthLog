@@ -29,6 +29,11 @@ export function buildApp(overrides?: Overrides) {
     routerOptions: {
       ignoreTrailingSlash: true,
     },
+    ajv: {
+      customOptions: {
+        removeAdditional: false,
+      },
+    },
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   const config = loadEnv(

@@ -1,4 +1,5 @@
 import { Type } from '@sinclair/typebox';
+import { CUID, Title } from '@/typebox/inputs.js';
 import {
   BadRequest,
   Conflict,
@@ -11,17 +12,16 @@ import type { FastifySchema } from 'fastify';
 import { DraftMetadataObject } from '../schema.js';
 
 const tags = ['Draft'];
+const params = Type.Object({ id: CUID });
 
 export const UpdateDraft = {
   summary: 'Update draft',
   description: 'Update your draft\'s title',
   security,
   tags,
-  params: Type.Object({
-    id: Type.String(),
-  }),
+  params,
   body: Type.Object({
-    title: Type.String({ minLength: 1, maxLength: 20 }),
+    title: Title,
   }),
   response: {
     200: DraftMetadataObject,
@@ -37,9 +37,7 @@ export const GetDraft = {
   description: 'Get authoring metadata about your draft',
   security,
   tags,
-  params: Type.Object({
-    id: Type.String(),
-  }),
+  params,
   response: {
     200: DraftMetadataObject,
     404: NotFound,
@@ -52,9 +50,7 @@ export const DeleteDraft = {
   description: 'Soft-deletes a draft',
   security,
   tags,
-  params: Type.Object({
-    id: Type.String(),
-  }),
+  params,
   response: {
     204: Type.Null(),
     ...meErrorResponses,

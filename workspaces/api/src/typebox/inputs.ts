@@ -1,5 +1,24 @@
 import { Type } from '@sinclair/typebox';
 
+// Prisma V1 CUID
+export const CUID = Type.String({
+  pattern: '^c[a-z0-9]{24}$',
+});
+
+export const NonEmpty = Type.String({
+  minLength: 1,
+});
+
+export const Title = Type.String({
+  minLength: 1,
+  maxLength: 20,
+});
+
+export const Hook = Type.String({
+  minLength: 1,
+  maxLength: 120,
+});
+
 export const TagInput = Type.String({
   pattern: '^[a-z0-9]+$',
   minLength: 1,

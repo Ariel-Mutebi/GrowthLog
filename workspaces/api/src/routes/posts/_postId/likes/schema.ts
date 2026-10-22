@@ -1,5 +1,6 @@
 import type { FastifySchema } from 'fastify';
 import { Type } from '@sinclair/typebox';
+import { CUID } from '@/typebox/inputs.js';
 import { security } from '@/typebox/constants.js';
 import { generalErrorResponses } from '@/typebox/responses.js';
 
@@ -9,7 +10,7 @@ const schema = {
   security,
   tags,
   params: Type.Object({
-    postId: Type.String(),
+    postId: CUID,
   }),
   response: {
     204: Type.Null(),

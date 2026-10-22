@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
+import { CUID } from '@/typebox/inputs.js';
 import { security } from '@/typebox/constants.js';
 import { meErrorResponses } from '@/typebox/responses.js';
 
@@ -9,7 +10,7 @@ export const View = {
   tags: ['Post', 'Views'],
   security,
   params: Type.Object({
-    postId: Type.String(),
+    postId: CUID,
   }),
   body: Type.Object({
     type: Type.Union([

@@ -17,6 +17,7 @@ const Feed = Type.Object({
   author: Author,
   id: Type.String(),
   title: Type.String(),
+  coverKey: Type.String(),
   tags: Type.Array(Type.String()),
   readingTime: Type.Number(),
 } satisfies TypeBoxModel<FeedView>);
@@ -37,6 +38,7 @@ const Read = Type.Object({
   title: Type.String(),
   likes: Type.Number(),
   comments: Type.Number(),
+  coverKey: Type.String(),
   readingTime: Type.Number(),
   publishedAt: SerializableDate,
   publishedHtml: Type.String(),

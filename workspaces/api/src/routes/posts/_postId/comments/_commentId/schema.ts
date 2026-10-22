@@ -1,12 +1,13 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import { security } from '@/typebox/constants.js';
+import { CUID, NonEmpty } from '@/typebox/inputs.js';
 import { BadRequest, Forbidden, generalErrorResponses, meErrorResponses } from '@/typebox/responses.js';
 import { CommentObject, CommentQuery } from '../schema.js';
 
 const params = Type.Object({
-  postId: Type.String(),
-  commentId: Type.String(),
+  postId: CUID,
+  commentId: CUID,
 });
 
 export const LikeComment = {
@@ -53,7 +54,7 @@ export const ReplyToComment = {
   security,
   params,
   body: Type.Object({
-    text: Type.String(),
+    text: NonEmpty,
   }),
   response: {
     200: CommentObject,
@@ -69,7 +70,7 @@ export const EditComment = {
   security,
   params,
   body: Type.Object({
-    text: Type.String(),
+    text: NonEmpty,
   }),
   response: {
     200: CommentObject,

@@ -6,9 +6,10 @@ import {
   NotFound,
   Unauthorized,
   generalErrorResponses,
-} from '../../typebox/responses.js';
-import { TagInput } from '../../typebox/inputs.js';
-import { EditableFields, PersonalObject, PublicUserObject } from '../../typebox/users.js';
+} from '@/typebox/responses.js';
+import { CUID } from '@/typebox/inputs.js';
+import { TagInput } from '@/typebox/inputs.js';
+import { EditableFields, PersonalObject, PublicUserObject } from '@/typebox/users.js';
 
 export const Register = {
   summary: 'Register',
@@ -28,7 +29,7 @@ export const GetUser = {
   description: 'Get basic public data about a user\'s account',
   tags: ['Users'],
   params: Type.Object({
-    id: Type.String(),
+    id: CUID,
   }),
   response: {
     200: PublicUserObject,

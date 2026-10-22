@@ -36,6 +36,7 @@ export class ReadService {
         publishedAt: true,
         publishedTitle: true,
         publishedHtml: true,
+        cover: { select: { image: { select: { key: true } } } },
         _count: {
           select: {
             likes: true,
@@ -54,6 +55,7 @@ export class ReadService {
       publishedHtml: post.publishedHtml!,
       publishedAt: post.publishedAt!,
       readingTime: post.readingTime!,
+      coverKey: post.cover!.image.key,
       likes: post._count.likes,
       comments: post._count.comments,
     };
@@ -88,6 +90,7 @@ export class ReadService {
         publishedAt: true,
         publishedTitle: true,
         readingTime: true,
+        cover: { select: { image: { select: { key: true } } } },
         author: {
           select: {
             ...authorSelect,
@@ -116,6 +119,7 @@ export class ReadService {
       id: post.id,
       title: post.publishedTitle!,
       readingTime: post.readingTime!,
+      coverKey: post.cover!.image.key,
       tags: post.tags.map(tag => tag.name),
       author: flattenAvatarKey({
         id: post.author.id,
@@ -176,6 +180,7 @@ export class ReadService {
         publishedTitle: true,
         readingTime: true,
         author: { select: authorSelect },
+        cover: { select: { image: { select: { key: true } } } },
       },
     });
 
@@ -183,6 +188,7 @@ export class ReadService {
       id: post.id,
       title: post.publishedTitle!,
       readingTime: post.readingTime!,
+      coverKey: post.cover!.image.key,
       tags: post.tags.map((tag) => tag.name),
       author: flattenAvatarKey({
         id: post.author.id,

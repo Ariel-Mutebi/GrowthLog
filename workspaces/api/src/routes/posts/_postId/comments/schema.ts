@@ -1,4 +1,5 @@
 import { Type } from '@sinclair/typebox';
+import { CUID, NonEmpty } from '@/typebox/inputs.js';
 import { security } from '@/typebox/constants.js';
 import { SerializableDate } from '@/typebox/date.js';
 import { PublicUserObject } from '@/typebox/users.js';
@@ -8,9 +9,7 @@ import type { TypeBoxModel } from '@/typebox/mapping.js';
 import type { Comment } from '@/services/comments/interfaces.js';
 import { generalErrorResponses, meErrorResponses } from '@/typebox/responses.js';
 
-const params = Type.Object({
-  postId: Type.String(),
-});
+const params = Type.Object({ postId: CUID });
 
 export const CommentObject = Type.Object({
   id: Type.String(),
@@ -23,7 +22,7 @@ export const CommentObject = Type.Object({
 } satisfies TypeBoxModel<Comment>);
 
 export const CommentQuery = Type.Partial(Type.Object({
-  cursor: Type.String(),
+  cursor: CUID,
   take: Type.Integer(),
 }));
 
@@ -48,7 +47,7 @@ export const MakeComment = {
   params,
   tags,
   body: Type.Object({
-    text: Type.String(),
+    text: NonEmpty,
   }),
   response: {
     200: CommentObject,

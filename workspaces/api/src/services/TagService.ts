@@ -21,11 +21,14 @@ export class TagService {
         t.name,
         COUNT(p.id)::int AS "postCount"
       FROM "Tag" t
-      LEFT JOIN "_PostToTag" pt ON pt."B" = t.id
-      LEFT JOIN "Post" p
+      JOIN "_PostToTag" pt ON pt."B" = t.id
+      JOIN "Post" p
         ON p.id = pt."A"
         AND p."publishedAt" IS NOT NULL
         AND p."deletedAt" IS NULL
+      JOIN "User" u
+        ON u.id = p."authorId"
+        AND u."deletedAt" IS NULL
       WHERE t.name ILIKE ${'%' + query + '%'}
       GROUP BY t.id
       ORDER BY
