@@ -26,6 +26,7 @@
     "@growthlog/env": "workspace:*",
     "@growthlog/jobs": "workspace:*",
     "@hocuspocus/transformer": "^4.7.1",
+    "@paralleldrive/cuid2": "^3.3.0",
     "@sinclair/typebox": "^0.34.52",
     "@tiptap/core": "^3.31.4",
     "@tiptap/extension-image": "^3.31.4",

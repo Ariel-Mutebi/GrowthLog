@@ -1,8 +1,8 @@
 import { Type } from '@sinclair/typebox';
 
-// Prisma V1 CUID
+// Prisma CUID V2
 export const CUID = Type.String({
-  pattern: '^c[a-z0-9]{24}$',
+  pattern: '^[a-z][a-z0-9]{23}$',
 });
 
 export const NonEmpty = Type.String({

@@ -22,7 +22,7 @@ export const UpdateDraft = {
   params,
   body: Type.Object({
     title: Title,
-  }),
+  }, { additionalProperties: false }),
   response: {
     200: DraftMetadataObject,
     400: BadRequest,

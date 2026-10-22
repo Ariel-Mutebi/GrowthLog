@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createId } from '@paralleldrive/cuid2';
 import { describe, expect } from 'vitest';
 import { test } from '../fixtures.js';
 import type { TestEnv } from '../test-env.js';
@@ -20,6 +20,9 @@ import {
 
 const WEAK_PASSWORD = 'passwordpassword';
 const NEW_PASSWORD = 'purple-monkey-dishwasher-telescope-58';
+const NEW_EMAIL = 'augusta@example.com';
+const OTHER_EMAIL = 'augusta.king@example.com';
+const MAX_ATTEMPTS = 5;
 const wrongAttempt = { passwordAttempt: WRONG_PASSWORD };
 
 const getMe = (device: Device) => device.get('/api/me');
@@ -29,6 +32,16 @@ const userRow = (env: TestEnv, id: string) => env.app.prisma.user.findUniqueOrTh
 const login = (env: TestEnv, creds: { email: string; password: string }) =>
   env.device().post('/api/sessions', creds);
 
+const wrongEmailChange = (device: Device) => patchMe(device, { email: NEW_EMAIL, ...wrongAttempt });
+
+/** Makes `count` wrong guesses, asserting each is evaluated and rejected with a plain 403. */
+async function failPrompt(device: Device, count: number) {
+  for (let i = 0; i < count; i++) {
+    const res = await wrongEmailChange(device);
+    expect(res.statusCode, `attempt ${i + 1} should be a plain 403`).toBe(403);
+  }
+}
+
 /** Signs the same account in on a second device. */
 async function secondDevice(env: TestEnv) {
   const device = env.device();
@@ -37,20 +50,33 @@ async function secondDevice(env: TestEnv) {
   return device;
 }
 
-describe('GET /api/me', () => {
-  test('requires a session', async ({ env }) => {
-    const res = await getMe(env.device());
+describe('authentication', () => {
+  test.for([
+    { name: 'GET /api/me', call: (device: Device) => getMe(device) },
+    { name: 'PATCH /api/me', call: (device: Device) => patchMe(device, { forename: 'Augusta' }) },
+    { name: 'DELETE /api/me', call: (device: Device) => deleteMe(device, confirmPassword) },
+  ])('$name requires a session and changes nothing', async ({ call }, { env }) => {
+    const { id } = await signedInDevice(env);
+
+    const res = await call(env.device());
+
     expect(res.statusCode).toBe(401);
+    const after = await userRow(env, id);
+    expect(after.forename).toBe('Ada');
+    expect(after.deletedAt).toBeNull();
   });
+});
 
-  test('returns the signed-in user without secrets', async ({ env }) => {
-    const { device, id } = await signedInDevice(env);
+describe('GET /api/me', () => {
+  test('returns the signed-in user without secrets, and never anyone else’s account', async ({ env }) => {
+    const ada = await signedInDevice(env);
+    const grace = await signedInDevice(env, GRACE);
 
-    const res = await getMe(device);
+    const res = await getMe(ada.device);
 
     expect(res.statusCode).toBe(200);
     expect(res.json()).toMatchObject({
-      id,
+      id: ada.id,
       email: ADA_LOGIN.email,
       username: 'ada-lovelace',
       forename: 'Ada',
@@ -60,26 +86,15 @@ describe('GET /api/me', () => {
     for (const secret of ['password', 'deletedAt', 'sessionsRevokedAt', 'emailVerificationCode']) {
       expect(res.json(), `"${secret}" must not be exposed`).not.toHaveProperty(secret);
     }
-  });
-
-  test('returns each user their own account, not anyone else’s', async ({ env }) => {
-    const ada = await signedInDevice(env);
-    const grace = await signedInDevice(env, GRACE);
-
-    expect((await getMe(ada.device)).json().id).toBe(ada.id);
-    expect((await getMe(grace.device)).json().id).toBe(grace.id);
+    expect((await getMe(grace.device)).json().id, 'each user gets their own account').toBe(grace.id);
   });
 });
 
 describe('PATCH /api/me', () => {
-  test('requires a session', async ({ env }) => {
-    const res = await patchMe(env.device(), { forename: 'Augusta' });
-    expect(res.statusCode).toBe(401);
-  });
-
   describe('profile fields', () => {
-    test('updates them without asking for the password', async ({ env }) => {
+    test('updates them without asking for the password, and only for the signed-in user', async ({ env }) => {
       const { device, id } = await signedInDevice(env);
+      const grace = await signedInDevice(env, GRACE);
 
       const res = await patchMe(device, { forename: 'Augusta', bio: 'Analyst and metaphysician' });
 
@@ -93,15 +108,7 @@ describe('PATCH /api/me', () => {
         surname: 'Lovelace',
         bio: 'Analyst and metaphysician',
       });
-    });
-
-    test('only changes the signed-in user’s row', async ({ env }) => {
-      const ada = await signedInDevice(env);
-      const grace = await signedInDevice(env, GRACE);
-
-      await patchMe(ada.device, { forename: 'Augusta' });
-
-      expect((await userRow(env, grace.id)).forename).toBe('Grace');
+      expect((await userRow(env, grace.id)).forename, 'nobody else’s row changes').toBe('Grace');
     });
 
     test('changes the username without the password and frees the old one', async ({ env }) => {
@@ -115,55 +122,48 @@ describe('PATCH /api/me', () => {
       await register(env.device(), { ...GRACE, username: 'ada-lovelace' });
     });
 
-    test('ignores fields a client must not set', async ({ env }) => {
+    // The service spreads the validated body into the Prisma update, so the schema is the only guard.
+    // Each field is sent on its own (next to a valid change), because one extra property is enough to make
+    // a combined request fail and would hide any field the schema still lets through.
+    test('rejects fields a client must not set with 400, and applies nothing', async ({ env }) => {
       const { device, id } = await signedInDevice(env);
       const other = await secondDevice(env);
       const before = await userRow(env, id);
-
-      // The service spreads the validated body into the Prisma update, so the schema is the only guard.
-      const res = await patchMe(device, {
-        forename: 'Augusta',
-        id: randomUUID(),
+      const forbidden = {
+        id: createId(),
         createdAt: '2000-01-01T00:00:00.000Z',
         deletedAt: '2000-01-01T00:00:00.000Z',
         emailVerifiedAt: '2000-01-01T00:00:00.000Z',
         sessionsRevokedAt: '2999-01-01T00:00:00.000Z',
-      });
+        isAdmin: true,
+      };
 
-      expect(res.statusCode, res.body).toBe(200);
-      const after = await userRow(env, id); // throws if the id was overwritten
-      expect(after.forename).toBe('Augusta');
-      expect(after.createdAt).toEqual(before.createdAt);
-      expect(after.deletedAt).toBeNull();
-      expect(after.emailVerifiedAt).toBeNull();
-      expect(after.sessionsRevokedAt).toBeNull();
+      for (const [field, value] of Object.entries(forbidden)) {
+        const res = await patchMe(device, { forename: 'Augusta', [field]: value });
+        expect(res.statusCode, `${field}: ${res.body}`).toBe(400);
+      }
+
+      expect(await userRow(env, id), 'no rejected request may change the row').toEqual(before);
       expect((await getMe(other)).statusCode, 'a client-supplied revocation must not sign anyone out').toBe(200);
     });
   });
 
   describe('conflicts', () => {
-    test('rejects a username that is already taken with 409', async ({ env }) => {
+    test.for([
+      { field: 'username', body: { username: GRACE.username }, original: 'ada-lovelace' },
+      { field: 'email', body: { email: GRACE.email, ...confirmPassword }, original: ADA_LOGIN.email },
+    ] as const)('rejects a $field that is already taken with 409', async ({ field, body, original }, { env }) => {
       await register(env.device(), GRACE);
       const { device, id } = await signedInDevice(env);
 
-      const res = await patchMe(device, { username: GRACE.username });
+      const res = await patchMe(device, body);
 
-      expect(res.statusCode).toBe(409);
+      expect(res.statusCode, res.body).toBe(409);
       expect(res.json()).toMatchObject({
         error: 'Conflict',
         message: 'The username or email you want to change to is already in use',
       });
-      expect((await userRow(env, id)).username).toBe('ada-lovelace');
-    });
-
-    test('rejects an email that is already taken with 409', async ({ env }) => {
-      await register(env.device(), GRACE);
-      const { device, id } = await signedInDevice(env);
-
-      const res = await patchMe(device, { email: GRACE.email, ...confirmPassword });
-
-      expect(res.statusCode).toBe(409);
-      expect((await userRow(env, id)).email).toBe(ADA_LOGIN.email);
+      expect((await userRow(env, id))[field]).toBe(original);
     });
 
     test('a username held by a soft-deleted account is still taken', async ({ env }) => {
@@ -200,22 +200,28 @@ describe('PATCH /api/me', () => {
     });
   });
 
-  describe('email', () => {
-    test('requires the current password', async ({ env }) => {
-      const { device, id } = await signedInDevice(env);
+  test.for([
+    { field: 'email', body: { email: GRACE.email } },
+    { field: 'password', body: { password: NEW_PASSWORD } },
+  ])('changing the $field requires the current password', async ({ body }, { env }) => {
+    const { device, id } = await signedInDevice(env);
+    const before = await userRow(env, id);
 
-      const missing = await patchMe(device, { email: GRACE.email });
-      const wrong = await patchMe(device, { email: GRACE.email, ...wrongAttempt });
+    const missing = await patchMe(device, body);
+    const wrong = await patchMe(device, { ...body, ...wrongAttempt });
 
-      expect(missing.statusCode).toBe(403);
-      expect(wrong.statusCode).toBe(403);
-      expect(wrong.json()).toMatchObject({
-        error: 'Forbidden',
-        message: 'Provide your current password to make this update',
-      });
-      expect((await userRow(env, id)).email).toBe(ADA_LOGIN.email);
+    expect(missing.statusCode).toBe(403);
+    expect(wrong.statusCode).toBe(403);
+    expect(wrong.json()).toMatchObject({
+      error: 'Forbidden',
+      message: 'Provide your current password to make this update',
     });
+    const after = await userRow(env, id);
+    expect(after.email).toBe(before.email);
+    expect(after.password).toBe(before.password);
+  });
 
+  describe('email', () => {
     test('changes when the current password is right, and logs in with the new address only', async ({ env }) => {
       const { device } = await signedInDevice(env);
 
@@ -236,8 +242,6 @@ describe('PATCH /api/me', () => {
       expect((await userRow(env, id)).email).toBe(ADA_LOGIN.email);
     });
 
-    // PersonalService writes the new address but never touches emailVerifiedAt, so this is expected to
-    // fail today: a verified flag would carry over to an address nobody has verified.
     test('clears the verified flag, since the new address is unverified', async ({ env }) => {
       const { device, id } = await signedInDevice(env);
       await env.app.prisma.user.update({ where: { id }, data: { emailVerifiedAt: new Date() } });
@@ -250,17 +254,6 @@ describe('PATCH /api/me', () => {
   });
 
   describe('password', () => {
-    test('requires the current password', async ({ env }) => {
-      const { device } = await signedInDevice(env);
-
-      const missing = await patchMe(device, { password: NEW_PASSWORD });
-      const wrong = await patchMe(device, { password: NEW_PASSWORD, ...wrongAttempt });
-
-      expect(missing.statusCode).toBe(403);
-      expect(wrong.statusCode).toBe(403);
-      expect((await login(env, ADA_LOGIN)).statusCode, 'the old password still works').toBe(200);
-    });
-
     test('changes it, stores it hashed, and never echoes it back', async ({ env }) => {
       const { device, id } = await signedInDevice(env);
 
@@ -288,14 +281,6 @@ describe('PATCH /api/me', () => {
       });
       expect((await userRow(env, id)).forename, 'the whole update is rejected').toBe('Ada');
       expect((await login(env, ADA_LOGIN)).statusCode).toBe(200);
-    });
-
-    test('checks the current password before judging the new one', async ({ env }) => {
-      const { device } = await signedInDevice(env);
-
-      const res = await patchMe(device, { password: WEAK_PASSWORD, ...wrongAttempt });
-
-      expect(res.statusCode, 'a wrong attempt gets 403, not feedback about the new password').toBe(403);
     });
   });
 
@@ -339,28 +324,28 @@ describe('PATCH /api/me', () => {
       expect((await userRow(env, id)).sessionsRevokedAt, 'a password change does').not.toBeNull();
     });
 
-    test('a rejected password change signs nobody out', async ({ env }) => {
-      const { device: changer } = await signedInDevice(env);
+    test.for([
+      { name: 'a wrong current password', body: { password: NEW_PASSWORD, ...wrongAttempt }, locked: false, status: 403 },
+      // The current password is checked before the new one is judged, so a wrong attempt gets no feedback.
+      { name: 'a wrong current password and a weak new one', body: { password: WEAK_PASSWORD, ...wrongAttempt }, locked: false, status: 403 },
+      { name: 'a weak new password', body: { password: WEAK_PASSWORD, ...confirmPassword }, locked: false, status: 400 },
+      { name: 'a locked prompt', body: { password: NEW_PASSWORD, ...confirmPassword }, locked: true, status: 423 },
+    ])('a rejected password change ($name, $status) signs nobody out', async ({ body, locked, status }, { env }) => {
+      const { device: changer, id } = await signedInDevice(env);
       const other = await secondDevice(env);
       const before = sessionOf(changer);
+      const hash = (await userRow(env, id)).password;
+      if (locked) await failPrompt(changer, MAX_ATTEMPTS);
 
-      const res = await patchMe(changer, { password: NEW_PASSWORD, ...wrongAttempt });
+      const res = await patchMe(changer, body);
 
-      expect(res.statusCode).toBe(403);
-      expect((await getMe(changer)).statusCode).toBe(200);
+      expect(res.statusCode, res.body).toBe(status);
       expect(sessionOf(changer), 'no rotation without a change').toBe(before);
-      expect((await getMe(other)).statusCode).toBe(200);
-    });
-
-    test('a weak-password rejection signs nobody out', async ({ env }) => {
-      const { device: changer } = await signedInDevice(env);
-      const other = await secondDevice(env);
-
-      const res = await patchMe(changer, { password: WEAK_PASSWORD, ...confirmPassword });
-
-      expect(res.statusCode).toBe(400);
       expect((await getMe(changer)).statusCode).toBe(200);
-      expect((await getMe(other)).statusCode).toBe(200);
+      expect((await getMe(other)).statusCode, 'other devices stay signed in').toBe(200);
+      const after = await userRow(env, id);
+      expect(after.password, 'the password is unchanged').toBe(hash);
+      expect(after.sessionsRevokedAt).toBeNull();
     });
 
     test.for([
@@ -381,15 +366,6 @@ describe('PATCH /api/me', () => {
 });
 
 describe('DELETE /api/me', () => {
-  test('requires a session and changes nothing', async ({ env }) => {
-    const { id } = await signedInDevice(env);
-
-    const res = await deleteMe(env.device(), confirmPassword);
-
-    expect(res.statusCode).toBe(401);
-    expect((await userRow(env, id)).deletedAt).toBeNull();
-  });
-
   test('requires passwordAttempt in the body', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
 
@@ -414,8 +390,9 @@ describe('DELETE /api/me', () => {
     expect((await getMe(device)).statusCode, 'still signed in').toBe(200);
   });
 
-  test('soft-deletes the account, destroys the session and clears the cookie', async ({ env }) => {
+  test('soft-deletes the account, destroys the session, clears the cookie and spares everyone else', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
+    const grace = await signedInDevice(env, GRACE);
     const sessionId = sessionOf(device);
 
     const res = await deleteMe(device, confirmPassword);
@@ -430,15 +407,8 @@ describe('DELETE /api/me', () => {
     expect(device.cookies.has(SESSION), 'the cookie is cleared').toBe(false);
     // Replaying the old id proves the session is gone server-side, not just forgotten by the client.
     expect((await profileWithSession(env, sessionId)).statusCode).toBe(401);
-  });
 
-  test('does not touch anyone else’s account', async ({ env }) => {
-    const ada = await signedInDevice(env);
-    const grace = await signedInDevice(env, GRACE);
-
-    await deleteMe(ada.device, confirmPassword);
-
-    expect((await userRow(env, grace.id)).deletedAt).toBeNull();
+    expect((await userRow(env, grace.id)).deletedAt, 'nobody else is deleted').toBeNull();
     expect((await getMe(grace.device)).statusCode).toBe(200);
   });
 
@@ -477,49 +447,23 @@ describe('DELETE /api/me', () => {
 });
 
 describe('password confirmation lockout', () => {
-  const NEW_EMAIL = 'augusta@example.com';
-  const OTHER_EMAIL = 'augusta.king@example.com';
-  const MAX_ATTEMPTS = 5;
-
-  const wrongEmailChange = (device: Device) => patchMe(device, { email: NEW_EMAIL, ...wrongAttempt });
-
-  /** Makes `count` wrong guesses, asserting each is evaluated and rejected with a plain 403. */
-  async function failPrompt(device: Device, count: number) {
-    for (let i = 0; i < count; i++) {
-      const res = await wrongEmailChange(device);
-      expect(res.statusCode, `attempt ${i + 1} should be a plain 403`).toBe(403);
-    }
-  }
-
-  test('answers 423 once the attempts are used up, even for the right password', async ({ env }) => {
+  test('answers 423 once the attempts are used up, whatever is sent and however often', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
     await failPrompt(device, MAX_ATTEMPTS);
 
-    const locked = await patchMe(device, { email: NEW_EMAIL, ...confirmPassword });
+    const right = await patchMe(device, { email: NEW_EMAIL, ...confirmPassword });
+    expect(right.statusCode, right.body).toBe(423);
+    expect(right.json()).toMatchObject({ error: 'Locked' });
+    expect(right.json().message).toEqual(expect.any(String));
 
-    expect(locked.statusCode, locked.body).toBe(423);
-    expect(locked.json()).toMatchObject({ error: 'Locked' });
-    expect(locked.json().message).toEqual(expect.any(String));
-    expect((await userRow(env, id)).email, 'the change must not be applied').toBe(ADA_LOGIN.email);
-  });
-
-  test('answers 423 to a further wrong password too, so no guess is evaluated while locked', async ({ env }) => {
-    const { device } = await signedInDevice(env);
-    await failPrompt(device, MAX_ATTEMPTS);
-
-    const res = await wrongEmailChange(device);
-
-    expect(res.statusCode, 'a locked prompt must not say whether the guess was right').toBe(423);
-  });
-
-  test('stays locked for every further attempt', async ({ env }) => {
-    const { device } = await signedInDevice(env);
-    await failPrompt(device, MAX_ATTEMPTS);
+    const wrong = await wrongEmailChange(device);
+    expect(wrong.statusCode, 'a locked prompt must not say whether the guess was right').toBe(423);
 
     for (let i = 0; i < 3; i++) {
-      const res = await patchMe(device, { email: NEW_EMAIL, ...confirmPassword });
-      expect(res.statusCode, `attempt ${MAX_ATTEMPTS + i + 1}`).toBe(423);
+      const again = await patchMe(device, { email: NEW_EMAIL, ...confirmPassword });
+      expect(again.statusCode, `attempt ${MAX_ATTEMPTS + i + 3}`).toBe(423);
     }
+    expect((await userRow(env, id)).email, 'the change must never be applied').toBe(ADA_LOGIN.email);
   });
 
   test('the last permitted attempt is still evaluated', async ({ env }) => {
@@ -556,33 +500,8 @@ describe('password confirmation lockout', () => {
 
     expect(locked.statusCode, locked.body).toBe(423);
     expect((await userRow(env, id)).deletedAt, 'the account must survive').toBeNull();
-    expect((await login(env, ADA_LOGIN)).statusCode, 'the old password is unchanged').toBe(200);
-  });
-
-  test('a locked account deletion leaves the account and session alone', async ({ env }) => {
-    const { device, id } = await signedInDevice(env);
-    await failPrompt(device, MAX_ATTEMPTS);
-
-    const res = await deleteMe(device, confirmPassword);
-
-    expect(res.statusCode, res.body).toBe(423);
-    expect((await userRow(env, id)).deletedAt).toBeNull();
     expect((await getMe(device)).statusCode, 'still signed in').toBe(200);
-  });
-
-  test('a locked password change does not rotate the session or sign anyone out', async ({ env }) => {
-    const { device } = await signedInDevice(env);
-    const other = await secondDevice(env);
-    const before = sessionOf(device);
-    await failPrompt(device, MAX_ATTEMPTS);
-
-    const res = await patchMe(device, { password: NEW_PASSWORD, ...confirmPassword });
-
-    expect(res.statusCode, res.body).toBe(423);
-    expect(sessionOf(device), 'no rotation without a change').toBe(before);
-    expect((await getMe(device)).statusCode).toBe(200);
-    expect((await getMe(other)).statusCode, 'other devices stay signed in').toBe(200);
-    expect((await login(env, ADA_LOGIN)).statusCode, 'the old password still works').toBe(200);
+    expect((await login(env, ADA_LOGIN)).statusCode, 'the old password is unchanged').toBe(200);
   });
 
   test('is scoped to the account, not the IP or the whole server', async ({ env }) => {
@@ -595,19 +514,13 @@ describe('password confirmation lockout', () => {
     expect(res.statusCode, res.body).toBe(200);
   });
 
-  test('does not block updates that need no password', async ({ env }) => {
+  test('does not block updates that need no password, logging in, or the session itself', async ({ env }) => {
     const { device } = await signedInDevice(env);
     await failPrompt(device, MAX_ATTEMPTS);
 
     const res = await patchMe(device, { forename: 'Augusta' });
 
     expect(res.statusCode, res.body).toBe(200);
-  });
-
-  test('does not lock the account out of logging in', async ({ env }) => {
-    const { device } = await signedInDevice(env);
-    await failPrompt(device, MAX_ATTEMPTS);
-
     expect((await login(env, ADA_LOGIN)).statusCode).toBe(200);
     expect((await getMe(device)).statusCode, 'the session itself stays valid').toBe(200);
   });
