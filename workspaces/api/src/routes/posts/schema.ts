@@ -1,17 +1,44 @@
 import { Type } from '@sinclair/typebox';
-import { PublicUserObject } from '@/typebox/users.js';
+import { SerializableDate } from '@/typebox/date.js';
 import { generalErrorResponses, NotFound } from '@/typebox/responses.js';
 
 import type { FastifySchema } from 'fastify';
 import type { TypeBoxModel } from '@/typebox/mapping.js';
-import type { ReadingView } from '@/services/posts/ReadService.js';
+import type { FeedView, ReadingView } from '@/services/posts/shared/interfaces.js';
+
+const Author = Type.Object({
+  id: Type.String(),
+  forename: Type.String(),
+  surname: Type.String(),
+  avatarKey: Type.Union([Type.String(), Type.Null()]),
+});
+
+const Feed = Type.Object({
+  author: Author,
+  id: Type.String(),
+  title: Type.String(),
+  tags: Type.Array(Type.String()),
+  readingTime: Type.Number(),
+} satisfies TypeBoxModel<FeedView>);
+
+export const GetFeed = {
+  summary: 'Get feed',
+  description: 'Get a personalized feed (if logged in), or just get latest posts',
+  tags: ['Post', 'Public'],
+  response: {
+    200: Type.Array(Feed),
+    ...generalErrorResponses,
+  },
+} satisfies FastifySchema;
 
 const Read = Type.Object({
   id: Type.String(),
-  author: PublicUserObject,
+  author: Author,
   title: Type.String(),
   likes: Type.Number(),
   comments: Type.Number(),
+  readingTime: Type.Number(),
+  publishedAt: SerializableDate,
   publishedHtml: Type.String(),
 } satisfies TypeBoxModel<ReadingView>);
 

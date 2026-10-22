@@ -1,6 +1,7 @@
 interface Author {
   id: string;
-  username: string;
+  forename: string;
+  surname: string;
   avatarKey: string | null;
 }
 

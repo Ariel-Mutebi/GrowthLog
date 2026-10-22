@@ -14,14 +14,15 @@ const FRESHNESS_HALF_LIFE_DAYS = 14;
 
 const authorSelect = {
   id: true,
-  username: true,
+  forename: true,
+  surname: true,
   ...avatarSelect,
 } satisfies UserSelect;
 
 export class ReadService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  public async read(slug: string, userId?: string): Promise<ReadingView> {
+  public async read(slug: string): Promise<ReadingView> {
     const post = await this.prisma.post.findFirst({
       where: {
         slug,
@@ -46,16 +47,6 @@ export class ReadService {
 
     if (!post) throw new PostNotFoundError();
 
-    if (userId) {
-      await this.prisma.view.create({
-        data: {
-          userId,
-          postId: post.id,
-          type: 'OPENED',
-        },
-      });
-    }
-
     return {
       id: post.id,
       author: flattenAvatarKey(post.author),
@@ -66,16 +57,6 @@ export class ReadService {
       likes: post._count.likes,
       comments: post._count.comments,
     };
-  }
-
-  public async finished(postId: string, userId: string) {
-    await this.prisma.view.create({
-      data: {
-        postId,
-        userId,
-        type: 'READ',
-      },
-    });
   }
 
   /**
@@ -100,7 +81,7 @@ export class ReadService {
         ],
       },
       take: 300,
-      orderBy: { publishedAt: 'desc' },
+      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
       select: {
         id: true,
         tags: true,
@@ -138,7 +119,8 @@ export class ReadService {
       tags: post.tags.map(tag => tag.name),
       author: flattenAvatarKey({
         id: post.author.id,
-        username: post.author.username,
+        forename: post.author.forename,
+        surname: post.author.surname,
         avatar: post.author.avatar,
       }),
     }));
@@ -175,5 +157,39 @@ export class ReadService {
     engaged.forEach(post => post.tags.forEach(tag => add(tag.id, 1)));
 
     return interests;
+  }
+
+  /** Fallback for getFeed for users who aren't logged in */
+  public async getLatest(): Promise<FeedView[]> {
+    const posts = await this.prisma.post.findMany({
+      where: {
+        deletedAt: null,
+        publishedAt: { not: null },
+        author: { deletedAt: null },
+      },
+      take: 300,
+      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+      select: {
+        id: true,
+        tags: true,
+        publishedAt: true,
+        publishedTitle: true,
+        readingTime: true,
+        author: { select: authorSelect },
+      },
+    });
+
+    return posts.map((post) => ({
+      id: post.id,
+      title: post.publishedTitle!,
+      readingTime: post.readingTime!,
+      tags: post.tags.map((tag) => tag.name),
+      author: flattenAvatarKey({
+        id: post.author.id,
+        forename: post.author.forename,
+        surname: post.author.surname,
+        avatar: post.author.avatar,
+      }),
+    }));
   }
 }
