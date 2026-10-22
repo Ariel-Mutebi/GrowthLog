@@ -12,7 +12,7 @@ import type { FastifySchema } from 'fastify';
 import type { TypeBoxModel } from '@/typebox/mapping.js';
 import type { PrePublishDefaults, PublishSnapshot } from '@/services/posts/PublishService.js';
 
-const tags = ['Me', 'Drafts', 'Publish'];
+const tags = ['Draft', 'Publish'];
 
 const params = Type.Object({
   id: Type.String(),

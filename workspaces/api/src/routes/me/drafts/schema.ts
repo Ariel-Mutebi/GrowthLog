@@ -16,7 +16,7 @@ export const DraftMetadataObject = Type.Object({
   publishedAt: OptionalDate,
 } satisfies TypeBoxModel<DraftMetadata>);
 
-const tags = ['Me', 'Drafts'];
+const tags = ['Drafts'];
 
 export const CreateDraft = {
   summary: 'Create draft',

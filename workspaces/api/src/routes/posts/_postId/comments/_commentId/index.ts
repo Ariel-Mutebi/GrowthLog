@@ -29,6 +29,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: GetReplies,
   }, async (req, res) => {
     const replies = await service.getReplies(
+      req.params.postId,
       req.params.commentId,
       req.query.cursor,
       req.query.take,
@@ -74,6 +75,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       const edited = await service.edit(
         req.params.commentId,
         req.user.id,
+        req.params.postId,
         req.body.text,
       );
       return res.code(200).send(edited);
@@ -95,7 +97,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     assertIsLoggedIn(req);
 
     try {
-      await service.delete(req.params.commentId, req.user.id);
+      await service.delete(req.params.commentId, req.user.id, req.params.postId);
       return res.code(204).send(null);
     } catch (error) {
       if (error instanceof ForbiddenError) {

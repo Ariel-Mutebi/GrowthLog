@@ -6,6 +6,7 @@ import { meErrorResponses } from '@/typebox/responses.js';
 export const View = {
   summary: 'Save view',
   description: 'Record when a user opens or finishes a post',
+  tags: ['Post', 'Views'],
   security,
   params: Type.Object({
     postId: Type.String(),

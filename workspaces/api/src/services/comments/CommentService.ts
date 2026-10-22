@@ -73,9 +73,10 @@ export class CommentService {
     return rows.map(toComment);
   }
 
-  public async getReplies(parentId: string, cursor?: string, take = 10): Promise<Comment[]> {
+  public async getReplies(postId: string, parentId: string, cursor?: string, take = 10): Promise<Comment[]> {
     const rows = await this.prisma.comment.findMany({
       where: {
+        postId,
         parentId,
         deletedAt: null,
       },
@@ -113,12 +114,13 @@ export class CommentService {
     });
   }
 
-  public async edit(id: string, commenterId: string, text: string): Promise<Comment> {
+  public async edit(id: string, commenterId: string, postId: string, text: string): Promise<Comment> {
     await this.assertIsOriginalCommenter(id, commenterId);
 
     const edited = await this.prisma.comment.update({
       where: {
         id,
+        postId,
         commenterId,
       },
       data: { text },
@@ -128,12 +130,13 @@ export class CommentService {
     return toComment(edited);
   }
 
-  public async delete(id: string, commenterId: string) {
+  public async delete(id: string, commenterId: string, postId: string) {
     await this.assertIsOriginalCommenter(id, commenterId);
 
     await this.prisma.comment.update({
       where: {
         id,
+        postId,
         commenterId,
       },
       data: {

@@ -12,7 +12,7 @@ const params = Type.Object({
 export const LikeComment = {
   summary: 'Like comment',
   description: 'Idempotently like a comment',
-  tags: ['Posts', 'Comments', 'Likes'],
+  tags: ['Comment', 'Likes'],
   security,
   params,
   response: {
@@ -24,7 +24,7 @@ export const LikeComment = {
 export const UnlikeComment = {
   summary: 'Like comment',
   description: 'Remove your like from a comment',
-  tags: ['Posts', 'Comments', 'Likes'],
+  tags: ['Comment', 'Likes'],
   security,
   params,
   response: {
@@ -36,7 +36,7 @@ export const UnlikeComment = {
 export const GetReplies = {
   summary: 'Get replies',
   description: 'Get replies to a comment',
-  tags: ['Posts', 'Comments', 'Replies'],
+  tags: ['Comment', 'Replies'],
   security,
   params,
   querystring: CommentQuery,
@@ -49,7 +49,7 @@ export const GetReplies = {
 export const ReplyToComment = {
   summary: 'Reply',
   description: 'Reply to a top-level comment',
-  tags: ['Posts', 'Comments', 'Replies'],
+  tags: ['Comment', 'Replies'],
   security,
   params,
   body: Type.Object({
@@ -65,7 +65,7 @@ export const ReplyToComment = {
 export const EditComment = {
   summary: 'Edit comment',
   description: 'Edit your own comment',
-  tags: ['Posts', 'Comments'],
+  tags: ['Comment'],
   security,
   params,
   body: Type.Object({
@@ -81,7 +81,7 @@ export const EditComment = {
 export const DeleteComment = {
   summary: 'Delete comment',
   description: 'Delete your own comment',
-  tags: ['Posts', 'Comments'],
+  tags: ['Comment'],
   security,
   params,
   response: {

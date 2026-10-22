@@ -5,7 +5,7 @@ import { PersonalObject } from '../../typebox/users.js';
 import { EditableFields, IdentityObject } from '../../typebox/users.js';
 import { BadRequest, Conflict, Forbidden, Locked, meErrorResponses } from '../../typebox/responses.js';
 
-const tags = ['Users', 'Me'];
+const tags = ['Me'];
 
 export const GetSelf = {
   summary: 'Get Self',

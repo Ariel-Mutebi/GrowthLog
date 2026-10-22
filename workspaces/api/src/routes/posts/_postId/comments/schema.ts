@@ -27,7 +27,7 @@ export const CommentQuery = Type.Partial(Type.Object({
   take: Type.Integer(),
 }));
 
-const tags = ['Posts', 'Comments'];
+const tags = ['Comments'];
 
 export const GetComments = {
   summary: 'Get comments',

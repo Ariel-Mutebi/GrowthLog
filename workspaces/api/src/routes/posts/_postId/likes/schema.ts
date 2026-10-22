@@ -3,7 +3,7 @@ import { Type } from '@sinclair/typebox';
 import { security } from '@/typebox/constants.js';
 import { generalErrorResponses } from '@/typebox/responses.js';
 
-const tags = ['Posts', 'Likes'];
+const tags = ['Post', 'Likes'];
 
 const schema = {
   security,

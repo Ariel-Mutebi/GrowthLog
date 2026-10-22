@@ -24,7 +24,7 @@ const Feed = Type.Object({
 export const GetFeed = {
   summary: 'Get feed',
   description: 'Get a personalized feed (if logged in), or just get latest posts',
-  tags: ['Post', 'Public'],
+  tags: ['Posts'],
   response: {
     200: Type.Array(Feed),
     ...generalErrorResponses,
@@ -45,7 +45,7 @@ const Read = Type.Object({
 export const ReadPost = {
   summary: 'Read post',
   description: 'Get the content of a post, along with its metadata',
-  tags: ['Post', 'Public'],
+  tags: ['Posts'],
   params: Type.Object({
     slug: Type.String(),
   }),
