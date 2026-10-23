@@ -10,10 +10,16 @@ import {
   TitleRequiredError,
   EmptyPostError,
   InvalidCoverImageError,
+  InvalidContentError,
 } from './shared/errors.js';
-import { yDocToJson, assertPublishable, extractDefaultHook, readingTimeMinutes } from './shared/helpers.js';
+import {
+  yDocToJson,
+  assertPublishable,
+  extractDefaultHook,
+  readingTimeMinutes,
+} from './shared/helpers.js';
 
-import type { Extensions } from '@tiptap/core';
+import type { Extensions, JSONContent } from '@tiptap/core';
 import type { Cleaner } from '@growthlog/jobs';
 import type { PrismaClient } from '@growthlog/db';
 
@@ -57,6 +63,10 @@ export class PublishService {
   }
 
   public async publish(authorId: string, postId: string, snapshot: PublishSnapshot) {
+    if (snapshot.publishedTitle === 'Untitled') {
+      throw new TitleRequiredError();
+    }
+
     const post = await this.prisma.post.findFirst({
       where: {
         id: postId,
@@ -73,24 +83,32 @@ export class PublishService {
       throw new PostNotFoundError();
     }
 
-    if (!post.title.trim() || post.title === 'Untitled') {
-      throw new TitleRequiredError();
-    }
-
     if (!post.draftContent) {
       throw new EmptyPostError();
     }
 
     await this.assertCoverImageValid(postId, snapshot.coverImageId);
 
-    const json = yDocToJson(post.draftContent);
+    let json: JSONContent;
+    let publishedHtml: string;
+
+    try {
+      json = yDocToJson(post.draftContent);
+      publishedHtml = generateHTML(json, this.extensions);
+    } catch {
+      throw new InvalidContentError();
+    }
+
     assertPublishable(json, `${this.srcPrefix}/${postId}`);
-
-    const publishedHtml = generateHTML(json, this.extensions);
-    const readingTime = readingTimeMinutes(json);
-    const publishedPost = this.publishPost({ postId, publishedHtml, readingTime, snapshot });
-
+    
+    const publishedPost = await this.publishPost({
+      postId,
+      snapshot,
+      publishedHtml,
+      readingTime: readingTimeMinutes(json),
+    });
     await this.cleaner.purgeUnusedImages({ postId });
+
     return publishedPost;
   }
 
@@ -104,30 +122,44 @@ export class PublishService {
     const { slug, publishedTitle, coverImageId, publishedHook, tags } = snapshot;
 
     try {
-      await this.prisma.post.update({
-        where: {
-          id: postId,
-        },
-        data: {
-          slug,
-          title: publishedTitle,
-          publishedHtml,
-          publishedTitle,
-          publishedHook,
-          coverImageId,
-          readingTime,
-          publishedAt: new Date(),
-          tags: {
-            connectOrCreate: tags.map((name) => ({
-              where: { name },
-              create: { name },
-            })),
+      await this.prisma.$transaction([
+        this.prisma.post.update({
+          where: {
+            id: postId,
           },
-        },
-      });
+          data: {
+            tags: { set: [] },
+          },
+        }),
+        this.prisma.post.update({
+          where: {
+            id: postId,
+          },
+          data: {
+            slug,
+            title: publishedTitle,
+            publishedHtml,
+            publishedTitle,
+            publishedHook,
+            coverImageId,
+            readingTime,
+            publishedAt: new Date(),
+            tags: {
+              connectOrCreate: tags.map((name) => ({
+                where: { name },
+                create: { name },
+              })),
+            },
+          },
+        }),
+      ]);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new SlugConflictError();
+      }
+
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new PostNotFoundError();
       }
 
       throw error;
@@ -154,6 +186,7 @@ export class PublishService {
       where: {
         id,
         authorId,
+        deletedAt: null,
       },
       select: {
         title: true,
@@ -178,7 +211,7 @@ export class PublishService {
     const defaultCover = post.images.find((postImage) => postImage.image.status === 'UPLOADED');
 
     return {
-      slug: `${slugify(post.title, { lower: true })}-${randomInt(1000, 10000)}`,
+      slug: `${slugify(post.title, { lower: true, strict: true })}-${randomInt(1000, 10000)}`,
       publishedTitle: post.title,
       publishedHook: extractDefaultHook(json),
       coverImageId: defaultCover ? defaultCover.imageId : null,

@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { CUID, NonEmpty, Title, TagInput, Hook } from '@/typebox/inputs.js';
+import { CUID, Slug, Title, TagInput, Hook } from '@/typebox/inputs.js';
 import {
   Conflict,
   meErrorResponses,
@@ -22,12 +22,12 @@ export const PublishDraft = {
   tags,
   params,
   body: Type.Object({
-    slug: NonEmpty,
+    slug: Slug,
     publishedTitle: Title,
     publishedHook: Hook,
     coverImageId: CUID,
-    tags: Type.Array(TagInput),
-  } satisfies TypeBoxModel<PublishSnapshot>),
+    tags: Type.Array(TagInput, { maxItems: 10 }),
+  } satisfies TypeBoxModel<PublishSnapshot>, { additionalProperties: false }),
   response: {
     204: Type.Null(),
     409: Conflict,
@@ -49,7 +49,7 @@ export const Prepublish = {
       publishedHook: Type.String(),
       coverImageId: Type.Union([Type.String(), Type.Null()]),
       coverImageKey: Type.Union([Type.String(), Type.Null()]),
-    } satisfies TypeBoxModel<PrePublishDefaults>),
+    } satisfies TypeBoxModel<PrePublishDefaults>, { additionalProperties: false }),
     404: NotFound,
     ...meErrorResponses,
   },

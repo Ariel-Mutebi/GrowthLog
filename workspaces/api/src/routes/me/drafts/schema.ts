@@ -15,7 +15,7 @@ export const DraftMetadataObject = Type.Object({
   createdAt: SerializableDate,
   updatedAt: SerializableDate,
   publishedAt: OptionalDate,
-} satisfies TypeBoxModel<DraftMetadata>, { additionalProperties: false });
+} satisfies TypeBoxModel<DraftMetadata>);
 
 const tags = ['Drafts'];
 

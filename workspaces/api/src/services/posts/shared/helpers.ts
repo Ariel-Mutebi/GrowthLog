@@ -12,16 +12,12 @@ export function yDocToJson(content: Uint8Array | null): JSONContent {
   return TiptapTransformer.fromYdoc(ydoc, 'default');
 }
 
-/**
- * Assert that a ProseMirror JSON has content, and that all its images src
- * attributes start with the srcPrefix.
- */
 export function assertPublishable(doc: JSONContent, srcPrefix: string) {
   let hasContent = false;
 
   function visit(node: JSONContent) {
     if (node.type === 'image') {
-      if (!String(node.attrs?.src).startsWith(srcPrefix)) {
+      if (!isOwnImage(node.attrs?.src, srcPrefix)) {
         throw new InvalidImageError();
       }
       hasContent = true;
@@ -35,27 +31,33 @@ export function assertPublishable(doc: JSONContent, srcPrefix: string) {
   if (!hasContent) throw new EmptyPostError();
 }
 
-/**
- * Recursively extracts all the text within a ProseMirror node.
- */
+function isOwnImage(src: unknown, srcPrefix: string): boolean {
+  if (typeof src !== 'string') return false;
+  try {
+    const url = new URL(src);
+    const base = new URL(`${srcPrefix}/`);
+    return url.origin === base.origin && url.pathname.startsWith(base.pathname) && url.href === src;
+  } catch {
+    return false;
+  }
+}
+
 function textOf(node: JSONContent): string {
   if (node.type === 'text') return node.text ?? '';
   if (node.type === 'hardBreak') return ' ';
-  return node.content?.map(textOf).join(' ') ?? '';
+  const inline = node.content?.every((c) => c.type === 'text' || c.type === 'hardBreak');
+  return node.content?.map(textOf).join(inline ? '' : ' ') ?? '';
 }
 
-/**
- * Returns the first words within maxLength from the first paragraph.
- */
 export function extractDefaultHook(doc: JSONContent, maxLength = 120): string {
   const p = doc.content?.find((node) => node.type === 'paragraph' && textOf(node).trim() !== '');
   if (!p) return '';
 
-  const text = textOf(p).replace(/\s+/, ' ').trim();
-  if (text.length < maxLength) return text;
+  const text = textOf(p).replace(/\s+/g, ' ').trim();
+  if (text.length <= maxLength) return text;
 
   const cut = text.lastIndexOf(' ', maxLength);
-  return text.slice(0, cut).trimEnd() + '…';
+  return text.slice(0, cut > 0 ? cut : maxLength).trimEnd() + '…';
 }
 
 export function readingTimeMinutes(doc: JSONContent): number {

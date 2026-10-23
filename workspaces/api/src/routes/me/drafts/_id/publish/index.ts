@@ -3,9 +3,9 @@ import { assertIsLoggedIn } from '@/auth/preHandler.js';
 import { PublishService } from '@/services/posts/PublishService.js';
 import {
   EmptyPostError,
+  InvalidContentError,
   InvalidCoverImageError,
   InvalidImageError,
-  PostNotFoundError,
   SlugConflictError,
   TitleRequiredError,
 } from '@/services/posts/shared/errors.js';
@@ -24,19 +24,8 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   }, async (req, res) => {
     assertIsLoggedIn(req);
 
-    try {
-      const defaults = await service.prepublish(req.user.id, req.params.id);
-      return res.code(200).send(defaults);
-    } catch (error) {
-      if (error instanceof PostNotFoundError) {
-        return res.code(404).send({
-          error: 'NotFound',
-          message: 'This draft could not be found',
-        });
-      }
-
-      throw error;
-    }
+    const defaults = await service.prepublish(req.user.id, req.params.id);
+    return res.code(200).send(defaults);
   });
 
   app.post('/', {
@@ -73,6 +62,13 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         return res.code(422).send({
           error: 'UnprocessableEntity',
           message: 'This cover image is not valid',
+        });
+      }
+
+      if (error instanceof InvalidContentError) {
+        return res.code(422).send({
+          error: 'UnprocessableEntity',
+          message: 'This draft contains content that cannot be published',
         });
       }
 

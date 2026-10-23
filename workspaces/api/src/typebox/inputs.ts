@@ -9,6 +9,12 @@ export const NonEmpty = Type.String({
   minLength: 1,
 });
 
+export const Slug = Type.String({
+  minLength: 1,
+  maxLength: 30,
+  pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
+});
+
 export const Title = Type.String({
   minLength: 1,
   maxLength: 20,

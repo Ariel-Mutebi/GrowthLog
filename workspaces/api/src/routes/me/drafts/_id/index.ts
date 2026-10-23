@@ -1,7 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { assertIsLoggedIn } from '@/auth/preHandler.js';
 import { DraftService } from '@/services/posts/DraftService.js';
-import { PostNotFoundError } from '@/services/posts/shared/errors.js';
 import { UpdateDraft, GetDraft, DeleteDraft } from './schema.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
@@ -11,40 +10,22 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     schema: UpdateDraft,
   }, async (req, res) => {
     assertIsLoggedIn(req);
+  
+    const updated = await service.update(
+      req.user.id,
+      req.params.id,
+      req.body.title,
+    );
 
-    try {
-      const updated = await service.update(req.user.id, req.params.id, req.body.title);
-      return res.code(200).send(updated);
-    } catch (error) {
-      if (error instanceof PostNotFoundError) {
-        return res.code(404).send({
-          error: 'NotFound',
-          message: 'This draft could not be found',
-        });
-      }
-
-      throw error;
-    }
+    return res.code(200).send(updated);
   });
 
   app.get('/', {
     schema: GetDraft,
   }, async (req, res) => {
     assertIsLoggedIn(req);
-
-    try {
-      const draft = await service.getDraft(req.user.id, req.params.id);
-      return res.code(200).send(draft);
-    } catch (error) {
-      if (error instanceof PostNotFoundError) {
-        return res.code(404).send({
-          error: 'NotFound',
-          message: 'This draft could not be found',
-        });
-      }
-
-      throw error;
-    }
+    const draft = await service.getDraft(req.user.id, req.params.id);
+    return res.code(200).send(draft);
   });
 
   app.delete('/', {

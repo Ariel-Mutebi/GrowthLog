@@ -39,6 +39,16 @@ export function docToDraftBytes(doc: JSONContent = SAMPLE_DOC): Uint8Array<Array
   return new Uint8Array(Y.encodeStateAsUpdate(ydoc));
 }
 
+/**
+ * Builds draft bytes directly from the Yjs fragment, bypassing the editor schema entirely.
+ * Models a malicious client that writes whatever it likes to the collaborative doc.
+ */
+export function rawDraftBytes(build: (fragment: Y.XmlFragment) => void): Uint8Array<ArrayBuffer> {
+  const ydoc = new Y.Doc();
+  build(ydoc.getXmlFragment(FIELD));
+  return new Uint8Array(Y.encodeStateAsUpdate(ydoc));
+}
+
 let seedCounter = 0;
 
 /**
@@ -74,4 +84,24 @@ export function seedDraft(
       ...(over.updatedAt && { updatedAt: over.updatedAt }),
     },
   });
+}
+
+export const setContent = (env: TestEnv, postId: string, content: Uint8Array<ArrayBuffer> | null) =>
+  env.app.prisma.post.update({ where: { id: postId }, data: { draftContent: content } });
+
+/**
+ * Attaches an image to a post and returns its id.
+ */
+export async function seedImage(env: TestEnv, postId: string, status = 'UPLOADED') {
+  const n = ++seedCounter;
+  const image = await env.app.prisma.image.create({
+    data: {
+      key: `${postId}/img-${n}`,
+      status: status as 'UPLOADED',
+      mimeType: 'webp',
+      sizeBytes: 0,
+    },
+  });
+  await env.app.prisma.postImage.create({ data: { postId, imageId: image.id } });
+  return image.id;
 }
