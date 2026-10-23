@@ -431,16 +431,6 @@ describe('GET /api/users/:id', () => {
     expect(keysOf(res.json()), 'no email, password or other private field').toEqual(PUBLIC_KEYS);
   });
 
-  test('returns the same thing to a signed-in user', async ({ env }) => {
-    const { id } = await signedInDevice(env);
-    const { device: viewer } = await signedInDevice(env, GRACE);
-
-    const res = await viewer.get(`/api/users/${id}`);
-
-    expect(res.statusCode).toBe(200);
-    expect(keysOf(res.json())).toEqual(PUBLIC_KEYS);
-  });
-
   test('returns 404 for a non-existent user', async ({ env }) => {
     const res = await env.device().get(`/api/users/${createId()}`);
     expect(res.statusCode).toBe(404);

@@ -2,7 +2,7 @@ import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
 import { security } from '@/typebox/constants.js';
 import { CUID, NonEmpty } from '@/typebox/inputs.js';
-import { BadRequest, Forbidden, generalErrorResponses, meErrorResponses } from '@/typebox/responses.js';
+import { Forbidden, generalErrorResponses, meErrorResponses, NotFound } from '@/typebox/responses.js';
 import { CommentObject, CommentQuery } from '../schema.js';
 
 const params = Type.Object({
@@ -18,6 +18,7 @@ export const LikeComment = {
   params,
   response: {
     204: Type.Null(),
+    404: NotFound,
     ...meErrorResponses,
   },
 } satisfies FastifySchema;
@@ -58,7 +59,7 @@ export const ReplyToComment = {
   }),
   response: {
     200: CommentObject,
-    400: BadRequest,
+    404: NotFound,
     ...meErrorResponses,
   },
 } satisfies FastifySchema;
@@ -75,6 +76,7 @@ export const EditComment = {
   response: {
     200: CommentObject,
     403: Forbidden,
+    404: NotFound,
     ...meErrorResponses,
   },
 } satisfies FastifySchema;

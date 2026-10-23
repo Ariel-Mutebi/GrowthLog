@@ -1,5 +1,5 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { LikeService } from '@/services/LikeService.js';
+import { LikeService } from '@/services/posts/LikeService.js';
 import { isLoggedIn, assertIsLoggedIn } from '@/auth/preHandler.js';
 import { LikePost, UnlikePost } from './schema.js';
 

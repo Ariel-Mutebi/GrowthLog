@@ -5,3 +5,5 @@ export class TitleRequiredError extends Error { }
 export class InvalidImageError extends Error { }
 export class InvalidContentError extends Error { }
 export class InvalidCoverImageError extends Error { }
+export class ForbiddenError extends Error { }
+export class CommentNotFoundError extends Error { }

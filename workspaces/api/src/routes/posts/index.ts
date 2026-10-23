@@ -1,6 +1,5 @@
 import { GetFeed, ReadPost } from './schema.js';
 import { ReadService } from '@/services/posts/ReadService.js';
-import { PostNotFoundError } from '@/services/posts/shared/errors.js';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
@@ -19,19 +18,8 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   app.get('/:slug', {
     schema: ReadPost,
   }, async (req, res) => {
-    try {
-      const data = await service.read(req.params.slug);
-      return res.status(200).send(data);
-    } catch (error) {
-      if (error instanceof PostNotFoundError) {
-        return res.status(404).send({
-          error: 'NotFound',
-          message: 'The post could not be found. Maybe the author unpublished or deleted it.',
-        });
-      }
-
-      throw error;
-    }
+    const data = await service.read(req.params.slug);
+    return res.status(200).send(data);
   });
 };
 

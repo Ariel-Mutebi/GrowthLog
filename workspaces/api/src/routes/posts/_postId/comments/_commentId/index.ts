@@ -1,8 +1,8 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { CommentService } from '@/services/comments/CommentService.js';
+import { CommentService } from '@/services/posts/CommentService.js';
 import { isLoggedIn, assertIsLoggedIn } from '@/auth/preHandler.js';
 import { DeleteComment, EditComment, GetReplies, LikeComment, ReplyToComment } from './schema.js';
-import { ForbiddenError, ReplyTargetNotFound } from '@/services/comments/errors.js';
+import { ForbiddenError, CommentNotFoundError } from '@/services/posts/shared/errors.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new CommentService(app.prisma);
@@ -28,12 +28,12 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   app.get('/replies', {
     schema: GetReplies,
   }, async (req, res) => {
-    const replies = await service.getReplies(
-      req.params.postId,
-      req.params.commentId,
-      req.query.cursor,
-      req.query.take,
-    );
+    const replies = await service.getReplies({
+      postId: req.params.postId,
+      parentId: req.params.commentId,
+      cursor: req.query.cursor,
+      take: req.query.take,
+    });
     return res.code(200).send(replies);
   });
 
@@ -43,25 +43,14 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   }, async (req, res) => {
     assertIsLoggedIn(req);
     
-    try {
-      const newReply = await service.reply({
-        commenterId: req.user.id,
-        postId: req.params.postId,
-        targetId: req.params.commentId,
-        text: req.body.text,
-      });
+    const newReply = await service.reply({
+      commenterId: req.user.id,
+      postId: req.params.postId,
+      targetId: req.params.commentId,
+      text: req.body.text,
+    });
 
-      return res.code(200).send(newReply);
-    } catch (error) {
-      if (error instanceof ReplyTargetNotFound) {
-        return res.code(400).send({
-          error: 'BadRequest',
-          message: 'The comment you are replying to could not be found',
-        });
-      }
-
-      throw error;
-    }
+    return res.code(200).send(newReply);
   });
 
   // can be re-used for editing and deleting replies
@@ -93,6 +82,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
 
   app.delete('/', {
     schema: DeleteComment,
+    preHandler: isLoggedIn,
   }, async (req, res) => {
     assertIsLoggedIn(req);
 
@@ -109,6 +99,17 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
 
       throw error;
     }
+  });
+
+  app.setErrorHandler((error, _req, res) => {
+    if (error instanceof CommentNotFoundError) {
+      return res.code(404).send({
+        error: 'NotFound',
+        message: 'This comment could not be found',
+      });
+    }
+
+    throw error;
   });
 };
 

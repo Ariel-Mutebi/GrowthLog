@@ -1,8 +1,8 @@
 import { PostNotFoundError } from './shared/errors.js';
-import { avatarSelect } from '../users/shared/selectors.js';
+import { authorSelect } from './shared/selectors.js';
 import { flattenAvatarKey } from '../users/shared/helpers.js';
 
-import type { PrismaClient, UserSelect } from '@growthlog/db';
+import type { PrismaClient } from '@growthlog/db';
 import type { ReadingView, FeedView } from './shared/interfaces.js';
 
 type InterestMap = Map<string, number>;
@@ -11,13 +11,6 @@ const DAY = 86_400_000;
 const INTEREST_WINDOW_DAYS = 60;
 const ONBOARDING_HALF_LIFE_DAYS = 30;
 const FRESHNESS_HALF_LIFE_DAYS = 14;
-
-const authorSelect = {
-  id: true,
-  forename: true,
-  surname: true,
-  ...avatarSelect,
-} satisfies UserSelect;
 
 export class ReadService {
   constructor(private readonly prisma: PrismaClient) {}
@@ -28,6 +21,7 @@ export class ReadService {
         slug,
         deletedAt: null,
         publishedAt: { not: null },
+        author: { deletedAt: null },
       },
       select: {
         id: true,
@@ -137,7 +131,7 @@ export class ReadService {
     const engaged = await this.prisma.post.findMany({
       where: {
         OR: [
-          { likes: { some: { createdAt: { gt: since } } } },
+          { likes: { some: { userId, createdAt: { gt: since } } } },
           { views: { some: { userId, type: 'READ', createdAt: { gt: since } } } },
         ],
       },

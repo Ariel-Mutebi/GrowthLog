@@ -1,4 +1,5 @@
 import { Type } from '@sinclair/typebox';
+import { Slug } from '@/typebox/inputs.js';
 import { SerializableDate } from '@/typebox/date.js';
 import { generalErrorResponses, NotFound } from '@/typebox/responses.js';
 
@@ -49,7 +50,7 @@ export const ReadPost = {
   description: 'Get the content of a post, along with its metadata',
   tags: ['Posts'],
   params: Type.Object({
-    slug: Type.String(),
+    slug: Slug,
   }),
   response: {
     200: Read,

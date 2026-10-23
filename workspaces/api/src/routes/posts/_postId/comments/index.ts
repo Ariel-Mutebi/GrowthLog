@@ -1,5 +1,5 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
-import { CommentService } from '@/services/comments/CommentService.js';
+import { CommentService } from '@/services/posts/CommentService.js';
 import { isLoggedIn, assertIsLoggedIn } from '@/auth/preHandler.js';
 import { GetComments, MakeComment } from './schema.js';
 
@@ -9,11 +9,12 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   app.get('/', {
     schema: GetComments,
   }, async (req, res) => {
-    const comments = await service.getComments(
-      req.params.postId,
-      req.query.cursor,
-      req.query.take,
-    );
+    const comments = await service.getComments({
+      postId: req.params.postId,
+      cursor: req.query.cursor,
+      take: req.query.take,
+    });
+
     return res.code(200).send(comments);
   });
 

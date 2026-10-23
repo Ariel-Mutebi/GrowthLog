@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { View } from './schema.js';
-import { ViewService } from '@/services/ViewService.js';
+import { ViewService } from '@/services/posts/ViewService.js';
 import { assertIsLoggedIn, isLoggedIn } from '@/auth/preHandler.js';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
