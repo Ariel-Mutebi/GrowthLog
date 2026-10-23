@@ -80,23 +80,8 @@ export class DiscoveryService {
     };
 
     if (cursor) {
-      const cursorUser = await this.prisma.user.findUnique({
-        where: { id: cursor },
-        select: { id: true, createdAt: true },
-      });
-
-      if (!cursorUser) throw new UserNotFoundError();
-
-      findManyArgs.where = {
-        ...findManyArgs.where,
-        OR: [
-          { createdAt: { lt: cursorUser.createdAt } },
-          {
-            createdAt: cursorUser.createdAt,
-            id: { lt: cursorUser.id },
-          },
-        ],
-      };
+      findManyArgs.cursor = { id: cursor };
+      findManyArgs.skip = 1;
     }
 
     const rows = await this.prisma.user.findMany({

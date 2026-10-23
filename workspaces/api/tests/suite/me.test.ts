@@ -1,4 +1,3 @@
-import { createId } from '@paralleldrive/cuid2';
 import { describe, expect } from 'vitest';
 import { test } from '../fixtures.js';
 import type { TestEnv } from '../test-env.js';
@@ -130,7 +129,7 @@ describe('PATCH /api/me', () => {
       const other = await secondDevice(env);
       const before = await userRow(env, id);
       const forbidden = {
-        id: createId(),
+        id: 'cdoesnotexist'.padEnd(24, '0'),
         createdAt: '2000-01-01T00:00:00.000Z',
         deletedAt: '2000-01-01T00:00:00.000Z',
         emailVerifiedAt: '2000-01-01T00:00:00.000Z',

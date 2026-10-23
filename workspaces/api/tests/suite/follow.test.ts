@@ -1,5 +1,4 @@
 import { describe, expect } from 'vitest';
-import { createId } from '@paralleldrive/cuid2';
 import type { LightMyRequestResponse } from 'fastify';
 import { test } from '../fixtures.js';
 import type { TestEnv } from '../test-env.js';
@@ -287,7 +286,7 @@ describe('ids that match no user', () => {
   test('a well-formed id that nobody owns is treated as an unknown user on every route', async ({ env }) => {
     const { ada } = await people(env);
     const anonymous = env.device();
-    const unknown = createId();
+    const unknown = 'cdoesnotexist'.padEnd(24, '0');
 
     const put = await follow(ada.device, unknown);
     expect(put.statusCode, put.body).toBe(404);

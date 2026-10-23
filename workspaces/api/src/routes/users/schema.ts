@@ -47,7 +47,7 @@ export const UserSearch = {
     {
       name: Type.String({ minLength: 1, maxLength: 50, pattern: '\\S' }),
       interests: Type.Array(TagInput),
-      cursor: Type.String(),
+      cursor: CUID,
       limit: Type.Integer({ minimum: 1, maximum: 50, default: 20 }),
     },
     // at least one of name / interest must be present
