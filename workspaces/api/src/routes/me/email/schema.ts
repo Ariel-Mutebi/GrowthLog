@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { security } from '../../../typebox/constants.js';
-import { BadRequest, meErrorResponses } from '../../../typebox/responses.js';
+import { security } from '@/typebox/constants.js';
+import { BadRequest, meErrorResponses } from '@/typebox/responses.js';
 
 export const RequestSchema = {
   summary: 'Request email verification',
@@ -20,7 +20,7 @@ export const ConfirmSchema = {
   tags: ['Email'],
   security,
   body: Type.Object({
-    code: Type.String({ minLength: 0, maxLength: 6 }),
+    code: Type.String({ pattern: '^\\d{6}$' }),
   }),
   response: {
     204: Type.Null(),
