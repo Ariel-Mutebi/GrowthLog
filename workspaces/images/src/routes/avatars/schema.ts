@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { headers } from '../../typebox/headers.js';
+import { CUID, headers } from '../../typebox/headers.js';
 import { RequestUploadBody } from '../../typebox/bodies.js';
 import { RequestUploadResponse, ConfirmResponse } from '../../typebox/responses.js';
 
@@ -17,7 +17,7 @@ export const Confirm = {
   description: 'Checks if the uploaded object follows the rules and updates the image status',
   headers,
   params: Type.Object({
-    id: Type.String(),
+    id: CUID,
   }),
   response: ConfirmResponse,
 } satisfies FastifySchema;

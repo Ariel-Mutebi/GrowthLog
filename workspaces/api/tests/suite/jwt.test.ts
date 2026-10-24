@@ -11,7 +11,7 @@ test('GET /api/me/jwt rejects an unauthenticated device', async ({ env }) => {
   expect(res.statusCode).toBe(401);
 });
 
-test('GET /api/me/jwt returns a one-hour token for the signed-in user', async ({ env }) => {
+test('GET /api/me/jwt returns a five-minute token for the signed-in user', async ({ env }) => {
   const { device, id } = await signedInDevice(env);
 
   const res = await device.get('/api/me/jwt');
@@ -20,5 +20,5 @@ test('GET /api/me/jwt returns a one-hour token for the signed-in user', async ({
   const claims = jwt.verify(res.json().token, JWT_SECRET) as jwt.JwtPayload;
   expect(claims.sub).toBe(id);
   expect(claims.name).toBe('ada-lovelace');
-  expect(claims.exp! - claims.iat!).toBe(60 * 60);
+  expect(claims.exp! - claims.iat!).toBe(300);
 });

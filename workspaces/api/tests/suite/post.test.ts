@@ -41,24 +41,13 @@ const unlikeComment = (d: Device, postId: string, commentId: string) =>
 
 const follow = (d: Device, userId: string) => d.put(`/api/follow/${userId}`);
 
-/* -------------------------------------------------------------------------- */
-/*  Seeding                                                                   */
-/*                                                                            */
-/*  There is no "create post" endpoint in the routes under test, so posts,    */
-/*  tags and comments are seeded straight through Prisma. If the schema       */
-/*  differs from what is assumed here (cover/image shape, required columns),  */
-/*  this is the only section that needs adjusting.                            */
-/* -------------------------------------------------------------------------- */
-
 const DAY = 86_400_000;
 const daysAgo = (n: number) => new Date(Date.now() - n * DAY);
 const UNKNOWN_ID = 'cdoesnotexist'.padEnd(24, '0');
 
 interface PostOptions {
   tags?: { id: string }[];
-  /** `null` makes it a draft; omitted means published now. */
   publishedAt?: Date | null;
-  /** Any non-null value soft-deletes the post (seedDraft stamps it with the current time). */
   deletedAt?: Date | null;
   readingTime?: number;
   title?: string;
@@ -69,8 +58,7 @@ async function createTag(env: TestEnv, name: string) {
 }
 
 /**
- * Builds on seedDraft (which sets the published* columns but no cover, tags or custom dates).
- * Post.coverImageId references PostImage.imageId, and seedImage returns the Image id, which is that same id.
+ * Builds on seedDraft (which sets the published columns but no cover, tags or custom dates).
  */
 async function createPost(env: TestEnv, author: Person, o: PostOptions = {}) {
   const published = o.publishedAt !== null;

@@ -1,18 +1,21 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifySchema } from 'fastify';
-import { headers } from '../../typebox/headers.js';
+import { CUID, headers } from '../../typebox/headers.js';
 import { RequestUploadBody } from '../../typebox/bodies.js';
-import { ConfirmResponse, RequestUploadResponse } from '../../typebox/responses.js';
+import { ConfirmResponse, NotFound, RequestUploadResponse } from '../../typebox/responses.js';
 
 export const RequestUpload = {
   summary: 'Request post image upload',
   description: 'Returns the image ID and a presigned PUT URL to Minio',
   headers,
   params: Type.Object({
-    postId: Type.String(),
+    postId: CUID,
   }),
   body: RequestUploadBody,
-  response: RequestUploadResponse,
+  response: {
+    ...RequestUploadResponse,
+    404: NotFound,
+  },
 } satisfies FastifySchema;
 
 export const Confirm = {
@@ -20,8 +23,11 @@ export const Confirm = {
   description: 'Checks if the uploaded object follows the rules and updates the image status',
   headers,
   params: Type.Object({
-    postId: Type.String(),
-    imageId: Type.String(),
+    postId: CUID,
+    imageId: CUID,
   }),
-  response: ConfirmResponse,
+  response: {
+    ...ConfirmResponse,
+    404: NotFound,
+  },
 } satisfies FastifySchema;

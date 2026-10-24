@@ -3,7 +3,7 @@ import { loadEnvFile } from './load.js';
 import { envDefinitions } from './definitions.js';
 import type { EnvKey, EnvValues } from './definitions.js';
 
-export function loadEnv<K extends EnvKey, O extends Record<string, string> = Record<string, never>>(
+export function loadEnv<K extends EnvKey, O extends Record<string, string | number> = Record<string, never>>(
   keys: readonly K[],
   overrides: O = {} as O,
 ): EnvValues<K> & O {

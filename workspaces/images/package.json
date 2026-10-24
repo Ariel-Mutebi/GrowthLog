@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "vitest run",
     "build": "tsc -b tsconfig.build.json",
     "dev": "tsx watch src/server.ts",
     "gen:types": "tsx openapi/generate.ts"
@@ -28,12 +29,17 @@
     "file-type": "^22.1.1",
     "image-size": "^2.0.4",
     "jsonwebtoken": "^9.0.3",
-    "openapi-typescript": "^7.13.0"
+    "openapi-typescript": "^7.13.0",
+    "pg": "^8.23.0"
   },
   "devDependencies": {
+    "@testcontainers/minio": "^12.2.1",
+    "@testcontainers/postgresql": "^12.1.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.2",
+    "testcontainers": "^12.2.1",
     "tsx": "^4.23.15",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
   }
 }

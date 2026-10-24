@@ -11,20 +11,11 @@ import { prismaPlugin } from './plugins/prisma.js';
 import { minioPlugin } from './plugins/minio.js';
 import { swaggerPlugin } from './plugins/swagger.js';
 import { errorHandler } from './utils/errorHandler.js';
+import type { Config } from './types/config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function buildApp() {
-  const app = Fastify({
-    logger: {
-      level: 'info',
-    },
-    trustProxy: true,
-    routerOptions: {
-      ignoreTrailingSlash: true,
-    },
-  }).withTypeProvider<TypeBoxTypeProvider>();
-
+export function buildApp(overrides?: Partial<Config>) {
   const config = loadEnv([
     'NODE_ENV',
     'IMAGES_PORT',
@@ -39,7 +30,17 @@ export function buildApp() {
     'PUBLIC_MAX_AVATAR_SIZE_BYTES',
     'PUBLIC_MAX_IMAGE_SIZE_BYTES',
     'PRESIGNED_URL_EXPIRY_SECONDS',
-  ]);
+  ], overrides);
+
+  const app = Fastify({
+    logger: {
+      level: config.NODE_ENV === 'test' ? 'warn' : 'info',
+    },
+    trustProxy: true,
+    routerOptions: {
+      ignoreTrailingSlash: true,
+    },
+  }).withTypeProvider<TypeBoxTypeProvider>();
 
   app.decorate('config', config);
   app.register(fastifyHelmet);

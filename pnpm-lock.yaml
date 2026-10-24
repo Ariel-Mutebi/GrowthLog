@@ -291,19 +291,34 @@ importers:
       openapi-typescript:
         specifier: ^7.13.0
         version: 7.13.0(typescript@6.0.3)
+      pg:
+        specifier: ^8.23.0
+        version: 8.23.0
     devDependencies:
+      '@testcontainers/minio':
+        specifier: ^12.2.1
+        version: 12.2.1(supports-color@10.2.2)
+      '@testcontainers/postgresql':
+        specifier: ^12.1.0
+        version: 12.1.0(supports-color@10.2.2)
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
       '@types/node':
         specifier: ^26.6.2
         version: 26.6.2
+      testcontainers:
+        specifier: ^12.2.1
+        version: 12.2.1(supports-color@10.2.2)
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+      vitest:
+        specifier: ^5.0.3
+        version: 5.0.3(@types/node@26.6.2)(happy-dom@20.14.6)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
   workspaces/jobs:
     dependencies:
@@ -1857,6 +1872,9 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
+  '@testcontainers/minio@12.2.1':
+    resolution: {integrity: sha512-ulwdPa9mxaMkJDDdl/MeVteSj6+tSJ0clhn+8hyRwVzgGwy9iL6WIegiKgHocteFns+uWbEpdUp3Z9HGooJdrg==}
+
   '@testcontainers/postgresql@12.1.0':
     resolution: {integrity: sha512-Pjf2VSVNirEPfz36nidyrVAnZvc2YhajOznY4VgyEsvfTd5qiMNOuPq96drREvxAUtXl5SFLX7vXj7sSq4aTcA==}
 
@@ -3024,6 +3042,10 @@ packages:
 
   docker-compose@1.4.2:
     resolution: {integrity: sha512-rPHigTKGaEHpkUmfd69QgaOp+Os5vGJwG/Ry8lcr8W/382AmI+z/D7qoa9BybKIkqNppaIbs8RYeHSevdQjWww==}
+    engines: {node: '>= 6.0.0'}
+
+  docker-compose@1.5.0:
+    resolution: {integrity: sha512-O+eD6c63+BJORUWddXA7uAlI6H1KLDPd/aS14k73nXYpFliM48C3xrrKB3sXsR1Fp/rHUZQe7+fJ+QA7+jepyw==}
     engines: {node: '>= 6.0.0'}
 
   docker-modem@5.0.7:
@@ -4803,6 +4825,10 @@ packages:
     resolution: {integrity: sha512-YjDLqIITuhGLMnM10yhg3oV6lIG5IMpz1R1DPBZoOOks83q7i7IVpeSWRTiyl7roozjiyLmwIoLK/KY8OnZmIA==}
     engines: {node: '>= 22.22'}
 
+  testcontainers@12.2.1:
+    resolution: {integrity: sha512-JfbCyOvLdzatwgqUI3AvYCwRW0P5mCkKQVBPO8U5qSH1efC2kHvnfWmi9VHloy1rAFG2MEqWZObRH4bq0gU1kQ==}
+    engines: {node: '>= 22.22'}
+
   text-decoder@1.2.7:
     resolution: {integrity: sha512-vlLytXkeP4xvEq2otHeJfSQIRyWxo/oZGEbXrtEEF9Hnmrdly59sUbzZ/QgyWuLYHctCHxFF4tRQZNQ9k60ExQ==}
 
@@ -4929,10 +4955,6 @@ packages:
 
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
-
-  undici@8.10.0:
-    resolution: {integrity: sha512-HvltHd7avK13QIw/oLe4qoOLyoVSoafqJ2jYOrtMRBkbYT31eiBQ8O0ehRKZiEZCMEyLFQNIADpgCWC5fALvYQ==}
-    engines: {node: '>=22.19.0'}
 
   undici@8.11.2:
     resolution: {integrity: sha512-u4UB2/IrKdU6lFxumHmmo1a3fCQO5tzQllRorfoRS63txhrB7xTpSn1PftwC4qEHkOaqP95fCWW4lJzwErwzhQ==}
@@ -6676,6 +6698,15 @@ snapshots:
       tailwindcss: 4.3.3
       vite: 8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  '@testcontainers/minio@12.2.1(supports-color@10.2.2)':
+    dependencies:
+      testcontainers: 12.2.1(supports-color@10.2.2)
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - react-native-b4a
+      - supports-color
+
   '@testcontainers/postgresql@12.1.0(supports-color@10.2.2)':
     dependencies:
       testcontainers: 12.1.0(supports-color@10.2.2)
@@ -7926,6 +7957,10 @@ snapshots:
       path-type: 4.0.0
 
   docker-compose@1.4.2:
+    dependencies:
+      yaml: 2.9.1
+
+  docker-compose@1.5.0:
     dependencies:
       yaml: 2.9.1
 
@@ -9860,7 +9895,30 @@ snapshots:
       ssh-remote-port-forward: 1.0.4
       tar-fs: 3.1.3
       tmp: 0.2.7
-      undici: 8.10.0
+      undici: 8.11.2
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - react-native-b4a
+      - supports-color
+
+  testcontainers@12.2.1(supports-color@10.2.2):
+    dependencies:
+      '@balena/dockerignore': 1.0.2
+      '@types/dockerode': 4.0.1
+      archiver: 7.0.1
+      async-lock: 1.4.1
+      byline: 5.0.0
+      debug: 4.4.3(supports-color@10.2.2)
+      docker-compose: 1.5.0
+      dockerode: 5.0.1(supports-color@10.2.2)
+      get-port: 5.1.1
+      proper-lockfile: 4.1.2
+      properties-reader: 3.0.1(supports-color@10.2.2)
+      ssh-remote-port-forward: 1.0.4
+      tar-fs: 3.1.3
+      tmp: 0.2.7
+      undici: 8.11.2
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
@@ -9974,8 +10032,6 @@ snapshots:
   undici-types@5.26.5: {}
 
   undici-types@8.9.0: {}
-
-  undici@8.10.0: {}
 
   undici@8.11.2: {}
 

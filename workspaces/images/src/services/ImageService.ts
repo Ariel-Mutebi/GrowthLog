@@ -1,6 +1,7 @@
 import {
   GetObjectCommand,
   HeadObjectCommand,
+  NotFound,
 } from '@aws-sdk/client-s3';
 import imageSize from 'image-size';
 import { fileTypeFromBuffer } from 'file-type';
@@ -81,18 +82,31 @@ export abstract class ImageUploadService<RequestParams, ConfirmParams> {
     }
   };
 
-  private async verifyObjectUploaded(key: string) {
-    const { ContentLength } = await this.deps.minio.send(
-      new HeadObjectCommand({
-        Bucket: this.deps.bucket,
-        Key: key,
-      }),
-    );
+  private async verifyObjectUploaded(key: string): Promise<number> {
+    try {
+      const { ContentLength } = await this.deps.minio.send(
+        new HeadObjectCommand({
+          Bucket: this.deps.bucket,
+          Key: key,
+        }),
+      );
 
-    if (!ContentLength) throw new ObjectNotUploadedError();
-    if (ContentLength > this.deps.maxSizeBytes) throw new FileTooLargeError(this.deps.maxSizeBytes);
+      if (!ContentLength) {
+        throw new ObjectNotUploadedError();
+      }
 
-    return ContentLength;
+      if (ContentLength > this.deps.maxSizeBytes) {
+        throw new FileTooLargeError(this.deps.maxSizeBytes);
+      }
+
+      return ContentLength;
+    } catch (error) {
+      if (error instanceof NotFound) {
+        throw new ObjectNotUploadedError();
+      }
+
+      throw error;
+    }
   }
 
   private async verifyFileContent(key: string, declaredMimeType: string) {

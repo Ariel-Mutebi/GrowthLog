@@ -18,24 +18,8 @@ import type { Config } from './types/config.js';
 import { errorHandler } from './utils/errorHandler.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-type Overrides = Partial<Record<keyof Config, string>>;
 
-export function buildApp(overrides?: Overrides) {
-  const app = Fastify({
-    logger: {
-      level: 'warn',
-    },
-    trustProxy: true,
-    routerOptions: {
-      ignoreTrailingSlash: true,
-    },
-    ajv: {
-      customOptions: {
-        removeAdditional: false,
-      },
-    },
-  }).withTypeProvider<TypeBoxTypeProvider>();
-
+export function buildApp(overrides?: Partial<Config>) {
   const config = loadEnv(
     [
       'API_PORT',
@@ -49,6 +33,21 @@ export function buildApp(overrides?: Overrides) {
     ],
     overrides,
   );
+
+  const app = Fastify({
+    logger: {
+      level: config.NODE_ENV === 'test' ? 'warn' : 'info',
+    },
+    trustProxy: true,
+    routerOptions: {
+      ignoreTrailingSlash: true,
+    },
+    ajv: {
+      customOptions: {
+        removeAdditional: false,
+      },
+    },
+  }).withTypeProvider<TypeBoxTypeProvider>();
 
   app.decorate('config', config);
   app.register(fastifyHelmet);
