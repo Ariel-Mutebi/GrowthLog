@@ -30,7 +30,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       text: req.body.text,
     });
 
-    return res.code(200).send(newComment);
+    return res.code(201).send(newComment);
   });
 };
 

@@ -13,6 +13,7 @@
 
   import { apiClient } from '../clients.ts';
   import { assignCursorColor } from './cursor.ts';
+  import { PROSE_CLASSES } from '../proseClasses.ts';
   import type { User } from '../../types/backend.ts';
   import type { HistoryReport, ImageUploaded } from './events.ts';
 
@@ -60,17 +61,11 @@
         }
       });
 
-      const proseClasses = [
-        'prose prose-xl prose-stone dark:prose-invert focus:outline-none',
-        'prose-headings:mb-2 prose-p:my-2 prose-blockquote:my-4',
-        'prose-ol:my-4 prose-ul:my-4 prose-li:my-1 [&_li_p]:my-1',
-      ].join(' ');
-
       editor = new Editor({
         element,
         editorProps: {
           attributes: {
-            class: proseClasses,
+            class: PROSE_CLASSES,
           }
         },
         extensions: [
@@ -161,7 +156,7 @@
   <p>Couldn't connect to the editor. Try refreshing.</p>
 {/if}
 
-<main>
+<main class="w-[min(100%,800px)]">
   <Title id={postId} bind:title />
   <div
     bind:this={element}
@@ -169,11 +164,5 @@
   ></div>
   <BubbleToolbar {editor} bind:element={menuElement} />
 </main>
-
-<style>
-  main {
-    width: min(100%, 800px);
-  }
-</style>
 
 <Toaster />

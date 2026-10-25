@@ -2,7 +2,7 @@
 import { createApiClient } from "../../server/clients.ts";
 import HeadLayout from "../../layouts/HeadLayout.astro";
 import Editor from "../../components/write/Editor.svelte";
-import Avatar from "../../components/Avatar.astro";
+import Avatar from "../../components/Avatar.svelte";
 import Menu from "../../components/write/Menu.svelte";
 import UndoRedo from "../../components/write/UndoRedo.svelte";
 import Upload from "../../components/write/Upload.svelte";
@@ -43,7 +43,7 @@ if (!post) {
         <UndoRedo client:idle />
       </div>
       <Publish {postId} client:idle />
-      <Avatar avatarKey={user.avatarKey} />
+      <Avatar avatarKey={user.avatarKey} size="small" />
     </RibbonNav>
     <VerticalRibbon />
     <div class="p-8 md:p-16 md:pl-32 flex justify-center">

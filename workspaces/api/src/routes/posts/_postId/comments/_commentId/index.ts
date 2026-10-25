@@ -50,7 +50,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
       text: req.body.text,
     });
 
-    return res.code(200).send(newReply);
+    return res.code(201).send(newReply);
   });
 
   // can be re-used for editing and deleting replies

@@ -11,7 +11,7 @@ export interface ReadingView {
   author: Author;
   likes: number;
   comments: number;
-  coverKey: string;
+  hasLiked: boolean;
   readingTime: number;
   publishedAt: Date;
   publishedHtml: string;

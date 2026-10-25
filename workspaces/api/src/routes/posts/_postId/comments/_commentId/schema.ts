@@ -58,7 +58,7 @@ export const ReplyToComment = {
     text: NonEmpty,
   }),
   response: {
-    200: CommentObject,
+    201: CommentObject,
     404: NotFound,
     ...meErrorResponses,
   },

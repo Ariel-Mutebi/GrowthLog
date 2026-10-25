@@ -39,7 +39,7 @@ const Read = Type.Object({
   title: Type.String(),
   likes: Type.Number(),
   comments: Type.Number(),
-  coverKey: Type.String(),
+  hasLiked: Type.Boolean(),
   readingTime: Type.Number(),
   publishedAt: SerializableDate,
   publishedHtml: Type.String(),

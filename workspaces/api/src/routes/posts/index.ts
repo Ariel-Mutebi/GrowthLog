@@ -18,7 +18,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   app.get('/:slug', {
     schema: ReadPost,
   }, async (req, res) => {
-    const data = await service.read(req.params.slug);
+    const data = await service.read(req.params.slug, req.user?.id);
     return res.status(200).send(data);
   });
 };

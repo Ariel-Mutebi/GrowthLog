@@ -15,7 +15,7 @@ const FRESHNESS_HALF_LIFE_DAYS = 14;
 export class ReadService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  public async read(slug: string): Promise<ReadingView> {
+  public async read(slug: string, userId?: string): Promise<ReadingView> {
     const post = await this.prisma.post.findFirst({
       where: {
         slug,
@@ -30,13 +30,19 @@ export class ReadService {
         publishedAt: true,
         publishedTitle: true,
         publishedHtml: true,
-        cover: { select: { image: { select: { key: true } } } },
         _count: {
           select: {
             likes: true,
             comments: true,
           },
         },
+        ...(userId && {
+          likes: {
+            where: { userId },
+            select: { userId: true },
+            take: 1,
+          },
+        }),
       },
     });
 
@@ -49,9 +55,9 @@ export class ReadService {
       publishedHtml: post.publishedHtml!,
       publishedAt: post.publishedAt!,
       readingTime: post.readingTime!,
-      coverKey: post.cover!.image.key,
       likes: post._count.likes,
       comments: post._count.comments,
+      hasLiked: Boolean(post.likes?.length),
     };
   }
 

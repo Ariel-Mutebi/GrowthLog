@@ -57,7 +57,7 @@ export const MakeComment = {
     text: NonEmpty,
   }),
   response: {
-    200: CommentObject,
+    201: CommentObject,
     ...meErrorResponses,
   },
 } satisfies FastifySchema;

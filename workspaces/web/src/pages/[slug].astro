@@ -1,10 +1,19 @@
 ---
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import { createApiClient } from "../server/clients.ts";
+import { PROSE_CLASSES } from "../components/proseClasses.ts";
+
+import HeadLayout from "../layouts/HeadLayout.astro";
+import Navbar from "../components/Navbar.astro";
+import Follow from "../components/read/Follow.svelte";
+import Toaster from "../components/Toaster.svelte";
+import Reactions from "../components/read/Reactions.svelte";
 
 const slug = Astro.params.slug!;
 const cookie = Astro.request.headers.get("cookie");
 
-const { data: post } = await createApiClient(cookie).GET('/api/posts/{slug}', {
+const { data: post } = await createApiClient(cookie).GET("/api/posts/{slug}", {
   params: {
     path: {
       slug,
@@ -15,6 +24,46 @@ const { data: post } = await createApiClient(cookie).GET('/api/posts/{slug}', {
 if (!post) {
   return Astro.rewrite("/404");
 }
+
+const { user } = Astro.locals;
+dayjs.extend(relativeTime);
 ---
 
-<div set:html={post.publishedHtml}></div>
+<HeadLayout title={post.title}>
+  <div class="bg-stone-50 dark:bg-stone-950">
+    <Navbar avatarKey={user?.avatarKey} />
+
+    <header class="border-b border-stone-200 dark:border-stone-800 p-8 sm:p-12">
+      <hgroup class="grid gap-3 w-full max-w-200 mx-auto">
+        <h1
+          class="font-serif font-semibold text-5xl text-stone-900 dark:text-stone-100"
+        >
+          {post.title}
+        </h1>
+        <p class="text-sm text-stone-500 dark:text-stone-300">
+          {dayjs(post.publishedAt).fromNow()} | {post.readingTime} minute read
+        </p>
+        <Follow
+          author={post.author}
+          readerId={user?.id}
+          client:load
+        />
+        <Reactions
+          postId={post.id}
+          likes={post.likes}
+          hasLiked={post.hasLiked}
+          client:load
+        />
+      </hgroup>
+    </header>
+
+    <main class="p-8 sm:p-12">
+      <article
+        class={`w-full max-w-200 mx-auto ${PROSE_CLASSES}`}
+        set:html={post.publishedHtml}
+      />
+    </main>
+  </div>
+</HeadLayout>
+
+<Toaster />
