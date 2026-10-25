@@ -2,12 +2,10 @@
 <script lang="ts">
   import { createForm } from 'felte';
   import { validator } from '@felte/validator-zod';
-  import { navigate } from 'astro:transitions/client';
 
-  import { apiClient } from '../clients.ts';
   import { toastError } from '../errorHandling.ts';
-  import { uploadPostImage } from '../write/upload.ts';
   import type { Prepublish } from '../../types/backend.ts';
+  import { createPublishSubmit } from './publishSubmit.ts';
   import { createPublishSchema, type PublishFormData } from './PublishSchema.ts';
 
   import AddressBarInput from './AddressBarInput.svelte';
@@ -17,6 +15,7 @@
   import TextareaLimited from '../TextareaLimited.svelte';
   import Tags from './Tags.svelte';
   import Submit from '../Submit.svelte';
+  import Toaster from '../Toaster.svelte';
 
   interface Props {
     postId: string;
@@ -34,33 +33,7 @@
       publishedTitle: initial.publishedTitle,
       publishedHook: initial.publishedHook,
     },
-    onSubmit: async ({ slug, tags, publishedTitle, publishedHook, coverImage }) => {
-      let coverImageId: string;
-
-      if (coverImage) {
-        const uploaded = await uploadPostImage(postId, coverImage);
-        coverImageId = uploaded.id;
-      } else {
-        coverImageId = initial.coverImageKey!;
-      }
-
-      await apiClient.POST('/api/me/drafts/{id}/publish', {
-        params: {
-          path: {
-            id: postId,
-          },
-        },
-        body: {
-          slug,
-          tags,
-          publishedTitle,
-          publishedHook,
-          coverImageId,
-        },
-      });
-
-      navigate(`/${slug}`);
-    },
+    onSubmit: createPublishSubmit(postId, initial.coverImageId!),
     onError: toastError,
   });
 
@@ -97,7 +70,10 @@
         maximum={120}
         errors={$errors.publishedHook}
       />
-      <Tags bind:value={selectedTags} />
+      <Tags
+        bind:value={selectedTags}
+        errors={$errors.tags}
+      />
       <Submit
         text="Publish"
         isSubmitting={$isSubmitting}
@@ -105,3 +81,5 @@
     </div>
   </form>
 </main>
+
+<Toaster />

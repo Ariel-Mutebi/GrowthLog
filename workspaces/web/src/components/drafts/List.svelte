@@ -41,7 +41,7 @@
   });
 </script>
 
-{#if drafts}
+{#if drafts?.length}
   <main class="py-9 px-6 md:pt-8 flex justify-center" in:fly={{ y: 200, duration: 300 }}>
     <div class="w-full max-w-225 text-stone-900 dark:text-stone-200">
         <div class="flex w-full px-8 gap-8 justify-end">

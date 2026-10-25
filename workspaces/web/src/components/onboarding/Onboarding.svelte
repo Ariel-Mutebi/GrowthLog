@@ -30,7 +30,7 @@
   const { form, data, errors, isSubmitting } = createForm<OnboardingData>({
     extend: validator({ schema: OnboardingSchema }),
     onSubmit: handleOnboardingSubmit,
-    onSuccess: () => navigate('/'),
+    onSuccess: () => navigate('/my-drafts'),
     onError: toastError,
     // svelte-ignore state_referenced_locally
     initialValues: { username },

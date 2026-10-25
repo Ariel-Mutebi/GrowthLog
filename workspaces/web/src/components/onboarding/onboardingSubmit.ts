@@ -74,5 +74,5 @@ export async function handleOnboardingSubmit({ username, bio, avatar }: Onboardi
     throw new HTTPError(updateError);
   }
 
-  if (avatar) uploadAvatar(avatar);
+  if (avatar) await uploadAvatar(avatar);
 }

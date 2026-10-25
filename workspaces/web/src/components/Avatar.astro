@@ -15,7 +15,7 @@ const { avatarKey, upscale = false } = Astro.props;
       src={
         avatarKey
           ? `${PUBLIC_MINIO_ENDPOINT}/${PUBLIC_AVATAR_BUCKET}/${avatarKey}`
-          : "default-avatar.jpg"
+          : "/default-avatar.jpg"
       }
       alt="avatar"
       class:list={[

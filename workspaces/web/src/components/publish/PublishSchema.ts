@@ -20,9 +20,15 @@ const coverFile = z
 export const createPublishSchema = (hasExistingCover: boolean) =>
   z.object({
     slug: z.string().min(1),
-    tags: z.array(z.string().min(1)),
-    publishedTitle: z.string().min(1),
-    publishedHook: z.string().max(120),
+    tags: z.array(
+      z.string()
+        .trim()
+        .min(1, 'Tag cannot be empty')
+        .max(25, 'Tag must be at most 25 characters')
+        .regex(/^[a-zA-Z0-9]+$/, 'Tag must contain only alphanumeric characters'),
+    ).min(1).max(10),
+    publishedTitle: z.string().trim().min(1).max(20),
+    publishedHook: z.string().trim().min(1).max(120),
     coverImage: hasExistingCover ? coverFile.optional() : coverFile,
   });
 

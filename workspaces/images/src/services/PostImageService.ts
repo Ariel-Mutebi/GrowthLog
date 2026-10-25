@@ -27,7 +27,7 @@ export class PostImageService extends ImageUploadService<RequestUploadParams, Co
       throw new FileTooLargeError(this.deps.maxSizeBytes);
     }
 
-    const key = `${authorId}/${randomUUIDv7()}`;
+    const key = `${postId}/${randomUUIDv7()}`;
 
     const imageId = await this.deps.prisma.$transaction(async (transactor) => {
       const post = await transactor.post.findFirst({

@@ -99,6 +99,9 @@ export class PublishService {
       throw new InvalidContentError();
     }
 
+    console.log(JSON.stringify(json));
+    console.log(`${this.srcPrefix}/${postId}`);
+
     assertPublishable(json, `${this.srcPrefix}/${postId}`);
     
     const publishedPost = await this.publishPost({

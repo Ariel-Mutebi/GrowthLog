@@ -8,6 +8,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @growthlog/db generate
 RUN pnpm --filter @growthlog/db build
 RUN pnpm --filter @growthlog/env build
+RUN pnpm --filter @growthlog/jobs build
 RUN pnpm --filter @growthlog/images build
 RUN pnpm deploy --filter @growthlog/images --prod /out/images
 
