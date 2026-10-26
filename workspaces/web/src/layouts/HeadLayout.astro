@@ -39,16 +39,25 @@ const { title } = Astro.props;
     <Font cssVariable="--work-sans" />
   </head>
   <body class="font-sans">
+    <div
+      id="progress"
+      transition:persist
+      class="fixed inset-x-0 top-0 z-100 overflow-hidden pointer-events-none"
+    ></div>
     <slot />
   </body>
+
+  <script>
+    import NProgress from "nprogress";
+    import "nprogress/nprogress.css";
+
+    NProgress.configure({
+      parent: "#progress",
+      showSpinner: false,
+      trickleSpeed: 150,
+    });
+
+    document.addEventListener("astro:before-preparation", () => NProgress.start());
+    document.addEventListener("astro:page-load", () => NProgress.done());
+  </script>
 </html>
-
-<script>
-  import NProgress from "nprogress";
-  import "nprogress/nprogress.css";
-
-  NProgress.configure({ showSpinner: false, trickleSpeed: 150 });
-
-  document.addEventListener("astro:before-preparation", () => NProgress.start());
-  document.addEventListener("astro:page-load", () => NProgress.done());
-</script>

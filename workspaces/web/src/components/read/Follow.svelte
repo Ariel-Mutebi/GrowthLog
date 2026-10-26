@@ -35,7 +35,7 @@
 </script>
 
 <div class="flex gap-3 pr-3 items-center justify-center w-max bg-stone-100 dark:bg-stone-900 rounded-2xl">
-  <Avatar avatarKey={author.avatarKey} size="medium" />
+  <Avatar avatarKey={author.avatarKey} size="md" />
   <p class="text-base sm:text-lg">{author.forename} {author.surname}</p>
   <button
     disabled={readerId === author.id}

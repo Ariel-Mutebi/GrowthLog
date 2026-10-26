@@ -16,8 +16,9 @@ const Author = Type.Object({
 
 const Feed = Type.Object({
   author: Author,
-  id: Type.String(),
+  slug: Type.String(),
   title: Type.String(),
+  hook: Type.String(),
   coverKey: Type.String(),
   tags: Type.Array(Type.String()),
   readingTime: Type.Number(),
@@ -25,7 +26,7 @@ const Feed = Type.Object({
 
 export const GetFeed = {
   summary: 'Get feed',
-  description: 'Get a personalized feed (if logged in), or just get latest posts',
+  description: 'Get a personalized feed',
   tags: ['Posts'],
   response: {
     200: Type.Array(Feed),

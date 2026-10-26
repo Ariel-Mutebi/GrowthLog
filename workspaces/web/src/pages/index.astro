@@ -1,1 +1,28 @@
-<h1>Front Page</h1>
+---
+import HeadLayout from "../layouts/HeadLayout.astro";
+import Navbar from "../components/Navbar.astro";
+import dolomites from "../assets/dolomites.jpg";
+import starRiver from "../assets/star-river.jpg";
+import Background from "../components/Background.astro";
+import NewsCard from "../components/read/NewsCard.astro";
+import { createApiClient } from "../server/clients.ts";
+
+const { user } = Astro.locals;
+const cookie = Astro.request.headers.get("cookie");
+const { data } = await createApiClient(cookie).GET("/api/posts");
+---
+
+<HeadLayout title="Front Page | GrowthLog">
+  <div class="bg-stone-50 dark:bg-stone-950">
+    <Navbar avatarKey={user?.avatarKey} />
+    <header class="relative h-90 flex items-center isolate">
+      <Background light={dolomites} dark={starRiver} />
+      <h1 class="ml-[4dvw] text-6xl sm:text-9xl font-serif text-stone-100">
+        GrowthLog
+      </h1>
+    </header>
+    <main class="grid p-8 pb-16 gap-6 justify-center">
+      {data?.map((post) => <NewsCard {post} />)}
+    </main>
+  </div>
+</HeadLayout>

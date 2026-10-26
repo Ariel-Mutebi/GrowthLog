@@ -3,10 +3,10 @@
 
   interface Props {
     avatarKey: string | null | undefined;
-    size?: "small" | "medium";
+    size?: "xs" | "sm" | "md";
   }
 
-  const { avatarKey, size = "small" }: Props = $props();
+  const { avatarKey, size = "sm" }: Props = $props();
 </script>
 
 {#if avatarKey !== undefined}
@@ -18,8 +18,9 @@
     }
     alt="avatar"
     class={["rounded-full object-cover", {
-      "size-8": size === "small",
-      "size-10": size === "medium",
+      "size-6": size === "xs",
+      "size-8": size === "sm",
+      "size-10": size === "md",
     }]}
   />  
 {/if}

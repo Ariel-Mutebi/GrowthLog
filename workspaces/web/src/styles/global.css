@@ -60,8 +60,8 @@
 }
 
 #nprogress .bar {
-  background: var(--color-lime-500) !important;
   height: 3px !important;
+  background: var(--color-lime-500) !important;
 }
 
 #nprogress .peg {

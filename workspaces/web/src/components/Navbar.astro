@@ -14,7 +14,7 @@ const { avatarKey } = Astro.props;
 ---
 
 <nav class="w-full flex justify-between py-2 px-3 sm:px-0">
-  <Logo />
+  <a href="/"><Logo /></a>
   <div class="flex gap-2 sm:gap-6 items-center px-2 sm:px-6">
     <div class="hidden sm:flex gap-3">
       <NavLink
@@ -29,6 +29,6 @@ const { avatarKey } = Astro.props;
       />
     </div>
     <Theme client:load />
-    <Avatar {avatarKey} size="medium" />
+    <Avatar {avatarKey} size="md" />
   </div>
 </nav>

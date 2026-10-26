@@ -18,8 +18,9 @@ export interface ReadingView {
 }
 
 export interface FeedView {
-  id: string;
+  slug: string;
   title: string;
+  hook: string;
   tags: string[];
   author: Author;
   readingTime: number;
@@ -51,24 +52,21 @@ export interface Comment {
   replyCount: number;
 }
 
-export interface RawAuthor {
-  id: string;
-  forename: string;
-  surname: string;
-  avatar: {
-    image: {
-      key: string;
-    };
-  } | null;
-}
-
 export interface CommentRow {
   id: string;
   text: string;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
-  commenter: RawAuthor;
+  commenter: {
+    id: string;
+    forename: string;
+    surname: string;
+    avatar: {
+      image: {
+        key: string;
+      };
+    } | null;
+  };
   _count: { likes: number; replies: number };
 };
-

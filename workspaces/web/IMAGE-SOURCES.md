@@ -10,3 +10,5 @@ All photos are from Unsplash, under the free license.
 * <a href="https://unsplash.com/photos/aerial-view-of-a-winding-road-through-a-lush-forest-8YSQ2WIxX6o">aerial-forest.jpg</a>
 * <a href="https://www.pexels.com/video/the-ocean-is-shown-in-this-aerial-photo-27916018/">404_720p.mp4</a>
 * <a href="https://unsplash.com/photos/a-humpback-whale-swims-in-the-deep-blue-ocean-mM_e5LFdTp0">humpback-whale.jpg</a>
+* <a href="https://unsplash.com/photos/seceda-mountain-peaks-in-the-dolomites-p7S6AxykCl0">dolomites.jpg</a>
+* <a href="https://unsplash.com/photos/starry-sky-through-slot-canyon-walls-gV6taBJuBTk">star-river.jpg</a>

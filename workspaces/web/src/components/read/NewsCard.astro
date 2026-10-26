@@ -1,0 +1,51 @@
+---
+import type { Feed } from "../../types/backend.ts";
+import { PUBLIC_MINIO_ENDPOINT, PUBLIC_IMAGE_BUCKET } from "astro:env/client";
+import Avatar from "../Avatar.svelte";
+
+interface Props {
+  post: Feed[number];
+}
+const { post }: Props = Astro.props;
+const { author, slug, title, hook, coverKey, readingTime, tags } = post;
+---
+
+<a
+  href={`/${slug}`}
+  class="grid sm:grid-cols-3 gap-5 p-5 sm:pr-10 w-full max-w-200 bg-stone-100 dark:bg-stone-900
+    border-2 border-stone-600 hover:shadow-[4px_4px_0px] hover:shadow-stone-600
+    hover:-translate-y-1 hover:-translate-x-1 dark:border-stone-300 hover:dark:shadow-stone-300"
+>
+  <img
+    src={`${PUBLIC_MINIO_ENDPOINT}/${PUBLIC_IMAGE_BUCKET}/${coverKey}`}
+    alt=""
+    class="w-full object-cover aspect-4/3"
+  />
+  <div class="sm:col-span-2">
+    <h3 class="font-serif text-4xl mb-2">{title}</h3>
+    <div class="flex gap-3 items-center mb-4">
+      <div class="flex gap-1 items-center">
+        <Avatar avatarKey={author.avatarKey} size="xs" />
+        <p class="text-stone-800 dark:text-stone-200">
+          {author.forename}
+          {" "}
+          {author.surname}
+        </p>
+      </div>
+      <p class="font-mono text-sm text-stone-500 dark:text-stone-400">
+        {readingTime} minute read
+      </p>
+    </div>
+    <p class="font-serif text-stone-700 dark:text-stone-300 mb-4">{hook}</p>
+    <div class="flex flex-wrap gap-2">
+      {tags.map((tag) => (
+        <p
+          class="pb-0.5 px-3 border border-amber-800 dark:border-amber-500
+            font-mono text-amber-800 dark:text-amber-500 text-xs rounded-3xl"
+        >
+          {tag}
+        </p>
+      ))}
+    </div>
+  </div>
+</a>

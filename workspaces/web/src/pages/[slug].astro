@@ -1,6 +1,5 @@
 ---
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
+import { timeAgo } from "../components/timeAgo.ts";
 import { createApiClient } from "../server/clients.ts";
 import { PROSE_CLASSES } from "../components/proseClasses.ts";
 
@@ -26,11 +25,10 @@ if (!post) {
 }
 
 const { user } = Astro.locals;
-dayjs.extend(relativeTime);
 ---
 
 <HeadLayout title={post.title}>
-  <div class="bg-stone-50 dark:bg-stone-950">
+  <div class="bg-stone-50 dark:bg-stone-950 min-h-dvh">
     <Navbar avatarKey={user?.avatarKey} />
 
     <header class="border-b border-stone-200 dark:border-stone-800 p-8 sm:p-12">
@@ -41,7 +39,7 @@ dayjs.extend(relativeTime);
           {post.title}
         </h1>
         <p class="text-sm text-stone-500 dark:text-stone-300">
-          {dayjs(post.publishedAt).fromNow()} | {post.readingTime} minute read
+          {timeAgo(post.publishedAt)} | {post.readingTime} minute read
         </p>
         <Follow
           author={post.author}

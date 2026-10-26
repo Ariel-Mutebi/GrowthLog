@@ -88,10 +88,7 @@ export class ReadService {
    */
   public async getFeed(userId?: string): Promise<FeedView[]> {
     const now = Date.now();
-    const interests = userId
-      ? await this.getInterests(userId, now)
-      : new Map();
-
+    const interests = userId ? await this.getInterests(userId, now) : new Map();
     const candidates = await this.findCandidates(userId, [...interests.keys()]);
 
     const scored: ScoredCandidate[] = candidates.map((post) => ({
@@ -127,7 +124,7 @@ export class ReadService {
   private async getLikeSignals(userId: string, now: number): Promise<TagWeight[]> {
     const likes = await this.prisma.like.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' }, // most recent first, so `take` drops the oldest
+      orderBy: { createdAt: 'desc' },
       take: ENGAGEMENT_SAMPLE_SIZE,
       select: { createdAt: true, post: { select: { tags: { select: { id: true } } } } },
     });
@@ -162,7 +159,7 @@ export class ReadService {
     );
   }
 
-  private async findCandidates(userId: string | undefined, interestIds: string[]): Promise < FeedCandidate[] > {
+  private async findCandidates(userId: string | undefined, interestIds: string[]): Promise <FeedCandidate[]> {
     const [personalized, recent, popular] = await Promise.all([
       userId ? this.findPersonalizedPool(userId, interestIds) : [],
       this.findRecentPool(userId),
@@ -197,7 +194,7 @@ export class ReadService {
   }
 
   /** Newest posts with no personalization. This pool is the graceful-degradation floor. */
-  private findRecentPool(userId?: string): Promise < FeedCandidate[] > {
+  private findRecentPool(userId?: string): Promise <FeedCandidate[]> {
     return this.prisma.post.findMany({
       where: baseWhere(userId),
       take: CANDIDATES_PER_POOL,

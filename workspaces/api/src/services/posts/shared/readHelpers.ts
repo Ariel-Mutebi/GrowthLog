@@ -1,7 +1,12 @@
 import { authorSelect } from './selectors.js';
 import { flattenAvatarKey } from '../../users/shared/helpers.js';
-import type { FeedView, RawAuthor } from './interfaces.js';
-import type { PostSelect, PostGetPayload, PostWhereInput } from '@growthlog/db';
+
+import type {
+  PostSelect,
+  PostGetPayload,
+  PostWhereInput,
+} from '@growthlog/db';
+import type { FeedView } from './interfaces.js';
 
 export const DAY = 86_400_000;
 const FRESHNESS_HALF_LIFE_DAYS = 14;
@@ -31,10 +36,12 @@ export function baseWhere(userId?: string) {
 export function candidateSelect(userId?: string) {
   return {
     id: true,
+    slug: true,
     authorId: true,
     tags: true,
     publishedAt: true,
     publishedTitle: true,
+    publishedHook: true,
     readingTime: true,
     _count: { select: { likes: true, views: true } },
     cover: { select: { image: { select: { key: true } } } },
@@ -127,17 +134,11 @@ export function diversify(sorted: ScoredCandidate[], limit: number): ScoredCandi
   return result;
 }
 
-export function toFeedView(post: {
-  id: string;
-  publishedTitle: string | null;
-  readingTime: number | null;
-  tags: { name: string }[];
-  cover: { image: { key: string } } | null;
-  author: RawAuthor,
-}): FeedView {
+export function toFeedView(post: FeedCandidate): FeedView {
   return {
-    id: post.id,
+    slug: post.slug,
     title: post.publishedTitle!,
+    hook: post.publishedHook!,
     readingTime: post.readingTime!,
     coverKey: post.cover!.image.key,
     tags: post.tags.map((tag) => tag.name),

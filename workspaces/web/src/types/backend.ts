@@ -19,3 +19,4 @@ export type User = SuccessResponse<'/api/me'>;
 export type Drafts = SuccessResponse<'/api/me/drafts'>;
 export type Prepublish = SuccessResponse<'/api/me/drafts/{id}/publish'>;
 export type TagSuggestions = SuccessResponse<'/api/tags'>;
+export type Feed = SuccessResponse<'/api/posts'>;
