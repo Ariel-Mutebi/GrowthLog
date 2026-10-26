@@ -1,16 +1,35 @@
 import { PostNotFoundError } from './shared/errors.js';
 import { authorSelect } from './shared/selectors.js';
 import { flattenAvatarKey } from '../users/shared/helpers.js';
+import {
+  DAY,
+  scoreCandidate,
+  diversify,
+  toFeedView,
+  halfLifeDecay,
+  sumWeights,
+  baseWhere,
+  candidateSelect,
+  type TagWeight,
+  type FeedCandidate,
+  type InterestMap,
+  type ScoredCandidate,
+} from './shared/readHelpers.js';
 
-import type { PrismaClient } from '@growthlog/db';
+import type { PrismaClient, PostWhereInput } from '@growthlog/db';
 import type { ReadingView, FeedView } from './shared/interfaces.js';
 
-type InterestMap = Map<string, number>;
+const FEED_SIZE = 100;
+const CANDIDATES_PER_POOL = 150;
+const POPULAR_POOL_WINDOW_DAYS = 14;
 
-const DAY = 86_400_000;
-const INTEREST_WINDOW_DAYS = 60;
+// Interest signals.
+const ONBOARDING_WEIGHT = 3;
+const READ_WEIGHT = 2;
+const LIKE_WEIGHT = 1;
 const ONBOARDING_HALF_LIFE_DAYS = 30;
-const FRESHNESS_HALF_LIFE_DAYS = 14;
+const ENGAGEMENT_HALF_LIFE_DAYS = 14;
+const ENGAGEMENT_SAMPLE_SIZE = 200;
 
 export class ReadService {
   constructor(private readonly prisma: PrismaClient) {}
@@ -65,137 +84,140 @@ export class ReadService {
    * Every recommendation engine uses a three-step pipeline:
    * 1. Find candidates.
    * 2. Score them.
-   * 3. Sort them.
-  */
-  public async getFeed(userId: string): Promise<FeedView[]> {
-    const interests = await this.getInterests(userId);
+   * 3. Sort them (here: sort, then re-rank for diversity).
+   */
+  public async getFeed(userId?: string): Promise<FeedView[]> {
+    const now = Date.now();
+    const interests = userId
+      ? await this.getInterests(userId, now)
+      : new Map();
 
-    const candidates = await this.prisma.post.findMany({
-      where: {
-        deletedAt: null,
-        publishedAt: { not: null },
-        author: { deletedAt: null },
-        authorId: { not: userId },
-        views: { none: { userId } },
-        OR: [
-          { tags: { some: { id: { in: [...interests.keys()] } } } },
-          { author: { followers: { some: { followerId: userId } } } },
-        ],
-      },
-      take: 300,
-      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
-      select: {
-        id: true,
-        tags: true,
-        publishedAt: true,
-        publishedTitle: true,
-        readingTime: true,
-        cover: { select: { image: { select: { key: true } } } },
-        author: {
-          select: {
-            ...authorSelect,
-            followers: { where: { followerId: userId }, select: { followerId: true } },
-          },
-        },
-      },
-    });
+    const candidates = await this.findCandidates(userId, [...interests.keys()]);
 
-    const scored = candidates.map((post) => {
-      // tagMatch = ∑ interest / √ (tag count) so that posts that focus on the user's interests
-      // are ranked above those which simply have many tags (and a higher chance of matching).
-      const tagMatch =
-        post.tags.reduce((sum, t) => sum + (interests.get(t.id) ?? 0), 0) /
-        Math.sqrt(post.tags.length || 1);
-
-      const followBonus = post.author.followers.length ? 5 : 0;
-      const ageDays = (Date.now() - post.publishedAt!.getTime()) / DAY;
-      const freshness = Math.pow(0.5, ageDays / FRESHNESS_HALF_LIFE_DAYS);
-      return { ...post, score: (tagMatch + followBonus) * freshness };
-    });
-
+    const scored: ScoredCandidate[] = candidates.map((post) => ({
+      ...post,
+      score: scoreCandidate(post, interests, now),
+    }));
     scored.sort((a, b) => b.score - a.score);
 
-    return scored.slice(0, 100).map((post) => ({
-      id: post.id,
-      title: post.publishedTitle!,
-      readingTime: post.readingTime!,
-      coverKey: post.cover!.image.key,
-      tags: post.tags.map(tag => tag.name),
-      author: flattenAvatarKey({
-        id: post.author.id,
-        forename: post.author.forename,
-        surname: post.author.surname,
-        avatar: post.author.avatar,
-      }),
-    }));
+    return diversify(scored, FEED_SIZE).map(toFeedView);
   }
 
-  private async getInterests(userId: string): Promise<InterestMap> {
+  private async getInterests(userId: string, now: number): Promise<InterestMap> {
+    const [onboarding, likes, reads] = await Promise.all([
+      this.getOnboardingSignals(userId, now),
+      this.getLikeSignals(userId, now),
+      this.getReadSignals(userId, now),
+    ]);
+    return sumWeights([...onboarding, ...likes, ...reads]);
+  }
+
+  /** Onboarding picks, decayed so the feed doesn't stay locked to day-one choices. */
+  private async getOnboardingSignals(userId: string, now: number): Promise<TagWeight[]> {
     const onboarding = await this.prisma.onboardingInterest.findMany({ where: { userId } });
 
-    const since = new Date(Date.now() - INTEREST_WINDOW_DAYS * DAY);
-    const engaged = await this.prisma.post.findMany({
-      where: {
-        OR: [
-          { likes: { some: { userId, createdAt: { gt: since } } } },
-          { views: { some: { userId, type: 'READ', createdAt: { gt: since } } } },
-        ],
-      },
-      take: 200,
-      select: { tags: { select: { id: true } } },
-      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
-    });
-
-    const interests: InterestMap = new Map();
-    
-    function add(tagId: string, weight: number) {
-      interests.set(tagId, (interests.get(tagId) ?? 0) + weight);
-    }
-
-    onboarding.forEach((interest) => {
-      // time decay on onboarding interests so feed doesn't feel locked to initial interests
-      const ageDays = (Date.now() - interest.createdAt.getTime()) / DAY;
-      add(interest.tagId, 3 * Math.pow(0.5, ageDays / ONBOARDING_HALF_LIFE_DAYS));
-    });
-
-    engaged.forEach(post => post.tags.forEach(tag => add(tag.id, 1)));
-
-    return interests;
+    return onboarding.map((interest) => ({
+      tagId: interest.tagId,
+      weight:
+        ONBOARDING_WEIGHT * halfLifeDecay(now - interest.createdAt.getTime(), ONBOARDING_HALF_LIFE_DAYS),
+    }));
   }
 
-  /** Fallback for getFeed for users who aren't logged in */
-  public async getLatest(): Promise<FeedView[]> {
-    const posts = await this.prisma.post.findMany({
-      where: {
-        deletedAt: null,
-        publishedAt: { not: null },
-        author: { deletedAt: null },
-      },
-      take: 300,
-      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+  /** Tags of recently liked posts, decayed by when the user liked */
+  private async getLikeSignals(userId: string, now: number): Promise<TagWeight[]> {
+    const likes = await this.prisma.like.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }, // most recent first, so `take` drops the oldest
+      take: ENGAGEMENT_SAMPLE_SIZE,
+      select: { createdAt: true, post: { select: { tags: { select: { id: true } } } } },
+    });
+
+    return likes.flatMap((like) =>
+      like.post.tags.map((tag) => ({
+        tagId: tag.id,
+        weight: LIKE_WEIGHT * halfLifeDecay(now - like.createdAt.getTime(), ENGAGEMENT_HALF_LIFE_DAYS),
+      })),
+    );
+  }
+
+  /** Tags of recently read posts, decayed by when the user read them. */
+  private async getReadSignals(userId: string, now: number): Promise<TagWeight[]> {
+    const reads = await this.prisma.view.findMany({
+      where: { userId, type: 'READ' },
+      orderBy: { createdAt: 'desc' },
+      take: ENGAGEMENT_SAMPLE_SIZE,
       select: {
-        id: true,
-        tags: true,
-        publishedAt: true,
-        publishedTitle: true,
-        readingTime: true,
-        author: { select: authorSelect },
-        cover: { select: { image: { select: { key: true } } } },
+        createdAt: true,
+        post: { select: { tags: { select: { id: true } } } },
       },
     });
 
-    return posts.map((post) => ({
-      id: post.id,
-      title: post.publishedTitle!,
-      readingTime: post.readingTime!,
-      coverKey: post.cover!.image.key,
-      tags: post.tags.map((tag) => tag.name),
-      author: flattenAvatarKey({
-        id: post.author.id,
-        forename: post.author.forename,
-        surname: post.author.surname,
-        avatar: post.author.avatar,
-      }),
-    }));
+    // Every READ row counts, so re-reading a post reinforces its tags. Each row is decayed
+    // by its own age, so a re-read last week outweighs the original read last month.
+    return reads.flatMap((read) =>
+      read.post.tags.map((tag) => ({
+        tagId: tag.id,
+        weight: READ_WEIGHT * halfLifeDecay(now - read.createdAt.getTime(), ENGAGEMENT_HALF_LIFE_DAYS),
+      })),
+    );
+  }
+
+  private async findCandidates(userId: string | undefined, interestIds: string[]): Promise < FeedCandidate[] > {
+    const [personalized, recent, popular] = await Promise.all([
+      userId ? this.findPersonalizedPool(userId, interestIds) : [],
+      this.findRecentPool(userId),
+      this.findPopularPool(userId),
+    ]);
+
+    // The same post often appears in several pools, so dedupe by id.
+    const byId = new Map<string, FeedCandidate>();
+    for(const post of [...personalized, ...recent, ...popular]) byId.set(post.id, post);
+    return [...byId.values()];
+  }
+
+  /** Posts matching the user's interests or by authors they follow. */
+  private findPersonalizedPool(userId: string, interestIds: string[]): Promise<FeedCandidate[]> {
+    const matchers: PostWhereInput[] = [
+      { author: { followers: { some: { followerId: userId } } } },
+    ];
+
+    if (interestIds.length) {
+      matchers.push({ tags: { some: { id: { in: interestIds } } } });
+    }
+
+    return this.prisma.post.findMany({
+      where: {
+        ...baseWhere(userId),
+        OR: matchers,
+      },
+      select: candidateSelect(userId),
+      take: CANDIDATES_PER_POOL,
+      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+    });
+  }
+
+  /** Newest posts with no personalization. This pool is the graceful-degradation floor. */
+  private findRecentPool(userId?: string): Promise < FeedCandidate[] > {
+    return this.prisma.post.findMany({
+      where: baseWhere(userId),
+      take: CANDIDATES_PER_POOL,
+      orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+      select: candidateSelect(userId),
+    });
+  }
+
+  /** Most-liked recent posts: discovery outside the user's bubble. */
+  private findPopularPool(userId?: string): Promise<FeedCandidate[]> {
+    const since = new Date(Date.now() - POPULAR_POOL_WINDOW_DAYS * DAY);
+
+    return this.prisma.post.findMany({
+      where: {
+        ...baseWhere(userId),
+        publishedAt: { gte: since },
+      },
+      take: CANDIDATES_PER_POOL,
+      select: candidateSelect(userId),
+      orderBy: [{ likes: { _count: 'desc' } }, { publishedAt: 'desc' }, { id: 'desc' }],
+    });
   }
 }

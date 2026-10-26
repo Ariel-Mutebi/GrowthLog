@@ -1,4 +1,4 @@
-interface Author {
+export interface Author {
   id: string;
   forename: string;
   surname: string;
@@ -51,22 +51,24 @@ export interface Comment {
   replyCount: number;
 }
 
+export interface RawAuthor {
+  id: string;
+  forename: string;
+  surname: string;
+  avatar: {
+    image: {
+      key: string;
+    };
+  } | null;
+}
+
 export interface CommentRow {
   id: string;
   text: string;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
-  commenter: {
-    id: string;
-    forename: string;
-    surname: string;
-    avatar: {
-      image: {
-        key: string;
-      };
-    } | null;
-  };
+  commenter: RawAuthor;
   _count: { likes: number; replies: number };
 };
 

@@ -8,10 +8,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   app.get('/', {
     schema: GetFeed,
   }, async (req, res) => {
-    const feed = req.user
-      ? await service.getFeed(req.user.id)
-      : await service.getLatest();
-
+    const feed = await service.getFeed(req.user?.id);
     return res.status(200).send(feed);
   });
 

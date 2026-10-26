@@ -17,7 +17,7 @@ import {
   assertPublishable,
   extractDefaultHook,
   readingTimeMinutes,
-} from './shared/helpers.js';
+} from './shared/publishHelpers.js';
 
 import type { Extensions, JSONContent } from '@tiptap/core';
 import type { Cleaner } from '@growthlog/jobs';
@@ -98,9 +98,6 @@ export class PublishService {
     } catch {
       throw new InvalidContentError();
     }
-
-    console.log(JSON.stringify(json));
-    console.log(`${this.srcPrefix}/${postId}`);
 
     assertPublishable(json, `${this.srcPrefix}/${postId}`);
     

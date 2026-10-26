@@ -39,8 +39,6 @@ const likeComment = (d: Device, postId: string, commentId: string) =>
 const unlikeComment = (d: Device, postId: string, commentId: string) =>
   d.delete(`${commentUrl(postId, commentId)}/likes`);
 
-const follow = (d: Device, userId: string) => d.put(`/api/follow/${userId}`);
-
 const DAY = 86_400_000;
 const daysAgo = (n: number) => new Date(Date.now() - n * DAY);
 const UNKNOWN_ID = 'cdoesnotexist'.padEnd(24, '0');
@@ -102,11 +100,6 @@ async function seedComment(env: TestEnv, postId: string, by: Person, o: CommentO
     },
   });
 }
-
-const addOnboardingInterest = (env: TestEnv, user: Person, tag: { id: string }, createdAt?: Date) =>
-  env.app.prisma.onboardingInterest.create({
-    data: { userId: user.id, tagId: tag.id, ...(createdAt && { createdAt }) },
-  });
 
 async function people(env: TestEnv) {
   const ada = await signedInDevice(env);
@@ -312,7 +305,6 @@ describe('GET /api/posts/:slug (read)', () => {
       title: 'On compilers',
       publishedHtml: post.publishedHtml,
       readingTime: 7,
-      coverKey: expect.stringContaining(post.id),
       likes: 1,
       comments: 2,
       author: { id: grace.id, forename: 'Grace', surname: 'Hopper', avatarKey: null },
@@ -523,7 +515,7 @@ describe('POST /api/posts/:postId/comments', () => {
 
     const res = await makeComment(ada.device, post.id, 'First!');
 
-    expect(res.statusCode, res.body).toBe(200);
+    expect(res.statusCode, res.body).toBe(201);
     expect(res.json()).toMatchObject({
       text: 'First!',
       likeCount: 0,
@@ -667,7 +659,7 @@ describe('POST /api/posts/:postId/comments/:commentId/replies', () => {
 
     const res = await replyTo(ada.device, post.id, comment.id, 'Agreed');
 
-    expect(res.statusCode, res.body).toBe(200);
+    expect(res.statusCode, res.body).toBe(201);
     expect(res.json()).toMatchObject({ text: 'Agreed', commenter: { id: ada.id } });
     const row = await env.app.prisma.comment.findUniqueOrThrow({ where: { id: res.json().id } });
     expect(row).toMatchObject({ parentId: comment.id, postId: post.id, commenterId: ada.id });
@@ -681,7 +673,7 @@ describe('POST /api/posts/:postId/comments/:commentId/replies', () => {
 
     const nested = await replyTo(alan.device, post.id, first.json().id, 'reply to a reply');
 
-    expect(nested.statusCode, nested.body).toBe(200);
+    expect(nested.statusCode, nested.body).toBe(201);
     const row = await env.app.prisma.comment.findUniqueOrThrow({ where: { id: nested.json().id } });
     expect(row.parentId, 'flattened onto the top-level comment').toBe(top.id);
     expect(idsOf(await getReplies(env.device(), post.id, top.id)).sort()).toEqual(
@@ -1052,37 +1044,82 @@ describe('PUT/DELETE /api/posts/:postId/comments/:commentId/likes', () => {
 /*  Feed                                                                      */
 /* -------------------------------------------------------------------------- */
 
-describe('GET /api/posts (anonymous: latest)', () => {
-  test('lists published posts from everyone, newest first', async ({ env }) => {
-    const { grace, alan } = await people(env);
-    const oldest = await createPost(env, grace, { publishedAt: daysAgo(3) });
-    const newest = await createPost(env, alan, { publishedAt: daysAgo(1) });
-    const middle = await createPost(env, grace, { publishedAt: daysAgo(2) });
+/** Asserts both posts are in the feed and `higher` ranks above `lower`. */
+function expectRankedAbove(ids: string[], higher: string, lower: string) {
+  expect(ids, 'higher post is missing from the feed').toContain(higher);
+  expect(ids, 'lower post is missing from the feed').toContain(lower);
+  expect(ids.indexOf(higher), `expected ${higher} to rank above ${lower}`).toBeLessThan(
+    ids.indexOf(lower),
+  );
+}
 
-    const res = await getFeed(env.device());
+// These tests check the query wiring (who sees what), not the ranking algorithm.
+describe('GET /api/posts', () => {
+  describe('eligibility', () => {
+    test('omits drafts, deleted posts and posts by deleted authors', async ({ env }) => {
+      const { ada, grace, alan } = await people(env);
+      const visible = await createPost(env, grace);
+      await createPost(env, grace, { publishedAt: null });
+      await createPost(env, grace, { deletedAt: new Date() });
+      await createPost(env, alan);
+      await deleteAccount(alan.device);
 
-    expect(res.statusCode, res.body).toBe(200);
-    expect(idsOf(res)).toEqual([newest.id, middle.id, oldest.id]);
+      expect(idsOf(await getFeed(ada.device))).toEqual([visible.id]);
+    });
+
+    test('omits published posts that have no cover image', async ({ env }) => {
+      const { ada, grace } = await people(env);
+      const visible = await createPost(env, grace);
+      const coverless = await createPost(env, grace);
+      await env.app.prisma.post.update({ where: { id: coverless.id }, data: { coverImageId: null } });
+
+      expect(idsOf(await getFeed(ada.device))).toEqual([visible.id]);
+    });
+
+    test('includes the user\'s own posts so authors can see them being promoted', async ({ env }) => {
+      const { ada, grace } = await people(env);
+      const own = await createPost(env, ada);
+      const other = await createPost(env, grace);
+
+      expect(idsOf(await getFeed(ada.device)).sort()).toEqual([own.id, other.id].sort());
+    });
+
+    test.for(['OPENED', 'READ'] as const)('omits posts the user has already viewed (%s)', async (type, { env }) => {
+      const { ada, grace } = await people(env);
+      const seen = await createPost(env, grace);
+      const unseen = await createPost(env, grace);
+      await viewPost(ada.device, seen.id, type);
+
+      expect(idsOf(await getFeed(ada.device))).toEqual([unseen.id]);
+    });
+
+    test('another user\'s views do not hide posts from me', async ({ env }) => {
+      const { ada, grace, alan } = await people(env);
+      const post = await createPost(env, grace);
+      await viewPost(alan.device, post.id, 'READ');
+
+      expect(idsOf(await getFeed(ada.device))).toEqual([post.id]);
+    });
   });
 
-  test('omits drafts, deleted posts and posts by deleted authors', async ({ env }) => {
-    const { grace, alan } = await people(env);
-    const visible = await createPost(env, grace);
-    await createPost(env, grace, { publishedAt: null });
-    await createPost(env, grace, { deletedAt: new Date() });
-    await createPost(env, alan);
-    await deleteAccount(alan.device);
+  // The guarantee that motivated making interests a ranking signal rather than a filter.
+  test.for(['anonymous', 'signed in with no history'] as const)('is not empty for a visitor with no signals (%s)', async (who, { env }) => {
+    const { ada, grace } = await people(env);
+    const post = await createPost(env, grace);
 
-    expect(idsOf(await getFeed(env.device()))).toEqual([visible.id]);
+    const res = await getFeed(who === 'anonymous' ? env.device() : ada.device);
+
+    expect(res.statusCode, res.body).toBe(200);
+    expect(idsOf(res)).toEqual([post.id]);
   });
 
   test('returns the feed card shape with public author fields only', async ({ env }) => {
-    const { grace } = await people(env);
+    const { ada, grace } = await people(env);
     const tagA = await createTag(env, 'typescript');
     const tagB = await createTag(env, 'testing');
     const post = await createPost(env, grace, { tags: [tagA, tagB], readingTime: 5, title: 'Card' });
 
-    const [card] = (await getFeed(env.device())).json();
+    const [card] = (await getFeed(ada.device)).json();
 
     expect(card).toMatchObject({
       id: post.id,
@@ -1098,205 +1135,20 @@ describe('GET /api/posts (anonymous: latest)', () => {
     }
   });
 
-  test('is empty when nothing is published', async ({ env }) => {
-    expect((await getFeed(env.device())).json()).toEqual([]);
-  });
-});
-
-describe('GET /api/posts (signed in: personalised)', () => {
-  test('is empty for a user with no interests and no follows', async ({ env }) => {
-    const { ada, grace } = await people(env);
-    const tag = await createTag(env, 'rust');
-    await createPost(env, grace, { tags: [tag] });
-
-    const res = await getFeed(ada.device);
-
-    expect(res.statusCode, res.body).toBe(200);
-    expect(res.json()).toEqual([]);
-  });
-
-  test('includes posts matching an onboarding interest', async ({ env }) => {
-    const { ada, grace } = await people(env);
-    const rust = await createTag(env, 'rust');
-    const go = await createTag(env, 'go');
-    await addOnboardingInterest(env, ada, rust);
-    const match = await createPost(env, grace, { tags: [rust] });
-    await createPost(env, grace, { tags: [go] });
-
-    expect(idsOf(await getFeed(ada.device))).toEqual([match.id]);
-  });
-
-  test('includes posts from followed authors even without a tag match', async ({ env }) => {
+  // Wiring check only: engagement reaches the ranking at all. How much it counts is a unit test.
+  test('liking a post changes the order of the feed', async ({ env }) => {
     const { ada, grace, alan } = await people(env);
-    await follow(ada.device, grace.id);
-    const followed = await createPost(env, grace);
-    await createPost(env, alan);
+    const topic = await createTag(env, 'databases');
+    const unrelated = await createTag(env, 'cooking');
+    const source = await createPost(env, grace, { tags: [topic] });
+    // The same-topic post is older, so before any engagement the newer off-topic post wins.
+    const followUp = await createPost(env, grace, { tags: [topic], publishedAt: daysAgo(1) });
+    const offTopic = await createPost(env, alan, { tags: [unrelated], publishedAt: new Date() });
 
-    expect(idsOf(await getFeed(ada.device))).toEqual([followed.id]);
-  });
+    expectRankedAbove(idsOf(await getFeed(ada.device)), offTopic.id, followUp.id);
 
-  test('never includes the user\'s own posts', async ({ env }) => {
-    const { ada, grace } = await people(env);
-    const tag = await createTag(env, 'rust');
-    await addOnboardingInterest(env, ada, tag);
-    await createPost(env, ada, { tags: [tag] });
-    const other = await createPost(env, grace, { tags: [tag] });
+    await likePost(ada.device, source.id);
 
-    expect(idsOf(await getFeed(ada.device))).toEqual([other.id]);
-  });
-
-  test('omits drafts, deleted posts and posts by deleted authors', async ({ env }) => {
-    const { ada, grace, alan } = await people(env);
-    const tag = await createTag(env, 'rust');
-    await addOnboardingInterest(env, ada, tag);
-    const visible = await createPost(env, grace, { tags: [tag] });
-    await createPost(env, grace, { tags: [tag], publishedAt: null });
-    await createPost(env, grace, { tags: [tag], deletedAt: new Date() });
-    await createPost(env, alan, { tags: [tag] });
-    await deleteAccount(alan.device);
-
-    expect(idsOf(await getFeed(ada.device))).toEqual([visible.id]);
-  });
-
-  test.for(['OPENED', 'READ'] as const)('omits posts the user has already viewed (%s)', async (type, { env }) => {
-    const { ada, grace } = await people(env);
-    const tag = await createTag(env, 'rust');
-    await addOnboardingInterest(env, ada, tag);
-    const seen = await createPost(env, grace, { tags: [tag] });
-    const unseen = await createPost(env, grace, { tags: [tag] });
-    await viewPost(ada.device, seen.id, type);
-
-    expect(idsOf(await getFeed(ada.device))).toEqual([unseen.id]);
-  });
-
-  test('another user\'s views do not hide posts from me', async ({ env }) => {
-    const { ada, grace, alan } = await people(env);
-    const tag = await createTag(env, 'rust');
-    await addOnboardingInterest(env, ada, tag);
-    const post = await createPost(env, grace, { tags: [tag] });
-    await viewPost(alan.device, post.id, 'READ');
-
-    expect(idsOf(await getFeed(ada.device))).toEqual([post.id]);
-  });
-
-  test('is capped at 100 posts', async ({ env }) => {
-    const { ada, grace } = await people(env);
-    await follow(ada.device, grace.id);
-    for (let i = 0; i < 105; i++) await createPost(env, grace, { publishedAt: daysAgo(i / 100) });
-
-    expect((await getFeed(ada.device)).json()).toHaveLength(100);
-  });
-
-  describe('ranking', () => {
-    test('a followed author outranks a plain tag match (follow bonus beats a fresh onboarding interest)', async ({ env }) => {
-      const { ada, grace, alan } = await people(env);
-      const tag = await createTag(env, 'rust');
-      await addOnboardingInterest(env, ada, tag);
-      await follow(ada.device, grace.id);
-      const tagged = await createPost(env, alan, { tags: [tag] });
-      const followed = await createPost(env, grace);
-
-      expect(idsOf(await getFeed(ada.device))).toEqual([followed.id, tagged.id]);
-    });
-
-    test('a post focused on the user\'s interest outranks one that merely has many tags', async ({ env }) => {
-      const { ada, grace } = await people(env);
-      const [a, b, c, d] = await Promise.all(['a', 'b', 'c', 'd'].map((n) => createTag(env, n)));
-      await addOnboardingInterest(env, ada, a!);
-      const focused = await createPost(env, grace, { tags: [a!] });
-      const diluted = await createPost(env, grace, { tags: [a!, b!, c!, d!] });
-
-      expect(idsOf(await getFeed(ada.device))).toEqual([focused.id, diluted.id]);
-    });
-
-    test('posts matching more of the user\'s interests rank higher', async ({ env }) => {
-      const { ada, grace } = await people(env);
-      const x = await createTag(env, 'x');
-      const y = await createTag(env, 'y');
-      await addOnboardingInterest(env, ada, x);
-      await addOnboardingInterest(env, ada, y);
-      const one = await createPost(env, grace, { tags: [x] });
-      const both = await createPost(env, grace, { tags: [x, y] });
-
-      expect(idsOf(await getFeed(ada.device))).toEqual([both.id, one.id]);
-    });
-
-    test('with equal matches, the fresher post ranks higher regardless of insertion order', async ({ env }) => {
-      const { ada, grace } = await people(env);
-      const tag = await createTag(env, 'rust');
-      await addOnboardingInterest(env, ada, tag);
-      const stale = await createPost(env, grace, { tags: [tag], publishedAt: daysAgo(28) });
-      const fresh = await createPost(env, grace, { tags: [tag], publishedAt: new Date() });
-
-      expect(idsOf(await getFeed(ada.device))).toEqual([fresh.id, stale.id]);
-    });
-
-    test('a stale onboarding interest weighs less than a recent one', async ({ env }) => {
-      const { ada, grace } = await people(env);
-      const old = await createTag(env, 'old-interest');
-      const recent = await createTag(env, 'recent-interest');
-      await addOnboardingInterest(env, ada, old, daysAgo(90));
-      await addOnboardingInterest(env, ada, recent);
-      const oldPost = await createPost(env, grace, { tags: [old] });
-      const recentPost = await createPost(env, grace, { tags: [recent] });
-
-      expect(idsOf(await getFeed(ada.device))).toEqual([recentPost.id, oldPost.id]);
-    });
-  });
-
-  describe('learned interests', () => {
-    test('reading a post makes its tags an interest', async ({ env }) => {
-      const { ada, grace } = await people(env);
-      const tag = await createTag(env, 'databases');
-      const read = await createPost(env, grace, { tags: [tag] });
-      const next = await createPost(env, grace, { tags: [tag] });
-      await viewPost(ada.device, read.id, 'READ');
-
-      expect(idsOf(await getFeed(ada.device))).toEqual([next.id]);
-    });
-
-    test('merely opening a post does not', async ({ env }) => {
-      const { ada, grace } = await people(env);
-      const tag = await createTag(env, 'databases');
-      const opened = await createPost(env, grace, { tags: [tag] });
-      await createPost(env, grace, { tags: [tag] });
-      await viewPost(ada.device, opened.id, 'OPENED');
-
-      expect((await getFeed(ada.device)).json()).toEqual([]);
-    });
-
-    test('a READ older than the 60-day window no longer counts', async ({ env }) => {
-      const { ada, grace } = await people(env);
-      const tag = await createTag(env, 'databases');
-      const read = await createPost(env, grace, { tags: [tag] });
-      await createPost(env, grace, { tags: [tag] });
-      await env.app.prisma.view.create({
-        data: { userId: ada.id, postId: read.id, type: 'READ', createdAt: daysAgo(61) },
-      });
-
-      expect((await getFeed(ada.device)).json()).toEqual([]);
-    });
-
-    test('liking a post makes its tags an interest', async ({ env }) => {
-      const { ada, grace } = await people(env);
-      const tag = await createTag(env, 'databases');
-      const liked = await createPost(env, grace, { tags: [tag] });
-      const next = await createPost(env, grace, { tags: [tag] });
-      await likePost(ada.device, liked.id);
-
-      // Unlike a viewed post, a liked one is not excluded; only its tags become an interest.
-      expect(idsOf(await getFeed(ada.device)).sort()).toEqual([liked.id, next.id].sort());
-    });
-
-    // The engaged-posts query filters views by userId but not likes, so anyone's like counts as mine.
-    test('other users\' likes do not shape my interests', async ({ env }) => {
-      const { ada, grace, alan } = await people(env);
-      const tag = await createTag(env, 'databases');
-      const liked = await createPost(env, grace, { tags: [tag] });
-      await createPost(env, grace, { tags: [tag] });
-      await likePost(alan.device, liked.id);
-
-      expect((await getFeed(ada.device)).json()).toEqual([]);
-    });
+    expectRankedAbove(idsOf(await getFeed(ada.device)), followUp.id, offTopic.id);
   });
 });
