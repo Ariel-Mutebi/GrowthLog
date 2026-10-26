@@ -2,6 +2,9 @@
 import Logo from "./Logo.astro";
 import Theme from "./Theme.svelte";
 import Avatar from "./Avatar.svelte";
+import NavLink from "./NavLink.astro";
+import Layers from "@lucide/astro/icons/layers";
+import Newspaper from "@lucide/astro/icons/newspaper";
 
 interface Props {
   avatarKey: string | null | undefined;
@@ -13,6 +16,18 @@ const { avatarKey } = Astro.props;
 <nav class="w-full flex justify-between py-2 px-3 sm:px-0">
   <Logo />
   <div class="flex gap-2 sm:gap-6 items-center px-2 sm:px-6">
+    <div class="hidden sm:flex gap-3">
+      <NavLink
+        href="/"
+        text="Front Page"
+        Icon={Newspaper}
+      />
+      <NavLink
+        href="/my-drafts"
+        text="My Drafts"
+        Icon={Layers}
+      />
+    </div>
     <Theme client:load />
     <Avatar {avatarKey} size="medium" />
   </div>

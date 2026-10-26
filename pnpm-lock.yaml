@@ -374,6 +374,9 @@ importers:
       '@hocuspocus/provider':
         specifier: ^4.7.0
         version: 4.7.0(y-protocols@1.0.7(yjs@13.6.33))(yjs@13.6.33)
+      '@lucide/astro':
+        specifier: ^1.61.0
+        version: 1.61.0(astro@7.3.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.6.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@lucide/svelte':
         specifier: ^1.59.0
         version: 1.59.0(svelte@5.57.1(@typescript-eslint/types@8.70.1))
@@ -1308,6 +1311,11 @@ packages:
 
   '@lifeomic/attempt@3.1.0':
     resolution: {integrity: sha512-QZqem4QuAnAyzfz+Gj5/+SLxqwCAw2qmt7732ZXodr6VDWGeYLG6w1i/vYLa55JQM9wRuBKLmXmiZ2P0LtE5rw==}
+
+  '@lucide/astro@1.61.0':
+    resolution: {integrity: sha512-XoFZGoHjYtnDTuOQ4b105IO+WUCh8rzitIgBIrkOcdC1PRmsvLx+fwnrCRHiZ1JfbA36r/jAMxQL/HeyRqKJjQ==}
+    peerDependencies:
+      astro: ^4 || ^5 || ^6 || ^7
 
   '@lucide/svelte@1.59.0':
     resolution: {integrity: sha512-ga9IrEsFJBkt/34VnRFcQ2HLs8eOpOovXZ62XzwfC7f0zBfo4y116FBIDroZkD0gInYYY2hSSAcsQEm/Vm+AoA==}
@@ -6192,6 +6200,10 @@ snapshots:
       - supports-color
 
   '@lifeomic/attempt@3.1.0': {}
+
+  '@lucide/astro@1.61.0(astro@7.3.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.6.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))':
+    dependencies:
+      astro: 7.3.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@26.6.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
 
   '@lucide/svelte@1.59.0(svelte@5.57.1(@typescript-eslint/types@8.70.1))':
     dependencies:
