@@ -44,7 +44,7 @@
 {#if drafts?.length}
   <main class="py-9 px-6 md:pt-8 flex justify-center" in:fly={{ y: 200, duration: 300 }}>
     <div class="w-full max-w-225 text-stone-900 dark:text-stone-200">
-        <div class="flex w-full px-8 gap-8 justify-end">
+        <div class="flex w-full p-3 md:px-8 gap-3 md:gap-8 justify-end">
           <Filters bind:filters />
           <p>Last edited</p>
         </div>

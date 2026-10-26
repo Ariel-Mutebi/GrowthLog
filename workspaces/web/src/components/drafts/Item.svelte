@@ -22,12 +22,12 @@
 <li class="hover:bg-stone-100 active:bg-stone-100 hover:dark:bg-stone-900 dark:active:bg-stone-900">
   <a
     href={`${id}/edit`}
-    class="flex items-center p-3 md:px-8 md:py-4 gap-3 md:gap-8 font-serif"
+    class="flex items-center p-3 md:px-8 md:py-4 gap-3 md:gap-8"
   >
-    <p class="text-base sm:text-xl md:text-2xl grow">{title}</p>
+    <p class="text-lg sm:text-xl md:text-2xl grow font-serif">{title}</p>
     <div
       class={[
-        'flex p-2 gap-2 items-center rounded-2xl sm:pr-4',
+        'flex py-1 px-2 font-mono text-sm gap-2 items-center rounded-2xl sm:pr-4',
         { 'bg-slate-200 dark:bg-slate-800': isPrivate },
         { 'bg-lime-100 dark:bg-lime-800': !isPrivate },
       ]}
@@ -41,7 +41,7 @@
     </div>
     <time
       datetime={updatedAt.toDateString()}
-      class="text-sm sm:text-base text-stone-700 dark:text-stone-400"
+      class="text-sm font-mono sm:text-base text-stone-700 dark:text-stone-400"
     >
       {lastEdited}
     </time>

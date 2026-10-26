@@ -1,32 +1,56 @@
 <script lang="ts">
   import { Popover } from 'bits-ui';
-  import { toast } from 'svelte-sonner';
+  import { HTTPError, toastError } from '../errorHandling.ts';
   import { apiClient } from '../clients.ts';
   import { navigate } from 'astro:transitions/client';
 
   import Trash from '@lucide/svelte/icons/trash';
+  import Eraser from '@lucide/svelte/icons/eraser';
   import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
 
   interface Props {
     postId: string;
+    hasPublished: boolean;
   }
 
-  const { postId }: Props = $props();
+  const { postId, hasPublished }: Props = $props();
+
+  async function handleUnpublish() {
+    try {
+      const { error } = await apiClient.DELETE('/api/me/drafts/{id}/publish', {
+        params: {
+          path: {
+            id: postId,
+          },
+        },
+      });
+
+      if (error) {
+        throw new HTTPError(error);
+      }
+    } catch (error) {
+      toastError(error);
+    }
+  }
 
   async function handleDelete() {
-    const { error } = await apiClient.DELETE('/api/me/drafts/{id}', {
-      params: {
-        path: {
-          id: postId,
+    try {
+      const { error } = await apiClient.DELETE('/api/me/drafts/{id}', {
+        params: {
+          path: {
+            id: postId,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      toast.error(error.error, { description: error.message });
+      if (error) {
+        throw new HTTPError(error);
+      }
+
+      navigate('/my-drafts');
+    } catch (error) {
+      toastError(error);
     }
-
-    navigate('/my-drafts');
   }
 
   interface Option {
@@ -37,23 +61,30 @@
 
   const options: Option[] = [
     {
-      text: 'Delete draft',
+      text: 'Delete',
       icon: Trash,
       handler: handleDelete,
     }
   ];
+
+  // svelte-ignore state_referenced_locally
+  if (hasPublished) {
+    options.unshift({
+      text: 'Unpublish',
+      icon: Eraser,
+      handler: handleUnpublish,
+    });
+  }
 </script>
 
 <Popover.Root>
-  <Popover.Trigger>
-    <button
-      title="Menu"
-      aria-label="Open menu"
-      class="text-stone-700 hover:text-stone-900 active:text-stone-950
-        dark:text-stone-200 dark:hover:text-stone-100 dark:active:text-stone-50"
-    >
-      <EllipsisVertical size={18} />
-    </button>
+  <Popover.Trigger
+    title="Menu"
+    aria-label="Open menu"
+    class="flex items-center justify-center text-stone-700 hover:text-stone-900 active:text-stone-950
+      dark:text-stone-200 dark:hover:text-stone-100 dark:active:text-stone-50"
+  >
+    <EllipsisVertical size={18} />
   </Popover.Trigger>
   <Popover.Content>
     <div class="bg-stone-50 border border-stone-200 text-stone-800 w-40">

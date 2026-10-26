@@ -3,9 +3,10 @@
 
   interface Props {
     postId: string;
+    hasPublished: boolean;
   }
 
-  const { postId }: Props = $props();
+  const { postId, hasPublished }: Props = $props();
 </script>
 
 <button
@@ -16,5 +17,5 @@
     dark:inset-shadow-stone-100/25 hover:inset-shadow-none focus:outline-none focus:inset-shadow-none
     active:bg-yellow-300 dark:active:bg-orange-900"
 >
-  Publish
+  {hasPublished ? 'Republish' : 'Publish'}
 </button>

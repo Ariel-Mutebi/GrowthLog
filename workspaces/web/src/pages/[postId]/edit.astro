@@ -31,6 +31,8 @@ const { data: post } = await createApiClient(cookie).GET("/api/me/drafts/{id}", 
 if (!post) {
   return Astro.rewrite("/404");
 }
+
+const hasPublished = post.publishedAt !== null;
 ---
 
 <HeadLayout title={`Editing ${post.title} | GrowthLog`}>
@@ -38,11 +40,11 @@ if (!post) {
     <LinkLogo backLink="/my-drafts" />
     <RibbonNav>
       <div class="flex items-center px-2 py-1 gap-4 bg-lime-200 dark:bg-lime-800">
-        <Menu {postId} client:idle />
+        <Menu {postId} {hasPublished} client:idle />
         <Upload {postId} client:idle />
         <UndoRedo client:idle />
       </div>
-      <Publish {postId} client:idle />
+      <Publish {postId} {hasPublished} client:idle />
       <Avatar avatarKey={user.avatarKey} size="small" />
     </RibbonNav>
     <VerticalRibbon />
