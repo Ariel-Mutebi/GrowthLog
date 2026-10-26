@@ -136,6 +136,7 @@ export function diversify(sorted: ScoredCandidate[], limit: number): ScoredCandi
 
 export function toFeedView(post: FeedCandidate): FeedView {
   return {
+    id: post.id,
     slug: post.slug,
     title: post.publishedTitle!,
     hook: post.publishedHook!,

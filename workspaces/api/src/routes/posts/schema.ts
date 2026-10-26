@@ -16,6 +16,7 @@ const Author = Type.Object({
 
 const Feed = Type.Object({
   author: Author,
+  id: Type.String(),
   slug: Type.String(),
   title: Type.String(),
   hook: Type.String(),

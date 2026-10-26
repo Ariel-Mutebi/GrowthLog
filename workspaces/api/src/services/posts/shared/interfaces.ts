@@ -18,6 +18,7 @@ export interface ReadingView {
 }
 
 export interface FeedView {
+  id: string;
   slug: string;
   title: string;
   hook: string;
