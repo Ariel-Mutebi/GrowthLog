@@ -19,7 +19,7 @@ import type { Image, PrismaClient } from '@growthlog/db';
 
 interface ServiceDependencies {
   prisma: PrismaClient;
-  minio: S3Client;
+  storage: S3Client;
   presigner: S3Client;
   bucket: string;
   maxSizeBytes: number;
@@ -84,7 +84,7 @@ export abstract class ImageUploadService<RequestParams, ConfirmParams> {
 
   private async verifyObjectUploaded(key: string): Promise<number> {
     try {
-      const { ContentLength } = await this.deps.minio.send(
+      const { ContentLength } = await this.deps.storage.send(
         new HeadObjectCommand({
           Bucket: this.deps.bucket,
           Key: key,
@@ -110,7 +110,7 @@ export abstract class ImageUploadService<RequestParams, ConfirmParams> {
   }
 
   private async verifyFileContent(key: string, declaredMimeType: string) {
-    const { Body } = await this.deps.minio.send(
+    const { Body } = await this.deps.storage.send(
       new GetObjectCommand({
         Bucket: this.deps.bucket,
         Key: key,

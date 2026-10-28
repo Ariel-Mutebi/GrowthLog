@@ -1,31 +1,31 @@
 import fp from 'fastify-plugin';
 import { S3Client } from '@aws-sdk/client-s3';
 
-export const minioPlugin  = fp(async (app) => {
+export const storagePlugin  = fp(async (app) => {
   const credentials = {
     accessKeyId: app.config.MINIO_ROOT_USER,
     secretAccessKey: app.config.MINIO_ROOT_PASSWORD,
   };
 
-  const minio = new S3Client({
+  const mainClient = new S3Client({
     endpoint: app.config.MINIO_ENDPOINT,
     forcePathStyle: true,
     region: 'us-east-1',
     credentials,
   });
 
-  const minioPresign = new S3Client({
+  const presigner = new S3Client({
     endpoint: app.config.PUBLIC_MINIO_ENDPOINT,
     forcePathStyle: true,
     region: 'us-east-1',
     credentials,
   });
 
-  app.decorate('minio', minio);
-  app.decorate('minioPresign', minioPresign);
+  app.decorate('storage', mainClient);
+  app.decorate('presigner', presigner);
 
   app.addHook('onClose', () => {
-    minio.destroy();
-    minioPresign.destroy();
+    mainClient.destroy();
+    presigner.destroy();
   });
 });

@@ -10,9 +10,9 @@ import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new PostImageService({
     prisma: app.prisma,
-    minio: app.minio,
+    storage: app.storage,
     logError: app.log.error,
-    presigner: app.minioPresign,
+    presigner: app.presigner,
     bucket: app.config.PUBLIC_IMAGE_BUCKET,
     maxSizeBytes: app.config.PUBLIC_MAX_IMAGE_SIZE_BYTES,
     presignedUrlExpirySeconds: app.config.PRESIGNED_URL_EXPIRY_SECONDS,

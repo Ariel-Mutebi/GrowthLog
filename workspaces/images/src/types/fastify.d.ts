@@ -8,8 +8,8 @@ declare module 'fastify' {
   interface FastifyInstance {
     prisma: PrismaClient;
     config: Config;
-    minio: S3Client;
-    minioPresign: S3Client;
+    storage: S3Client;
+    presigner: S3Client;
   }
 
   interface FastifyRequest {
