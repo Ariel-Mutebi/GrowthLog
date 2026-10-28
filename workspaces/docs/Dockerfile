@@ -1,5 +1,4 @@
 FROM node:26-alpine AS base
-RUN corepack enable
 WORKDIR /repo
 
 FROM base AS builder
@@ -14,5 +13,6 @@ RUN pnpm deploy --filter @growthlog/docs --prod /out/docs
 FROM node:26-alpine AS runtime
 WORKDIR /app
 COPY --from=builder /out/docs .
-EXPOSE 1234
+USER node
+EXPOSE 3001
 CMD ["node", "dist/server.js"]

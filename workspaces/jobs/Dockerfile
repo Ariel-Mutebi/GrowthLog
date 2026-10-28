@@ -1,5 +1,4 @@
 FROM node:26-alpine AS base
-RUN corepack enable
 WORKDIR /repo
 
 FROM base AS builder
@@ -9,10 +8,9 @@ RUN pnpm --filter @growthlog/db generate
 RUN pnpm --filter @growthlog/db build
 RUN pnpm --filter @growthlog/env build
 RUN pnpm --filter @growthlog/jobs build
-RUN pnpm deploy --filter @growthlog/jobs --prod out/jobs
+RUN pnpm deploy --filter @growthlog/jobs --prod /out/jobs
 
 FROM node:26-alpine AS runtime
 WORKDIR /app
 COPY --from=builder /out/jobs .
-EXPOSE 3000
 CMD ["node", "dist/main.js"]

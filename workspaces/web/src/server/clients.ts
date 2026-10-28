@@ -1,5 +1,5 @@
 import createClient, { type Middleware } from 'openapi-fetch';
-import { PUBLIC_API_URL } from 'astro:env/client';
+import { INTERNAL_API_URL } from 'astro:env/server';
 import type { paths as apiPaths } from '@growthlog/api';
 
 export function createApiClient(cookieHeader: string | null) {
@@ -12,7 +12,7 @@ export function createApiClient(cookieHeader: string | null) {
     },
   };
 
-  const client = createClient<apiPaths>({ baseUrl: PUBLIC_API_URL });
+  const client = createClient<apiPaths>({ baseUrl: INTERNAL_API_URL });
   client.use(forwardCookie);
 
   return client;

@@ -35,6 +35,10 @@ export default defineConfig({
 
   env: {
     schema: {
+      INTERNAL_API_URL: envField.string({
+        context: 'server',
+        access:'secret',
+      }),
       PUBLIC_API_URL: url,
       PUBLIC_IMAGES_URL: url,
       PUBLIC_DOCS_URL: url,

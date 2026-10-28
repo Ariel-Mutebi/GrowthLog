@@ -15,13 +15,14 @@ services:
     command: >
       redis-server
       --appendonly yes
-      --maxmemory 512mb
+      --maxmemory 256mb
       --maxmemory-policy noeviction
     ports:
       - "6379:6379"
     volumes:
       - ./.local/redis-data:/data
   
+  # Minio is replaced by Cloudflare R2 in prod (less server load, edge caching)
   minio:
     container_name: GrowthLogMinio
     image: pgsty/minio:latest

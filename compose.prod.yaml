@@ -1,112 +1,111 @@
+name: growthlog
+
+# Shared defaults for every app container
+x-app: &app
+  restart: unless-stopped
+  init: true
+  env_file: .env
+  mem_limit: 256m
+  logging: &logging
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+# Apps (images are built in CI and pushed to a registry to minimize server load)
+# Services with a public domain join dokploy-network so Dokploy's Traefik can route to them.
 services:
-  api:
-    container_name: GrowthLogApi
-    build:
-      context: .
-      dockerfile: workspaces/api/Dockerfile
-    env_file:
-      - .env
+  migrate: # One-shot: applies Prisma migrations, then exits.
+    <<: *app
+    image: ghcr.io/ariel-mutebi/growthlog-migrate:${TAG:-latest}
+    restart: "no"
     depends_on:
-      postgres:
-        condition: service_started
-      redis:
-        condition: service_started
-    networks: [back-tier]
-    tty: true
-
-  docs:
-    container_name: GrowthLogDocs
-    build:
-      context: .
-      dockerfile: workspaces/docs/Dockerfile
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_started
-      redis:
-        condition: service_started
-    networks: [back-tier]
-    tty: true
-
-  images:
-    container_name: GrowthLogImages
-    build:
-      context: .
-      dockerfile: workspaces/images/Dockerfile
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_started
-      minio:
-        condition: service_started
-    networks: [back-tier]
-    tty: true
-
-  caddy:
-    container_name: GrowthLogCaddy
-    image: caddy:2-alpine
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./Caddyfile.prod:/etc/caddy/Caddyfile
-      - caddy-data:/data
-      - caddy-config:/config
-    depends_on:
-      - api
-      - docs
-      - images
-      - minio
-    env_file:
-      - .env
+      postgres: { condition: service_healthy }
     networks: [back-tier]
 
+  web: # Astro (node standalone), port 5000
+    <<: *app
+    image: ghcr.io/ariel-mutebi/growthlog-web:${TAG:-latest}
+    networks: [back-tier, dokploy-network]
+
+  api: # Fastify API, port 3000
+    <<: *app
+    image: ghcr.io/ariel-mutebi/growthlog-api:${TAG:-latest}
+    stop_grace_period: 30s
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks: [back-tier, dokploy-network]
+
+  docs: # Hocuspocus (WebSocket), port 3001
+    <<: *app
+    image: ghcr.io/ariel-mutebi/growthlog-docs:${TAG:-latest}
+    stop_grace_period: 30s
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      postgres: { condition: service_healthy }
+    networks: [back-tier, dokploy-network]
+
+  images: # Fastify image service, port 3002
+    <<: *app
+    image: ghcr.io/ariel-mutebi/growthlog-images:${TAG:-latest}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks: [back-tier, dokploy-network]
+
+  jobs: # BullMQ workers: no public exposure
+    <<: *app
+    image: ghcr.io/ariel-mutebi/growthlog-jobs:${TAG:-latest}
+    stop_grace_period: 30s
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks: [back-tier]
+
+  # Infrastructure (never exposed publicly)
   postgres:
-    container_name: GrowthLogPostgres
     image: postgres:18
-    env_file:
-      - .env
+    restart: unless-stopped
+    env_file: .env
     volumes:
-      - ./.local/postgres-data:/var/lib/postgresql
-    logging:
-      driver: none
+      - postgres-data:/var/lib/postgresql
+    logging: *logging
     networks: [back-tier]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
-    container_name: GrowthLogRedis
     image: redis:8
+    restart: unless-stopped
+    # noeviction is required by BullMQ; keep maxmemory modest on a small server
     command: >
       redis-server
       --appendonly yes
-      --maxmemory 512mb
+      --maxmemory 256mb
       --maxmemory-policy noeviction
     volumes:
       - redis-data:/data
-    logging:
-      driver: none
+    mem_limit: 256m
+    logging: *logging
     networks: [back-tier]
-
-  minio:
-    container_name: GrowthLogMinio
-    image: pgsty/minio:latest
-    command: server /data
-    env_file:
-      - .env
-    volumes:
-      - minio-data:/data
-    logging:
-      driver: none
-    networks: [back-tier]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   back-tier:
+  dokploy-network:
+    external: true
 
 volumes:
   postgres-data:
   redis-data:
-  caddy-data:
-  caddy-config:
-  minio-data:
