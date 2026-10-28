@@ -56,9 +56,9 @@ export class TestEnv {
       DATABASE_URL: `${withDatabase(adminUrl, database)}?connection_limit=2`,
       MINIO_ENDPOINT: minio.endpoint,
       // Tests PUT to presigned URLs, so this must be reachable from the test process
-      PUBLIC_MINIO_ENDPOINT: minio.endpoint,
-      MINIO_ROOT_USER: minio.user,
-      MINIO_ROOT_PASSWORD: minio.password,
+      PUBLIC_STORAGE_ENDPOINT: minio.endpoint,
+      STORAGE_ACCESS_KEY_ID: minio.user,
+      STORAGE_SECRET_ACCESS_KEY: minio.password,
       PUBLIC_AVATAR_BUCKET: buckets.avatars,
       PUBLIC_IMAGE_BUCKET: buckets.images,
       PUBLIC_MAX_AVATAR_SIZE_BYTES: 1024 * 1024,

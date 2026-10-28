@@ -1,6 +1,6 @@
 ---
 import type { Feed } from "../../types/backend.ts";
-import { PUBLIC_MINIO_ENDPOINT, PUBLIC_IMAGE_BUCKET } from "astro:env/client";
+import { PUBLIC_STORAGE_ENDPOINT, PUBLIC_IMAGE_BUCKET } from "astro:env/client";
 import Avatar from "../Avatar.svelte";
 
 interface Props {
@@ -17,7 +17,7 @@ const { author, slug, title, hook, coverKey, readingTime, tags } = post;
     hover:-translate-y-1 hover:-translate-x-1 dark:border-stone-300 hover:dark:shadow-stone-300"
 >
   <img
-    src={`${PUBLIC_MINIO_ENDPOINT}/${PUBLIC_IMAGE_BUCKET}/${coverKey}`}
+    src={`${PUBLIC_STORAGE_ENDPOINT}/${PUBLIC_IMAGE_BUCKET}/${coverKey}`}
     alt=""
     class="w-full object-cover aspect-4/3"
   />

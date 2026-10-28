@@ -14,7 +14,7 @@ class Runtime {
   config: Config;
   prisma: PrismaClient;
   redis: RedisClientType;
-  minio: S3Client;
+  storage: S3Client;
 
   constructor() {
     this.log = pino();
@@ -27,9 +27,10 @@ class Runtime {
       'SMTP_USER',
       'SMTP_PASS',
       'FROM_EMAIL',
-      'MINIO_ENDPOINT',
-      'MINIO_ROOT_USER',
-      'MINIO_ROOT_PASSWORD',
+      'STORAGE_ENDPOINT',
+      'STORAGE_REGION',
+      'STORAGE_ACCESS_KEY_ID',
+      'STORAGE_SECRET_ACCESS_KEY',
       'PUBLIC_IMAGE_BUCKET',
     ]);
 
@@ -38,21 +39,21 @@ class Runtime {
 
     this.redis = createClient({ url: this.config.REDIS_URL });
 
-    this.minio = new S3Client({
-      endpoint: this.config.MINIO_ENDPOINT,
-      forcePathStyle: true,
-      region: 'us-east-1',
+    this.storage = new S3Client({
+      endpoint: this.config.STORAGE_ENDPOINT,
+      region: this.config.STORAGE_REGION,
       credentials: {
-        accessKeyId: this.config.MINIO_ROOT_USER,
-        secretAccessKey: this.config.MINIO_ROOT_PASSWORD,
+        accessKeyId: this.config.STORAGE_ACCESS_KEY_ID,
+        secretAccessKey: this.config.STORAGE_SECRET_ACCESS_KEY,
       },
+      forcePathStyle: true,
     });
   }
 
   async stop() {
     await this.prisma.$disconnect();
     await this.redis.close();
-    this.minio.destroy();
+    this.storage.destroy();
   }
 }
 

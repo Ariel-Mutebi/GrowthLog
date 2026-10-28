@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PUBLIC_MINIO_ENDPOINT, PUBLIC_IMAGE_BUCKET } from 'astro:env/client';
+  import { PUBLIC_STORAGE_ENDPOINT, PUBLIC_IMAGE_BUCKET } from 'astro:env/client';
   import { ACCEPTED_TYPES } from '../acceptedMime.ts';
   import ImagePlus from '@lucide/svelte/icons/image-plus';
   import Error from '../Error.svelte';
@@ -26,7 +26,7 @@
   });
 
   // svelte-ignore state_referenced_locally
-  const defaultUrl = defaultKey ? `${PUBLIC_MINIO_ENDPOINT}/${PUBLIC_IMAGE_BUCKET}/${defaultKey}` : undefined;
+  const defaultUrl = defaultKey ? `${PUBLIC_STORAGE_ENDPOINT}/${PUBLIC_IMAGE_BUCKET}/${defaultKey}` : undefined;
   const previewUrl = $derived(localUrl ?? defaultUrl);
 </script>
 

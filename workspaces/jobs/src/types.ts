@@ -15,9 +15,10 @@ export interface Config {
   SMTP_USER: string;
   SMTP_PASS: string;
   FROM_EMAIL: string;
-  MINIO_ENDPOINT: string;
-  MINIO_ROOT_USER: string;
-  MINIO_ROOT_PASSWORD: string;
+  STORAGE_ENDPOINT: string;
+  STORAGE_REGION: string;
+  STORAGE_ACCESS_KEY_ID: string;
+  STORAGE_SECRET_ACCESS_KEY: string;
   PUBLIC_IMAGE_BUCKET: string;
 }
 

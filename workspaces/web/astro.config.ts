@@ -42,7 +42,7 @@ export default defineConfig({
       PUBLIC_API_URL: url,
       PUBLIC_IMAGES_URL: url,
       PUBLIC_DOCS_URL: url,
-      PUBLIC_MINIO_ENDPOINT: url,
+      PUBLIC_STORAGE_ENDPOINT: url,
       PUBLIC_AVATAR_BUCKET: bucketName,
       PUBLIC_IMAGE_BUCKET: bucketName,
       PUBLIC_MAX_AVATAR_SIZE_BYTES: positiveInteger,

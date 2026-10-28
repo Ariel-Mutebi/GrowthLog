@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PUBLIC_MINIO_ENDPOINT, PUBLIC_AVATAR_BUCKET } from "astro:env/client";
+  import { PUBLIC_STORAGE_ENDPOINT, PUBLIC_AVATAR_BUCKET } from "astro:env/client";
 
   interface Props {
     avatarKey: string | null | undefined;
@@ -13,7 +13,7 @@
   <img
     src={
       avatarKey
-        ? `${PUBLIC_MINIO_ENDPOINT}/${PUBLIC_AVATAR_BUCKET}/${avatarKey}`
+        ? `${PUBLIC_STORAGE_ENDPOINT}/${PUBLIC_AVATAR_BUCKET}/${avatarKey}`
         : "/default-avatar.jpg"
     }
     alt="avatar"

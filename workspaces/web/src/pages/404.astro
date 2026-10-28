@@ -3,7 +3,7 @@ import NavBar from "../components/Navbar.astro";
 import HeadLayout from "../layouts/HeadLayout.astro";
 import aerialForest from "../assets/aerial-forest.jpg";
 import humpbackWhale from "../assets/humpback-whale.jpg";
-import { PUBLIC_MINIO_ENDPOINT } from "astro:env/client";
+import { PUBLIC_STORAGE_ENDPOINT } from "astro:env/client";
 import Background from "../components/Background.astro";
 
 Astro.response.status = 404;
@@ -35,7 +35,7 @@ const { user } = Astro.locals;
           class="absolute inset-0 h-full w-full object-cover"
         >
           <source
-            src={`${PUBLIC_MINIO_ENDPOINT}/videos/404_720p.mp4`}
+            src={`${PUBLIC_STORAGE_ENDPOINT}/videos/404_720p.mp4`}
             type="video/mp4"
           />
         </video>

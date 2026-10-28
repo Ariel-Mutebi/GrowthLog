@@ -18,16 +18,17 @@ export const envDefinitions = {
   REDIS_URL: z.url().regex(/^redis(s)?:\/\/\S+/),
   DATABASE_URL: z.url().regex(/^postgres(ql)?:\/\/\S+/),
 
-  MINIO_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
-  MINIO_ROOT_USER: hexSecret(64),
-  MINIO_ROOT_PASSWORD: hexSecret(64),
+  STORAGE_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
+  STORAGE_ACCESS_KEY_ID: hexSecret(64),
+  STORAGE_SECRET_ACCESS_KEY: hexSecret(64),
+  STORAGE_REGION: z.string().min(1),
   PRESIGNED_URL_EXPIRY_SECONDS: positive,
 
+  PUBLIC_STORAGE_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
   PUBLIC_AVATAR_BUCKET: z.string(),
   PUBLIC_IMAGE_BUCKET: z.string(),
   PUBLIC_MAX_AVATAR_SIZE_BYTES: positive,
   PUBLIC_MAX_IMAGE_SIZE_BYTES: positive,
-  PUBLIC_MINIO_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
 
   SMTP_HOST: z.string(),
   SMTP_PORT: port,

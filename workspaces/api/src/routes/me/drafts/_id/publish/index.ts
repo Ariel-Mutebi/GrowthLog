@@ -15,7 +15,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new PublishService(
     app.prisma,
     app.cleaner,
-    app.config.PUBLIC_MINIO_ENDPOINT,
+    app.config.PUBLIC_STORAGE_ENDPOINT,
     app.config.PUBLIC_IMAGE_BUCKET,
   );
 

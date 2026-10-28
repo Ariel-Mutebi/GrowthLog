@@ -4,7 +4,7 @@
   import LoaderCircle from '@lucide/svelte/icons/loader-circle';
   import {
     PUBLIC_MAX_IMAGE_SIZE_BYTES,
-    PUBLIC_MINIO_ENDPOINT,
+    PUBLIC_STORAGE_ENDPOINT,
     PUBLIC_IMAGE_BUCKET,
   } from 'astro:env/client';
 
@@ -46,7 +46,7 @@
       window.dispatchEvent(
         new CustomEvent('editor:image-uploaded', {
           detail: {
-            src: `${PUBLIC_MINIO_ENDPOINT}/${PUBLIC_IMAGE_BUCKET}/${image.key}`,
+            src: `${PUBLIC_STORAGE_ENDPOINT}/${PUBLIC_IMAGE_BUCKET}/${image.key}`,
             width: image.width ?? undefined,
             height: image.height ?? undefined,
           } satisfies ImageUploaded,

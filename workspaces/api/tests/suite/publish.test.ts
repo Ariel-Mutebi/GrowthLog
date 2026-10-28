@@ -35,7 +35,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const storagePrefix = (env: TestEnv) => `${env.app.config.PUBLIC_MINIO_ENDPOINT}/${env.app.config.PUBLIC_IMAGE_BUCKET}`;
+const storagePrefix = (env: TestEnv) => `${env.app.config.PUBLIC_STORAGE_ENDPOINT}/${env.app.config.PUBLIC_IMAGE_BUCKET}`;
 const full = (env: TestEnv, id: string) =>
   env.app.prisma.post.findUniqueOrThrow({ where: { id }, include: { tags: true } });
 

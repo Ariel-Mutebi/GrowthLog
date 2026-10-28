@@ -14,7 +14,7 @@ export class DeletionWorker extends GrowthLogWorker {
     redis: RedisClientType,
     log: Logger,
     prisma: PrismaClient,
-    private readonly minio: S3Client,
+    private readonly storage: S3Client,
     private readonly bucket: string,
   ) {
     super('deletion', redis, log, prisma);
@@ -57,7 +57,7 @@ export class DeletionWorker extends GrowthLogWorker {
       try {
         // Try to delete the object first, so that if it fails, it skips to the catch,
         // and the next run can find the database row and try again.
-        await this.minio.send(
+        await this.storage.send(
           new DeleteObjectCommand({
             Bucket: this.bucket,
             Key: image.key,
@@ -105,7 +105,7 @@ export class DeletionWorker extends GrowthLogWorker {
       if (post.publishedHtml.includes(image.key)) continue;
 
       try {
-        await this.minio.send(
+        await this.storage.send(
           new DeleteObjectCommand({
             Bucket: this.bucket,
             Key: image.key,

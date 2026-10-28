@@ -28,7 +28,7 @@ const deletionWorker = new DeletionWorker(
   runtime.redis,
   runtime.log,
   runtime.prisma,
-  runtime.minio,
+  runtime.storage,
   runtime.config.PUBLIC_IMAGE_BUCKET,
 );
 

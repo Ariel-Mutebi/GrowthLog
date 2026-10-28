@@ -30,7 +30,7 @@ export function buildApp(overrides?: Partial<Config>) {
       'SESSION_SECRET',
       'JWT_SECRET',
       'DATABASE_URL',
-      'PUBLIC_MINIO_ENDPOINT',
+      'PUBLIC_STORAGE_ENDPOINT',
       'PUBLIC_IMAGE_BUCKET',
     ],
     overrides,
