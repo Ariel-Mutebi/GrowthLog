@@ -28,9 +28,13 @@ export class TestEnv {
     await runSql(adminUrl, `CREATE DATABASE "${database}" TEMPLATE "${TEMPLATE_DB}";`);
 
     const app = buildApp({
+      API_PORT: 3000,
       NODE_ENV: 'test',
       REDIS_URL: redisUrl,
       REDIS_KEY_PREFIX: redisPrefix,
+      PUBLIC_IMAGE_BUCKET: 'images',
+      PUBLIC_STORAGE_ENDPOINT: 'http://localhost:9000',
+      JWT_SECRET: randomBytes(32).toString('hex'),
       SESSION_SECRET: randomBytes(32).toString('hex'),
       DATABASE_URL: `${withDatabase(adminUrl, database)}?connection_limit=2`,
     });

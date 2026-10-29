@@ -21,20 +21,17 @@ import { underPressurePlugin } from './plugins/pressure.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function buildApp(overrides?: Partial<Config>) {
-  const config = loadEnv(
-    [
-      'API_PORT',
-      'NODE_ENV',
-      'REDIS_URL',
-      'SESSION_SECRET',
-      'JWT_SECRET',
-      'DATABASE_URL',
-      'PUBLIC_STORAGE_ENDPOINT',
-      'PUBLIC_IMAGE_BUCKET',
-    ],
-    overrides,
-  );
+export function buildApp(overrides: Config) {
+  const config = loadEnv([
+    'API_PORT',
+    'NODE_ENV',
+    'REDIS_URL',
+    'SESSION_SECRET',
+    'JWT_SECRET',
+    'DATABASE_URL',
+    'PUBLIC_STORAGE_ENDPOINT',
+    'PUBLIC_IMAGE_BUCKET',
+  ], overrides as object as Record<string, string>);
 
   const app = Fastify({
     logger: {

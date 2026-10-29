@@ -16,7 +16,7 @@ import { healthPlugin } from './plugins/health.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function buildApp(overrides?: Partial<Config>) {
+export function buildApp(overrides?: Config) {
   const config = loadEnv([
     'NODE_ENV',
     'IMAGES_PORT',
@@ -32,7 +32,7 @@ export function buildApp(overrides?: Partial<Config>) {
     'PUBLIC_MAX_AVATAR_SIZE_BYTES',
     'PUBLIC_MAX_IMAGE_SIZE_BYTES',
     'PRESIGNED_URL_EXPIRY_SECONDS',
-  ], overrides);
+  ], overrides as object as Record<string, string>);
 
   const app = Fastify({
     logger: {

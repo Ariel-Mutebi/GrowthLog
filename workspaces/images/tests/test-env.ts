@@ -51,9 +51,7 @@ export class TestEnv {
 
     const app = buildApp({
       NODE_ENV: 'test',
-      IMAGES_PORT: 0,
-      JWT_SECRET: randomBytes(32).toString('hex'),
-      DATABASE_URL: `${withDatabase(adminUrl, database)}?connection_limit=2`,
+      IMAGES_PORT: 3002,
       STORAGE_ENDPOINT: minio.endpoint,
       STORAGE_REGION: 'us-east-1',
       PUBLIC_STORAGE_ENDPOINT: minio.endpoint,
@@ -64,6 +62,8 @@ export class TestEnv {
       PUBLIC_MAX_AVATAR_SIZE_BYTES: 1024 * 1024,
       PUBLIC_MAX_IMAGE_SIZE_BYTES: 5 * 1024 * 1024,
       PRESIGNED_URL_EXPIRY_SECONDS: 300,
+      JWT_SECRET: randomBytes(32).toString('hex'),
+      DATABASE_URL: `${withDatabase(adminUrl, database)}?connection_limit=2`,
     });
     await app.ready();
 
