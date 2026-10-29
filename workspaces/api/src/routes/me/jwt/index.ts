@@ -15,7 +15,7 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
         name: req.user.username,
       },
       app.config.JWT_SECRET,
-      { expiresIn: '5min' },
+      { expiresIn: '1min' },
     );
 
     return res.send({ token });

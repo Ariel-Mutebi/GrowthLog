@@ -1,12 +1,13 @@
 FROM node:26-alpine AS base
+RUN npm install -g pnpm@12.16.1
 WORKDIR /repo
 
 FROM base AS builder
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @growthlog/db generate
-RUN pnpm --filter @growthlog/db build
 RUN pnpm --filter @growthlog/env build
+RUN DATABASE_URL=postgresql://user:pass@localhost:5432/db pnpm --filter @growthlog/db generate
+RUN pnpm --filter @growthlog/db build
 RUN pnpm --filter @growthlog/docs build
 RUN pnpm deploy --filter @growthlog/docs --prod /out/docs
 

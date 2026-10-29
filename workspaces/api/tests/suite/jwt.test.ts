@@ -20,5 +20,5 @@ test('GET /api/me/jwt returns a five-minute token for the signed-in user', async
   const claims = jwt.verify(res.json().token, JWT_SECRET) as jwt.JwtPayload;
   expect(claims.sub).toBe(id);
   expect(claims.name).toBe('ada-lovelace');
-  expect(claims.exp! - claims.iat!).toBe(300);
+  expect(claims.exp! - claims.iat!).toBe(60);
 });

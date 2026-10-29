@@ -1,0 +1,39 @@
+# compose.smoke.yaml: local prod-like smoke test only. Never deploy this.
+# docker compose -f compose.prod.yaml -f compose.smoke.yaml config
+# TAG=local docker compose -f compose.prod.yaml -f compose.smoke.yaml up --build
+services:
+  postgres: { env_file: !override [.env.smoke] }
+  redis: { env_file: !override [.env.smoke] }
+  migrate:
+    build: { context: ., dockerfile: workspaces/db/Dockerfile }
+    env_file: !override [.env.smoke]
+  api:
+    build: { context: ., dockerfile: workspaces/api/Dockerfile }
+    ports: ["3000:3000"]
+    env_file: !override [.env.smoke]
+  docs:
+    build: { context: ., dockerfile: workspaces/docs/Dockerfile }
+    ports: ["3001:3001"]
+    env_file: !override [.env.smoke]
+  images:
+    build: { context: ., dockerfile: workspaces/images/Dockerfile }
+    ports: ["3002:3002"]
+    env_file: !override [.env.smoke]
+  jobs:
+    build: { context: ., dockerfile: workspaces/jobs/Dockerfile }
+    env_file: !override [.env.smoke]
+  web:
+    build:
+      context: .
+      dockerfile: workspaces/web/Dockerfile
+      args:
+        PUBLIC_API_URL: http://localhost:3000
+        PUBLIC_IMAGES_URL: http://localhost:3002
+        PUBLIC_DOCS_URL: ws://localhost:3001
+        PUBLIC_STORAGE_ENDPOINT: http://localhost:9000
+        PUBLIC_AVATAR_BUCKET: avatars
+        PUBLIC_IMAGE_BUCKET: images
+        PUBLIC_MAX_AVATAR_SIZE_BYTES: "2097152"
+        PUBLIC_MAX_IMAGE_SIZE_BYTES: "5242880"
+    ports: ["5000:5000"]
+    env_file: !override [.env.smoke]
