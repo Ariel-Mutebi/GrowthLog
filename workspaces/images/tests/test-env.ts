@@ -55,7 +55,7 @@ export class TestEnv {
       JWT_SECRET: randomBytes(32).toString('hex'),
       DATABASE_URL: `${withDatabase(adminUrl, database)}?connection_limit=2`,
       STORAGE_ENDPOINT: minio.endpoint,
-      // Tests PUT to presigned URLs, so this must be reachable from the test process
+      STORAGE_REGION: 'us-east-1',
       PUBLIC_STORAGE_ENDPOINT: minio.endpoint,
       STORAGE_ACCESS_KEY_ID: minio.user,
       STORAGE_SECRET_ACCESS_KEY: minio.password,
