@@ -54,7 +54,7 @@ export class TestEnv {
       IMAGES_PORT: 0,
       JWT_SECRET: randomBytes(32).toString('hex'),
       DATABASE_URL: `${withDatabase(adminUrl, database)}?connection_limit=2`,
-      MINIO_ENDPOINT: minio.endpoint,
+      STORAGE_ENDPOINT: minio.endpoint,
       // Tests PUT to presigned URLs, so this must be reachable from the test process
       PUBLIC_STORAGE_ENDPOINT: minio.endpoint,
       STORAGE_ACCESS_KEY_ID: minio.user,

@@ -1,6 +1,7 @@
+name: growthlog
+
 services:
   postgres:
-    container_name: GrowthLogPostgres
     image: postgres:18
     ports:
       - "5432:5432"
@@ -10,7 +11,6 @@ services:
       - ./.local/postgres-data:/var/lib/postgresql
 
   redis:
-    container_name: GrowthLogRedis
     image: redis:8
     command: >
       redis-server
@@ -24,7 +24,6 @@ services:
   
   # Minio is replaced by Cloudflare R2 in prod (less server load, edge caching)
   minio:
-    container_name: GrowthLogMinio
     image: pgsty/minio:latest
     command: server /data --console-address ":9001"
     ports:

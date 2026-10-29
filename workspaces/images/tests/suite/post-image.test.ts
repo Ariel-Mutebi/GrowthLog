@@ -59,7 +59,7 @@ describe('POST /images/post-images/:postId/request-upload', () => {
       where: { id: imageId },
       include: { postImage: true },
     });
-    expect(image.key.startsWith(`${author.id}/`)).toBe(true);
+    expect(image.key.startsWith(`${post.id}/`)).toBe(true);
     expect(image.mimeType).toBe('image/png');
     expect(image.sizeBytes).toBe(PNG.length);
     expect(image.status).toBe('PENDING');

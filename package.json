@@ -3,12 +3,15 @@
   "private": true,
   "author": "Ariel Robert Mutebi",
   "license": "BUSL-1.1",
+  "packageManager": "pnpm@12.16.1",
   "scripts": {
+    "prepare": "husky",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "predev": "pnpm run docker:up",
     "dev": "pnpm --parallel --filter api --filter web --filter images --filter docs --filter jobs dev",
-    "prepare": "husky"
+    "test": "pnpm --parallel --filter api --filter images test",
+    "smoke": "TAG=local docker compose -p growthlog-smoke -f compose.prod.yaml -f compose.smoke.yaml"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

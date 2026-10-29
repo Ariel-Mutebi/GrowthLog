@@ -1,6 +1,4 @@
 # compose.smoke.yaml: local prod-like smoke test only. Never deploy this.
-# docker compose -f compose.prod.yaml -f compose.smoke.yaml config
-# TAG=local docker compose -f compose.prod.yaml -f compose.smoke.yaml up --build
 services:
   postgres: { env_file: !override [.env.smoke] }
   redis: { env_file: !override [.env.smoke] }
