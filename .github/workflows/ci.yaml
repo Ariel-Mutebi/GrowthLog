@@ -26,7 +26,17 @@ jobs:
 
   build-images:
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      vars.PUBLIC_API_URL != '' &&
+      vars.PUBLIC_IMAGES_URL != '' &&
+      vars.PUBLIC_DOCS_URL != '' &&
+      vars.PUBLIC_STORAGE_ENDPOINT != '' &&
+      vars.PUBLIC_AVATAR_BUCKET != '' &&
+      vars.PUBLIC_IMAGE_BUCKET != '' &&
+      vars.PUBLIC_MAX_AVATAR_SIZE_BYTES != '' &&
+      vars.PUBLIC_MAX_IMAGE_SIZE_BYTES != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
