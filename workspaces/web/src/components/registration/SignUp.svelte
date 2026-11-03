@@ -18,7 +18,7 @@
   const { form, data, errors, isSubmitting } = createForm<SignUpData>({
     extend: validator({ schema: SignUpSchema }),
     onSubmit: async (body) => {
-      const { data: user, error } = await apiClient.POST('/api/users', { body });
+      const { data: user, error } = await apiClient.POST('/users', { body });
       if (error) throw new HTTPError(error);
       return user;
     },

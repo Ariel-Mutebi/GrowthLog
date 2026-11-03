@@ -23,3 +23,51 @@ jobs:
       - run: pnpm --filter @growthlog/db build
       - run: pnpm --filter @growthlog/jobs build
       - run: pnpm test
+
+  build-images:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: api, dockerfile: workspaces/api/Dockerfile }
+          - { name: docs, dockerfile: workspaces/docs/Dockerfile }
+          - { name: images, dockerfile: workspaces/images/Dockerfile }
+          - { name: jobs, dockerfile: workspaces/jobs/Dockerfile }
+          - { name: web, dockerfile: workspaces/web/Dockerfile }
+          - { name: migrate, dockerfile: workspaces/db/Dockerfile }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ghcr.io/ariel-mutebi/growthlog-${{ matrix.name }}:${{ github.sha }}
+            ghcr.io/ariel-mutebi/growthlog-${{ matrix.name }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+          # build-args because Astro needs them at build time
+          build-args: |
+            PUBLIC_API_URL=${{ vars.PUBLIC_API_URL }}
+            PUBLIC_IMAGES_URL=${{ vars.PUBLIC_IMAGES_URL }}
+            PUBLIC_DOCS_URL=${{ vars.PUBLIC_DOCS_URL }}
+            PUBLIC_STORAGE_ENDPOINT=${{ vars.PUBLIC_STORAGE_ENDPOINT }}
+            PUBLIC_AVATAR_BUCKET=${{ vars.PUBLIC_AVATAR_BUCKET }}
+            PUBLIC_IMAGE_BUCKET=${{ vars.PUBLIC_IMAGE_BUCKET }}
+            PUBLIC_MAX_AVATAR_SIZE_BYTES=${{ vars.PUBLIC_MAX_AVATAR_SIZE_BYTES }}
+            PUBLIC_MAX_IMAGE_SIZE_BYTES=${{ vars.PUBLIC_MAX_IMAGE_SIZE_BYTES }}

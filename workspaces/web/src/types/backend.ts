@@ -15,8 +15,8 @@ type SuccessResponse<T extends keyof paths> =
   ? R
   : never;
 
-export type User = SuccessResponse<'/api/me'>;
-export type Drafts = SuccessResponse<'/api/me/drafts'>;
-export type Prepublish = SuccessResponse<'/api/me/drafts/{id}/publish'>;
-export type TagSuggestions = SuccessResponse<'/api/tags'>;
-export type Feed = SuccessResponse<'/api/posts'>;
+export type User = SuccessResponse<'/me'>;
+export type Drafts = SuccessResponse<'/me/drafts'>;
+export type Prepublish = SuccessResponse<'/me/drafts/{id}/publish'>;
+export type TagSuggestions = SuccessResponse<'/tags'>;
+export type Feed = SuccessResponse<'/posts'>;

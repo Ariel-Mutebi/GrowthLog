@@ -12,7 +12,7 @@
     creating = true;
 
     try {
-      const { data: draft, error } = await apiClient.POST('/api/me/drafts');
+      const { data: draft, error } = await apiClient.POST('/me/drafts');
 
       if (error || !draft) {
         return toast.error(error.error, { description: error.message });

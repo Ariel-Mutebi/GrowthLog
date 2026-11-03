@@ -30,8 +30,8 @@
     try {
       const options = { params: { path: { postId } } };
       const { error } = wasLiked
-        ? await apiClient.DELETE('/api/posts/{postId}/likes', options)
-        : await apiClient.PUT('/api/posts/{postId}/likes', options);
+        ? await apiClient.DELETE('/posts/{postId}/likes', options)
+        : await apiClient.PUT('/posts/{postId}/likes', options);
 
       if (error) throw new HTTPError(error);
     } catch (error) {

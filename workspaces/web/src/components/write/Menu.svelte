@@ -17,7 +17,7 @@
 
   async function handleUnpublish() {
     try {
-      const { error } = await apiClient.DELETE('/api/me/drafts/{id}/publish', {
+      const { error } = await apiClient.DELETE('/me/drafts/{id}/publish', {
         params: {
           path: {
             id: postId,
@@ -35,7 +35,7 @@
 
   async function handleDelete() {
     try {
-      const { error } = await apiClient.DELETE('/api/me/drafts/{id}', {
+      const { error } = await apiClient.DELETE('/me/drafts/{id}', {
         params: {
           path: {
             id: postId,

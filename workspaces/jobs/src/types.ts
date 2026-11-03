@@ -8,6 +8,7 @@ export interface Emailer {
 }
 
 export interface Config {
+  NODE_ENV: 'development' | 'test' | 'production';
   REDIS_URL: string;
   DATABASE_URL: string;
   SMTP_HOST: string;
@@ -28,6 +29,7 @@ export interface SMTPCredentials {
   user: string;
   pass: string;
   from: string;
+  secure: boolean;
 };
 
 export interface PurgeUnusedImagesJobData {

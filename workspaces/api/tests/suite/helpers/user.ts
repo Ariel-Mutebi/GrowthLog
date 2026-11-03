@@ -31,7 +31,7 @@ export const newUser = (over: Partial<Record<string, string>> = {}) => ({
 
 /** Registers a user, asserting success, and returns the new user's id. */
 export async function register(device: Device, over: Partial<Record<string, string>> = {}): Promise<string> {
-  const res = await device.post('/api/users', newUser(over));
+  const res = await device.post('/users', newUser(over));
   expect(res.statusCode, `registration failed: ${res.body}`).toBe(201);
   return res.json().id;
 }
@@ -51,17 +51,17 @@ export function sessionOf(device: Device) {
   return id;
 }
 
-/** GET /api/users from a fresh device holding only the given session id. */
+/** GET /users from a fresh device holding only the given session id. */
 export function profileWithSession(env: TestEnv, sessionId: string) {
   const device = env.device();
   device.cookies.set(SESSION, sessionId);
-  return device.get('/api/me');
+  return device.get('/me');
 }
 
 export const confirmPassword = { passwordAttempt: STRONG_PASSWORD };
 
 /** Deletes the device's account, asserting success. */
 export async function deleteAccount(device: Device) {
-  const res = await device.delete('/api/me', confirmPassword);
+  const res = await device.delete('/me', confirmPassword);
   expect(res.statusCode, `account deletion failed: ${res.body}`).toBe(204);
 }

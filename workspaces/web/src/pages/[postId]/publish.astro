@@ -16,7 +16,7 @@ if (!user) {
 const postId = Astro.params.postId!;
 const cookie = Astro.request.headers.get("cookie");
 
-const { data: prepublish } = await createApiClient(cookie).GET("/api/me/drafts/{id}/publish", {
+const { data: prepublish } = await createApiClient(cookie).GET("/me/drafts/{id}/publish", {
   params: {
     path: {
       id: postId,

@@ -16,7 +16,6 @@ import { rateLimitPlugin } from './plugins/rate.js';
 import { queuesPlugin } from './plugins/queues.js';
 import type { Config } from './types/config.js';
 import { errorHandler } from './utils/errorHandler.js';
-import { healthPlugin } from './plugins/health.js';
 import { underPressurePlugin } from './plugins/pressure.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -54,7 +53,6 @@ export function buildApp(overrides: Config) {
   app.register(underPressurePlugin);
   app.register(redisPlugin);
   app.register(prismaPlugin);
-  app.register(healthPlugin);
 
   app.register(rateLimitPlugin);
   app.register(sessionPlugin);
@@ -63,13 +61,12 @@ export function buildApp(overrides: Config) {
   app.register(swaggerPlugin);
 
   /**
-   * Auto-register all default-exported routers within the `routes` directory
-   * tree under the `/api` namespace, using directory names as route prefixes.
+   * Auto-register all default-exported routers within the `routes` directory tree,
+   * using directory names as route prefixes.
    */
   app.register(autoload, {
     dir: join(__dirname, 'routes'),
     dirNameRoutePrefix: true,
-    options: { prefix: 'api/' },
     routeParams: true,
     autoHooks: true,
     cascadeHooks: true,

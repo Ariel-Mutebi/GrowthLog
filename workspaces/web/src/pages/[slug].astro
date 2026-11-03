@@ -12,7 +12,7 @@ import Reactions from "../components/read/Reactions.svelte";
 const slug = Astro.params.slug!;
 const cookie = Astro.request.headers.get("cookie");
 
-const { data: post } = await createApiClient(cookie).GET("/api/posts/{slug}", {
+const { data: post } = await createApiClient(cookie).GET("/posts/{slug}", {
   params: {
     path: {
       slug,

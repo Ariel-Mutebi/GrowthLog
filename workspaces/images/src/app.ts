@@ -58,7 +58,6 @@ export function buildApp(overrides?: Config) {
   app.register(autoload, {
     dir: join(__dirname, 'routes'),
     dirNameRoutePrefix: true,
-    options: { prefix: 'images/' },
     autoHooks: true,
     cascadeHooks: true,
   });

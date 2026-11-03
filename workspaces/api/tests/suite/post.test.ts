@@ -12,20 +12,20 @@ type Person = Awaited<ReturnType<typeof signedInDevice>>;
 /*  Requests                                                                  */
 /* -------------------------------------------------------------------------- */
 
-const getFeed = (d: Device) => d.get('/api/posts');
-const readPost = (d: Device, slug: string) => d.get(`/api/posts/${slug}`);
+const getFeed = (d: Device) => d.get('/posts');
+const readPost = (d: Device, slug: string) => d.get(`/posts/${slug}`);
 
-const likePost = (d: Device, postId: string) => d.put(`/api/posts/${postId}/likes`);
-const unlikePost = (d: Device, postId: string) => d.delete(`/api/posts/${postId}/likes`);
+const likePost = (d: Device, postId: string) => d.put(`/posts/${postId}/likes`);
+const unlikePost = (d: Device, postId: string) => d.delete(`/posts/${postId}/likes`);
 const viewPost = (d: Device, postId: string, type: unknown = 'OPENED') =>
-  d.post(`/api/posts/${postId}/views`, { type });
+  d.post(`/posts/${postId}/views`, { type });
 
 const getComments = (d: Device, postId: string, query = '') =>
-  d.get(`/api/posts/${postId}/comments${query}`);
+  d.get(`/posts/${postId}/comments${query}`);
 const makeComment = (d: Device, postId: string, text: unknown = 'Nice post') =>
-  d.post(`/api/posts/${postId}/comments`, { text });
+  d.post(`/posts/${postId}/comments`, { text });
 
-const commentUrl = (postId: string, commentId: string) => `/api/posts/${postId}/comments/${commentId}`;
+const commentUrl = (postId: string, commentId: string) => `/posts/${postId}/comments/${commentId}`;
 const getReplies = (d: Device, postId: string, commentId: string, query = '') =>
   d.get(`${commentUrl(postId, commentId)}/replies${query}`);
 const replyTo = (d: Device, postId: string, commentId: string, text: unknown = 'A reply') =>
@@ -286,10 +286,10 @@ describe('ids that match nothing', () => {
 });
 
 /* -------------------------------------------------------------------------- */
-/*  GET /api/posts/:slug                                                      */
+/*  GET /posts/:slug                                                      */
 /* -------------------------------------------------------------------------- */
 
-describe('GET /api/posts/:slug (read)', () => {
+describe('GET /posts/:slug (read)', () => {
   test('returns the published content with its metadata, to anyone', async ({ env }) => {
     const { grace, alan } = await people(env);
     const post = await createPost(env, grace, { title: 'On compilers', readingTime: 7 });
@@ -358,7 +358,7 @@ describe('GET /api/posts/:slug (read)', () => {
 /*  Likes                                                                     */
 /* -------------------------------------------------------------------------- */
 
-describe('PUT/DELETE /api/posts/:postId/likes', () => {
+describe('PUT/DELETE /posts/:postId/likes', () => {
   test('like adds one like owned by the caller and is reflected in the read count', async ({ env }) => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
@@ -452,7 +452,7 @@ describe('PUT/DELETE /api/posts/:postId/likes', () => {
 /*  Views                                                                     */
 /* -------------------------------------------------------------------------- */
 
-describe('POST /api/posts/:postId/views', () => {
+describe('POST /posts/:postId/views', () => {
   test.for(['OPENED', 'READ'] as const)('records a %s view for the caller', async (type, { env }) => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
@@ -497,7 +497,7 @@ describe('POST /api/posts/:postId/views', () => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
 
-    const res = await ada.device.post(`/api/posts/${post.id}/views`, body);
+    const res = await ada.device.post(`/posts/${post.id}/views`, body);
 
     expect(res.statusCode, res.body).toBe(400);
     expect(await env.app.prisma.view.count()).toBe(0);
@@ -508,7 +508,7 @@ describe('POST /api/posts/:postId/views', () => {
 /*  Comments                                                                  */
 /* -------------------------------------------------------------------------- */
 
-describe('POST /api/posts/:postId/comments', () => {
+describe('POST /posts/:postId/comments', () => {
   test('creates a top-level comment owned by the caller and returns it', async ({ env }) => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
@@ -541,7 +541,7 @@ describe('POST /api/posts/:postId/comments', () => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
 
-    await ada.device.post(`/api/posts/${post.id}/comments`, { text: 'hi', commenterId: grace.id });
+    await ada.device.post(`/posts/${post.id}/comments`, { text: 'hi', commenterId: grace.id });
 
     const [row] = await env.app.prisma.comment.findMany();
     expect(row?.commenterId).toBe(ada.id);
@@ -557,14 +557,14 @@ describe('POST /api/posts/:postId/comments', () => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
 
-    const res = await ada.device.post(`/api/posts/${post.id}/comments`, body);
+    const res = await ada.device.post(`/posts/${post.id}/comments`, body);
 
     expect(res.statusCode, res.body).toBe(400);
     expect(await env.app.prisma.comment.count()).toBe(0);
   });
 });
 
-describe('GET /api/posts/:postId/comments', () => {
+describe('GET /posts/:postId/comments', () => {
   test('lists only this post\'s top-level comments, newest first', async ({ env }) => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
@@ -651,7 +651,7 @@ describe('GET /api/posts/:postId/comments', () => {
 /*  Replies                                                                   */
 /* -------------------------------------------------------------------------- */
 
-describe('POST /api/posts/:postId/comments/:commentId/replies', () => {
+describe('POST /posts/:postId/comments/:commentId/replies', () => {
   test('replies to a top-level comment', async ({ env }) => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
@@ -715,7 +715,7 @@ describe('POST /api/posts/:postId/comments/:commentId/replies', () => {
   });
 });
 
-describe('GET /api/posts/:postId/comments/:commentId/replies', () => {
+describe('GET /posts/:postId/comments/:commentId/replies', () => {
   test('lists only that comment\'s live replies, newest first', async ({ env }) => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
@@ -764,7 +764,7 @@ describe('GET /api/posts/:postId/comments/:commentId/replies', () => {
 /*  Editing                                                                   */
 /* -------------------------------------------------------------------------- */
 
-describe('PATCH /api/posts/:postId/comments/:commentId (edit)', () => {
+describe('PATCH /posts/:postId/comments/:commentId (edit)', () => {
   test('lets the author change the text', async ({ env }) => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
@@ -864,7 +864,7 @@ describe('PATCH /api/posts/:postId/comments/:commentId (edit)', () => {
 /*  Deleting                                                                  */
 /* -------------------------------------------------------------------------- */
 
-describe('DELETE /api/posts/:postId/comments/:commentId', () => {
+describe('DELETE /posts/:postId/comments/:commentId', () => {
   test('soft-deletes the comment, blanks its text, and hides it from the list', async ({ env }) => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
@@ -959,7 +959,7 @@ describe('DELETE /api/posts/:postId/comments/:commentId', () => {
 /*  Comment likes                                                             */
 /* -------------------------------------------------------------------------- */
 
-describe('PUT/DELETE /api/posts/:postId/comments/:commentId/likes', () => {
+describe('PUT/DELETE /posts/:postId/comments/:commentId/likes', () => {
   test('like adds one like owned by the caller, reflected in likeCount', async ({ env }) => {
     const { ada, grace } = await people(env);
     const post = await createPost(env, grace);
@@ -1054,7 +1054,7 @@ function expectRankedAbove(ids: string[], higher: string, lower: string) {
 }
 
 // These tests check the query wiring (who sees what), not the ranking algorithm.
-describe('GET /api/posts', () => {
+describe('GET /posts', () => {
   describe('eligibility', () => {
     test('omits drafts, deleted posts and posts by deleted authors', async ({ env }) => {
       const { ada, grace, alan } = await people(env);

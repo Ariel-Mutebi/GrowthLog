@@ -17,7 +17,7 @@
 
   const { form, isSubmitting } = createForm<Credentials>({
     onSubmit: async (body)  => {
-      const { data: user, error } = await apiClient.POST('/api/sessions', { body });
+      const { data: user, error } = await apiClient.POST('/sessions', { body });
       if (error) throw new HTTPError(error);
       return user;
     },

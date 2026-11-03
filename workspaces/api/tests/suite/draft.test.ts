@@ -42,11 +42,11 @@ async function twoUsers(env: TestEnv) {
 
 describe('authentication', () => {
   test.for([
-    { name: 'POST /api/me/drafts', call: (d: Device) => d.post('/api/me/drafts') },
-    { name: 'GET /api/me/drafts', call: (d: Device) => d.get('/api/me/drafts') },
-    { name: 'GET /api/me/drafts/:id', call: (d: Device, id: string) => d.get(`/api/me/drafts/${id}`) },
-    { name: 'PATCH /api/me/drafts/:id', call: (d: Device, id: string) => d.patch(`/api/me/drafts/${id}`, { title: 'x' }) },
-    { name: 'DELETE /api/me/drafts/:id', call: (d: Device, id: string) => d.delete(`/api/me/drafts/${id}`) },
+    { name: 'POST /me/drafts', call: (d: Device) => d.post('/me/drafts') },
+    { name: 'GET /me/drafts', call: (d: Device) => d.get('/me/drafts') },
+    { name: 'GET /me/drafts/:id', call: (d: Device, id: string) => d.get(`/me/drafts/${id}`) },
+    { name: 'PATCH /me/drafts/:id', call: (d: Device, id: string) => d.patch(`/me/drafts/${id}`, { title: 'x' }) },
+    { name: 'DELETE /me/drafts/:id', call: (d: Device, id: string) => d.delete(`/me/drafts/${id}`) },
   ])('$name requires a session and changes nothing', async ({ call }, { env }) => {
     const { id } = await signedInDevice(env);
     const draft = await seedDraft(env, id, { title: 'mine' });
@@ -62,11 +62,11 @@ describe('authentication', () => {
   });
 });
 
-describe('POST /api/me/drafts', () => {
+describe('POST /me/drafts', () => {
   test('creates an untitled draft owned by the caller, exposing metadata only', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
 
-    const res = await device.post('/api/me/drafts');
+    const res = await device.post('/me/drafts');
 
     expect(res.statusCode).toBe(201);
     const body = res.json() as Draft;
@@ -85,7 +85,7 @@ describe('POST /api/me/drafts', () => {
   test('ignores any body, since the endpoint takes no input', async ({ env }) => {
     const { a, b } = await twoUsers(env);
 
-    const res = await a.device.post('/api/me/drafts', {
+    const res = await a.device.post('/me/drafts', {
       title: 'Chosen',
       slug: 'chosen',
       authorId: b.id,
@@ -105,12 +105,12 @@ describe('POST /api/me/drafts', () => {
   test('each call creates a distinct draft that only its author can list', async ({ env }) => {
     const { a, b } = await twoUsers(env);
 
-    const first = (await a.device.post('/api/me/drafts')).json() as Draft;
-    const second = (await a.device.post('/api/me/drafts')).json() as Draft;
+    const first = (await a.device.post('/me/drafts')).json() as Draft;
+    const second = (await a.device.post('/me/drafts')).json() as Draft;
 
     expect(first.id).not.toBe(second.id);
-    expect(idsOf(await a.device.get('/api/me/drafts')).sort()).toEqual([first.id, second.id].sort());
-    expect((await b.device.get('/api/me/drafts')).json()).toEqual([]);
+    expect(idsOf(await a.device.get('/me/drafts')).sort()).toEqual([first.id, second.id].sort());
+    expect((await b.device.get('/me/drafts')).json()).toEqual([]);
   });
 
   test('still succeeds when the random slug space is crowded', async ({ env }) => {
@@ -125,16 +125,16 @@ describe('POST /api/me/drafts', () => {
       })),
     });
 
-    const res = await device.post('/api/me/drafts');
+    const res = await device.post('/me/drafts');
 
     expect(res.statusCode, `slug collision should be handled, got: ${res.body}`).toBe(201);
   });
 });
 
-describe('GET /api/me/drafts', () => {
+describe('GET /me/drafts', () => {
   test('returns an empty list when the user has no drafts', async ({ env }) => {
     const { device } = await signedInDevice(env);
-    const res = await device.get('/api/me/drafts');
+    const res = await device.get('/me/drafts');
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual([]);
   });
@@ -146,12 +146,12 @@ describe('GET /api/me/drafts', () => {
     await seedDraft(env, a.id, { deleted: true });
     const theirs = await seedDraft(env, b.id);
 
-    const res = await a.device.get('/api/me/drafts');
+    const res = await a.device.get('/me/drafts');
 
     expect(res.statusCode).toBe(200);
     expect(idsOf(res).sort()).toEqual([draft.id, published.id].sort());
     for (const d of draftsOf(res)) expectMetadataOnly(d);
-    expect(idsOf(await b.device.get('/api/me/drafts'))).toEqual([theirs.id]);
+    expect(idsOf(await b.device.get('/me/drafts'))).toEqual([theirs.id]);
   });
 
   test('filters by published state', async ({ env }) => {
@@ -159,9 +159,9 @@ describe('GET /api/me/drafts', () => {
     const draft = await seedDraft(env, id);
     const published = await seedDraft(env, id, { published: true });
 
-    expect(idsOf(await device.get('/api/me/drafts?published=true'))).toEqual([published.id]);
-    expect(idsOf(await device.get('/api/me/drafts?published=false'))).toEqual([draft.id]);
-    expect(idsOf(await device.get('/api/me/drafts')).sort()).toEqual([draft.id, published.id].sort());
+    expect(idsOf(await device.get('/me/drafts?published=true'))).toEqual([published.id]);
+    expect(idsOf(await device.get('/me/drafts?published=false'))).toEqual([draft.id]);
+    expect(idsOf(await device.get('/me/drafts')).sort()).toEqual([draft.id, published.id].sort());
   });
 
   test('sorts by updatedAt (default, ascending) or title, in either direction', async ({ env }) => {
@@ -170,7 +170,7 @@ describe('GET /api/me/drafts', () => {
     const bravo = await seedDraft(env, id, { title: 'bravo', updatedAt: day(1) });
     const alpha = await seedDraft(env, id, { title: 'alpha', updatedAt: day(3) });
     const charlie = await seedDraft(env, id, { title: 'charlie', updatedAt: day(2) });
-    const ids = async (qs: string) => idsOf(await device.get(`/api/me/drafts${qs}`));
+    const ids = async (qs: string) => idsOf(await device.get(`/me/drafts${qs}`));
 
     expect(await ids(''), 'default: updatedAt asc').toEqual([bravo.id, charlie.id, alpha.id]);
     expect(await ids('?order=desc')).toEqual([alpha.id, charlie.id, bravo.id]);
@@ -186,8 +186,8 @@ describe('GET /api/me/drafts', () => {
     for (let i = 0; i < 4; i++) seeded.push(await seedDraft(env, id, { title: 'same', updatedAt: same }));
     const expected = seeded.map((d) => d.id).sort().reverse();
 
-    expect(idsOf(await device.get('/api/me/drafts?sortBy=title&order=asc'))).toEqual(expected);
-    expect(idsOf(await device.get('/api/me/drafts?sortBy=updatedAt&order=desc'))).toEqual(expected);
+    expect(idsOf(await device.get('/me/drafts?sortBy=title&order=asc'))).toEqual(expected);
+    expect(idsOf(await device.get('/me/drafts?sortBy=updatedAt&order=desc'))).toEqual(expected);
   });
 
   test('rejects unknown parameters and invalid sort, order and filter values with 400', async ({ env }) => {
@@ -203,21 +203,21 @@ describe('GET /api/me/drafts', () => {
       'published=yes', 'published=2', 'published=true&published=false',
     ];
     for (const qs of bad) {
-      const res = await device.get(`/api/me/drafts?${qs}`);
+      const res = await device.get(`/me/drafts?${qs}`);
       expect(res.statusCode, qs).toBe(400);
       expect(Array.isArray(res.json()), `${qs} must not return a list`).toBe(false);
     }
   });
 });
 
-describe('GET /api/me/drafts/:id', () => {
+describe('GET /me/drafts/:id', () => {
   test('returns a draft or a published post as metadata only, the latter with its publishedAt', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
     const draft = await seedDraft(env, id, { title: 'mine' });
     const post = await seedDraft(env, id, { published: true });
 
-    const draftRes = await device.get(`/api/me/drafts/${draft.id}`);
-    const postRes = await device.get(`/api/me/drafts/${post.id}`);
+    const draftRes = await device.get(`/me/drafts/${draft.id}`);
+    const postRes = await device.get(`/me/drafts/${post.id}`);
 
     expect(draftRes.statusCode).toBe(200);
     expectMetadataOnly(draftRes.json());
@@ -229,13 +229,13 @@ describe('GET /api/me/drafts/:id', () => {
   });
 });
 
-describe('PATCH /api/me/drafts/:id', () => {
+describe('PATCH /me/drafts/:id', () => {
   test('updates only the title and bumps updatedAt', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
     const old = new Date(Date.UTC(2020, 0, 1));
     const draft = await seedDraft(env, id, { updatedAt: old });
 
-    const res = await device.patch(`/api/me/drafts/${draft.id}`, { title: 'New title' });
+    const res = await device.patch(`/me/drafts/${draft.id}`, { title: 'New title' });
 
     expect(res.statusCode).toBe(200);
     expectMetadataOnly(res.json());
@@ -252,7 +252,7 @@ describe('PATCH /api/me/drafts/:id', () => {
     const post = await seedDraft(env, id, { title: 'Live title', published: true, content });
     const before = await row(env, post.id);
 
-    const res = await device.patch(`/api/me/drafts/${post.id}`, { title: 'Working title' });
+    const res = await device.patch(`/me/drafts/${post.id}`, { title: 'Working title' });
 
     expect(res.statusCode).toBe(200);
     const after = await row(env, post.id);
@@ -269,7 +269,7 @@ describe('PATCH /api/me/drafts/:id', () => {
     const draft = await seedDraft(env, id);
 
     for (const title of ['a', 'b'.repeat(20)]) {
-      const res = await device.patch(`/api/me/drafts/${draft.id}`, { title });
+      const res = await device.patch(`/me/drafts/${draft.id}`, { title });
       expect(res.statusCode, `${title.length} characters: ${res.body}`).toBe(200);
       expect((await row(env, draft.id)).title).toBe(title);
     }
@@ -278,7 +278,7 @@ describe('PATCH /api/me/drafts/:id', () => {
   test('rejects missing, empty, over-long and wrongly typed titles with 400 and changes nothing', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
     const draft = await seedDraft(env, id, { title: 'keep me' });
-    const url = `/api/me/drafts/${draft.id}`;
+    const url = `/me/drafts/${draft.id}`;
 
     const bodies: (Record<string, unknown> | undefined)[] = [
       undefined,
@@ -315,7 +315,7 @@ describe('PATCH /api/me/drafts/:id', () => {
     };
 
     for (const [field, value] of Object.entries(forbidden)) {
-      const res = await a.device.patch(`/api/me/drafts/${draft.id}`, { title: 'after', [field]: value });
+      const res = await a.device.patch(`/me/drafts/${draft.id}`, { title: 'after', [field]: value });
       expect(res.statusCode, `${field}: ${res.body}`).toBe(400);
     }
 
@@ -323,14 +323,14 @@ describe('PATCH /api/me/drafts/:id', () => {
   });
 });
 
-describe('DELETE /api/me/drafts/:id', () => {
+describe('DELETE /me/drafts/:id', () => {
   test('soft-deletes: the row and content stay, but the draft disappears from every read', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
     const content = docToDraftBytes();
     const draft = await seedDraft(env, id, { content });
     const sibling = await seedDraft(env, id);
 
-    const res = await device.delete(`/api/me/drafts/${draft.id}`);
+    const res = await device.delete(`/me/drafts/${draft.id}`);
 
     expect(res.statusCode).toBe(204);
     expect(res.body).toBe('');
@@ -338,9 +338,9 @@ describe('DELETE /api/me/drafts/:id', () => {
     expect(saved.deletedAt).not.toBeNull();
     expect(Buffer.compare(saved.draftContent!, content), 'content is retained').toBe(0);
 
-    expect((await device.get(`/api/me/drafts/${draft.id}`)).statusCode).toBe(404);
-    expect((await device.patch(`/api/me/drafts/${draft.id}`, { title: 'x' })).statusCode).toBe(404);
-    expect(idsOf(await device.get('/api/me/drafts'))).toEqual([sibling.id]);
+    expect((await device.get(`/me/drafts/${draft.id}`)).statusCode).toBe(404);
+    expect((await device.patch(`/me/drafts/${draft.id}`, { title: 'x' })).statusCode).toBe(404);
+    expect(idsOf(await device.get('/me/drafts'))).toEqual([sibling.id]);
     expect((await row(env, sibling.id)).deletedAt, 'siblings are untouched').toBeNull();
   });
 });
@@ -350,9 +350,9 @@ describe('DELETE /api/me/drafts/:id', () => {
 // deletion time of an already-deleted draft).
 describe('drafts that are missing, someone else\'s or deleted', () => {
   test.for([
-    { method: 'GET', status: 404, call: (d: Device, id: string) => d.get(`/api/me/drafts/${id}`) },
-    { method: 'PATCH', status: 404, call: (d: Device, id: string) => d.patch(`/api/me/drafts/${id}`, { title: 'hijacked' }) },
-    { method: 'DELETE', status: 204, call: (d: Device, id: string) => d.delete(`/api/me/drafts/${id}`) },
+    { method: 'GET', status: 404, call: (d: Device, id: string) => d.get(`/me/drafts/${id}`) },
+    { method: 'PATCH', status: 404, call: (d: Device, id: string) => d.patch(`/me/drafts/${id}`, { title: 'hijacked' }) },
+    { method: 'DELETE', status: 204, call: (d: Device, id: string) => d.delete(`/me/drafts/${id}`) },
   ])('$method answers all three identically with $status, and changes nothing', async ({ status, call }, { env }) => {
     const { a, b } = await twoUsers(env);
     const theirs = await seedDraft(env, b.id, { title: 'theirs' });
@@ -372,7 +372,7 @@ describe('drafts that are missing, someone else\'s or deleted', () => {
     }
     if (status === 404) expect(responses[0]!.json()).toEqual(NOT_FOUND);
     expect([await snapshot(theirs.id), await snapshot(deleted.id)], 'nothing may change').toEqual(before);
-    expect(idsOf(await b.device.get('/api/me/drafts')), 'their draft must survive').toEqual([theirs.id]);
+    expect(idsOf(await b.device.get('/me/drafts')), 'their draft must survive').toEqual([theirs.id]);
   });
 });
 
@@ -402,9 +402,9 @@ describe('hostile ids', () => {
     const postsBefore = await postCount(env);
 
     for (const id of hostileIds) {
-      const get = await a.device.get(`/api/me/drafts/${id}`);
-      const patch = await a.device.patch(`/api/me/drafts/${id}`, { title: 'x' });
-      const del = await a.device.delete(`/api/me/drafts/${id}`);
+      const get = await a.device.get(`/me/drafts/${id}`);
+      const patch = await a.device.patch(`/me/drafts/${id}`, { title: 'x' });
+      const del = await a.device.delete(`/me/drafts/${id}`);
 
       for (const [method, res] of [['GET', get], ['PATCH', patch], ['DELETE', del]] as const) {
         const label = `${method} ${id.slice(0, 40)} -> ${res.statusCode}`;

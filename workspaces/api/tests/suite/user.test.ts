@@ -34,7 +34,7 @@ const userRow = (env: TestEnv, id: string) => env.app.prisma.user.findUniqueOrTh
 const registrationSlot = (env: TestEnv, ip: string) => `${env.redisPrefix}registration:${ip}`;
 
 const search = (device: Device, params: Record<string, string>) =>
-  device.get(`/api/users/search?${new URLSearchParams(params).toString()}`);
+  device.get(`/users/search?${new URLSearchParams(params).toString()}`);
 
 const usernamesOf = (res: LightMyRequestResponse) =>
   (res.json().users as { username: string }[]).map((user) => user.username);
@@ -86,12 +86,12 @@ async function collectPages(device: Device, params: Record<string, string>) {
   return pages;
 }
 
-describe('POST /api/users (registration)', () => {
+describe('POST /users (registration)', () => {
   describe('success', () => {
     test('creates the account, returns it without secrets, and signs the user in', async ({ env }) => {
       const device = env.device();
 
-      const res = await device.post('/api/users', newUser());
+      const res = await device.post('/users', newUser());
 
       expect(res.statusCode, res.body).toBe(201);
       expect(res.json()).toMatchObject({
@@ -110,7 +110,7 @@ describe('POST /api/users (registration)', () => {
       expect(session?.httpOnly).toBe(true);
       expect(session?.sameSite?.toLowerCase()).toBe('lax');
 
-      const me = await device.get('/api/me');
+      const me = await device.get('/me');
       expect(me.statusCode).toBe(200);
       expect(me.json().id).toBe(res.json().id);
     });
@@ -118,7 +118,7 @@ describe('POST /api/users (registration)', () => {
     test('the new credentials work for a later login', async ({ env }) => {
       await register(env.device());
 
-      const res = await env.device().post('/api/sessions', ADA_LOGIN);
+      const res = await env.device().post('/sessions', ADA_LOGIN);
 
       expect(res.statusCode).toBe(200);
     });
@@ -133,22 +133,22 @@ describe('POST /api/users (registration)', () => {
     });
 
     test('stores an optional bio, and leaves it null when omitted', async ({ env }) => {
-      const withBio = await env.device().post('/api/users', newUser({ bio: 'Analyst and metaphysician' }));
-      const without = await env.device().post('/api/users', newUser(GRACE));
+      const withBio = await env.device().post('/users', newUser({ bio: 'Analyst and metaphysician' }));
+      const without = await env.device().post('/users', newUser(GRACE));
 
       expect(withBio.json().bio).toBe('Analyst and metaphysician');
       expect(without.json().bio).toBeNull();
     });
 
     test('keeps an explicitly chosen username', async ({ env }) => {
-      const res = await env.device().post('/api/users', newUser({ username: 'countess-of-lovelace' }));
+      const res = await env.device().post('/users', newUser({ username: 'countess-of-lovelace' }));
 
       expect(res.statusCode).toBe(201);
       expect(res.json().username).toBe('countess-of-lovelace');
     });
 
     test('rejects fields a client must not set', async ({ env }) => {
-      const res = await env.device().post('/api/users', {
+      const res = await env.device().post('/users', {
         ...newUser(),
         id: 'attacker-chosen-id',
         createdAt: '2000-01-01T00:00:00.000Z',
@@ -166,7 +166,7 @@ describe('POST /api/users (registration)', () => {
       const other = env.device(); // its own IP, so the daily allowance is not in the way
       other.cookies.set(SESSION, adaSession);
 
-      const res = await other.post('/api/users', newUser(GRACE));
+      const res = await other.post('/users', newUser(GRACE));
 
       expect(res.statusCode, res.body).toBe(201);
       expect(sessionOf(other), 'the session id must rotate on registration').not.toBe(adaSession);
@@ -179,7 +179,7 @@ describe('POST /api/users (registration)', () => {
 
   describe('generated usernames', () => {
     test('derives a lowercase slug of the name plus a four-digit suffix when none is given', async ({ env }) => {
-      const res = await env.device().post('/api/users', withoutField('username'));
+      const res = await env.device().post('/users', withoutField('username'));
 
       expect(res.statusCode, res.body).toBe(201);
       expect(res.json().username).toMatch(/^ada-lovelace-\d{4}$/);
@@ -189,7 +189,7 @@ describe('POST /api/users (registration)', () => {
     test('registrations with identical names get distinct usernames, even in parallel', async ({ env }) => {
       const responses = await Promise.all(
         Array.from({ length: 5 }, (_, i) =>
-          env.device().post('/api/users', { ...withoutField('username'), email: `ada-${i}@example.com` }),
+          env.device().post('/users', { ...withoutField('username'), email: `ada-${i}@example.com` }),
         ),
       );
 
@@ -202,7 +202,7 @@ describe('POST /api/users (registration)', () => {
       const taken = Array.from({ length: 8900 }, (_, i) => 1100 + i);
       await seedUsers(env, taken.map((n) => ({ username: `ada-lovelace-${n}` })));
 
-      const res = await env.device().post('/api/users', withoutField('username'));
+      const res = await env.device().post('/users', withoutField('username'));
 
       expect(res.statusCode, res.body).toBe(201);
       expect(res.json().username).toMatch(/^ada-lovelace-10\d{2}$/);
@@ -212,7 +212,7 @@ describe('POST /api/users (registration)', () => {
       ['diacritics', 'Zoë', 'Müller'],
       ['an apostrophe', 'Sinéad', 'O\'Connor'],
     ] as const)('derives a clean username from a name with %s', async ([, forename, surname], { env }) => {
-      const res = await env.device().post('/api/users', { ...withoutField('username'), forename, surname });
+      const res = await env.device().post('/users', { ...withoutField('username'), forename, surname });
 
       expect(res.statusCode, res.body).toBe(201);
       expect(res.json().username).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*-\d{4}$/);
@@ -223,7 +223,7 @@ describe('POST /api/users (registration)', () => {
     test('rejects a taken username with 409', async ({ env }) => {
       await register(env.device());
 
-      const res = await env.device().post('/api/users', newUser({ email: GRACE.email }));
+      const res = await env.device().post('/users', newUser({ email: GRACE.email }));
 
       expect(res.statusCode).toBe(409);
       expect(res.json()).toMatchObject({ error: 'Conflict', message: 'This username is already in use' });
@@ -233,7 +233,7 @@ describe('POST /api/users (registration)', () => {
     test('rejects a taken email with 409', async ({ env }) => {
       await register(env.device());
 
-      const res = await env.device().post('/api/users', newUser({ username: GRACE.username }));
+      const res = await env.device().post('/users', newUser({ username: GRACE.username }));
 
       expect(res.statusCode).toBe(409);
       expect(res.json()).toMatchObject({ error: 'Conflict', message: 'This email is already in use' });
@@ -246,7 +246,7 @@ describe('POST /api/users (registration)', () => {
       // Different names, so only the email can conflict.
       const res = await env
         .device()
-        .post('/api/users', { ...withoutField('username'), forename: GRACE.forename, surname: GRACE.surname });
+        .post('/users', { ...withoutField('username'), forename: GRACE.forename, surname: GRACE.surname });
 
       expect(res.statusCode).toBe(409);
       expect(res.json().message).toBe('This email is already in use');
@@ -256,8 +256,8 @@ describe('POST /api/users (registration)', () => {
       const { device } = await signedInDevice(env);
       await deleteAccount(device);
 
-      const username = await env.device().post('/api/users', newUser({ email: GRACE.email }));
-      const email = await env.device().post('/api/users', newUser({ username: GRACE.username }));
+      const username = await env.device().post('/users', newUser({ email: GRACE.email }));
+      const email = await env.device().post('/users', newUser({ username: GRACE.username }));
 
       expect(username.statusCode, 'username stays reserved while recoverable').toBe(409);
       expect(email.statusCode, 'email stays reserved while recoverable').toBe(409);
@@ -267,7 +267,7 @@ describe('POST /api/users (registration)', () => {
     test('treats a differently-cased %s as taken', async ({ env }) => {
       await register(env.device());
 
-      const res = await env.device().post('/api/users', newUser({
+      const res = await env.device().post('/users', newUser({
         email: 'ADA@EXAMPLE.COM',
         username: 'someone-else',
       }));
@@ -279,7 +279,7 @@ describe('POST /api/users (registration)', () => {
     test('simultaneous registrations for one email create exactly one account', async ({ env }) => {
       const responses = await Promise.all(
         Array.from({ length: 5 }, (_, i) =>
-          env.device().post('/api/users', newUser({ username: `person-${i}` })),
+          env.device().post('/users', newUser({ username: `person-${i}` })),
         ),
       );
 
@@ -291,7 +291,7 @@ describe('POST /api/users (registration)', () => {
     test('simultaneous registrations for one username create exactly one account', async ({ env }) => {
       const responses = await Promise.all(
         Array.from({ length: 5 }, (_, i) =>
-          env.device().post('/api/users', newUser({ email: `person-${i}@example.com` })),
+          env.device().post('/users', newUser({ email: `person-${i}@example.com` })),
         ),
       );
 
@@ -303,7 +303,7 @@ describe('POST /api/users (registration)', () => {
 
   describe('validation', () => {
     test('rejects a weak password with 400, suggestions, and no account', async ({ env }) => {
-      const res = await env.device().post('/api/users', newUser({ password: WEAK_PASSWORD }));
+      const res = await env.device().post('/users', newUser({ password: WEAK_PASSWORD }));
 
       expect(res.statusCode).toBe(400);
       expect(res.json()).toMatchObject({ error: 'BadRequest', message: 'This password is too weak' });
@@ -314,14 +314,14 @@ describe('POST /api/users (registration)', () => {
     });
 
     test('rejects a malformed email with 400', async ({ env }) => {
-      const res = await env.device().post('/api/users', newUser({ email: 'not-an-email' }));
+      const res = await env.device().post('/users', newUser({ email: 'not-an-email' }));
 
       expect(res.statusCode).toBe(400);
       expect(await env.app.prisma.user.count()).toBe(0);
     });
 
     test.for(['forename', 'surname', 'email', 'password'])('rejects a body without %s with 400', async (field, { env }) => {
-      const res = await env.device().post('/api/users', withoutField(field));
+      const res = await env.device().post('/users', withoutField(field));
 
       expect(res.statusCode).toBe(400);
       expect(await env.app.prisma.user.count()).toBe(0);
@@ -333,7 +333,7 @@ describe('POST /api/users (registration)', () => {
       const first = env.device();
       await register(first);
 
-      const second = await env.device(first.ip).post('/api/users', newUser(GRACE));
+      const second = await env.device(first.ip).post('/users', newUser(GRACE));
 
       expect(second.statusCode).toBe(429);
       expect(second.json()).toMatchObject({
@@ -350,7 +350,7 @@ describe('POST /api/users (registration)', () => {
     test('the allowance is per IP: another IP can still register', async ({ env }) => {
       await register(env.device());
 
-      const res = await env.device().post('/api/users', newUser(GRACE));
+      const res = await env.device().post('/users', newUser(GRACE));
 
       expect(res.statusCode, res.body).toBe(201);
     });
@@ -368,11 +368,11 @@ describe('POST /api/users (registration)', () => {
     test('a rejected weak password does not use up the allowance', async ({ env }) => {
       const device = env.device();
 
-      const weak = await device.post('/api/users', newUser({ password: WEAK_PASSWORD }));
+      const weak = await device.post('/users', newUser({ password: WEAK_PASSWORD }));
       expect(weak.statusCode).toBe(400);
       expect(await env.app.redis.get(registrationSlot(env, device.ip)), 'the slot is released').toBeNull();
 
-      const retry = await device.post('/api/users', newUser());
+      const retry = await device.post('/users', newUser());
       expect(retry.statusCode, 'the retry from the same IP is allowed').toBe(201);
     });
 
@@ -380,18 +380,18 @@ describe('POST /api/users (registration)', () => {
       await register(env.device());
       const device = env.device();
 
-      const duplicate = await device.post('/api/users', newUser());
+      const duplicate = await device.post('/users', newUser());
       expect(duplicate.statusCode).toBe(409);
       expect(await env.app.redis.get(registrationSlot(env, device.ip)), 'the slot is released').toBeNull();
 
-      const retry = await device.post('/api/users', newUser(GRACE));
+      const retry = await device.post('/users', newUser(GRACE));
       expect(retry.statusCode, 'the retry from the same IP is allowed').toBe(201);
     });
 
     test('a body that fails schema validation never takes the allowance', async ({ env }) => {
       const device = env.device();
 
-      const res = await device.post('/api/users', withoutField('email'));
+      const res = await device.post('/users', withoutField('email'));
 
       expect(res.statusCode).toBe(400);
       expect(await env.app.redis.get(registrationSlot(env, device.ip))).toBeNull();
@@ -402,7 +402,7 @@ describe('POST /api/users (registration)', () => {
 
       const responses = await Promise.all(
         Array.from({ length: 5 }, (_, i) =>
-          env.device(ip).post('/api/users', newUser({ email: `person-${i}@example.com`, username: `person-${i}` })),
+          env.device(ip).post('/users', newUser({ email: `person-${i}@example.com`, username: `person-${i}` })),
         ),
       );
 
@@ -413,11 +413,11 @@ describe('POST /api/users (registration)', () => {
   });
 });
 
-describe('GET /api/users/:id', () => {
+describe('GET /users/:id', () => {
   test('is public and returns exactly the public fields', async ({ env }) => {
     const id = await register(env.device());
 
-    const res = await env.device().get(`/api/users/${id}`);
+    const res = await env.device().get(`/users/${id}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.json()).toMatchObject({
@@ -432,7 +432,7 @@ describe('GET /api/users/:id', () => {
   });
 
   test('returns 404 for a non-existent user', async ({ env }) => {
-    const res = await env.device().get(`/api/users/${createId()}`);
+    const res = await env.device().get(`/users/${createId()}`);
     expect(res.statusCode).toBe(404);
   });
 
@@ -440,18 +440,18 @@ describe('GET /api/users/:id', () => {
     const { device, id } = await signedInDevice(env);
     await deleteAccount(device);
 
-    const hidden = await env.device().get(`/api/users/${id}`);
+    const hidden = await env.device().get(`/users/${id}`);
     expect(hidden.statusCode, 'a deleted account must not stay publicly visible').toBe(404);
 
-    const restored = await env.device().post('/api/sessions', ADA_LOGIN);
+    const restored = await env.device().post('/sessions', ADA_LOGIN);
     expect(restored.statusCode).toBe(200);
 
-    const visible = await env.device().get(`/api/users/${id}`);
+    const visible = await env.device().get(`/users/${id}`);
     expect(visible.statusCode, 'visible again after restore').toBe(200);
   });
 });
 
-describe('GET /api/users/search', () => {
+describe('GET /users/search', () => {
   test('matches forename, surname and username, case-insensitively', async ({ env }) => {
     await register(env.device());
     await register(env.device(), GRACE);
@@ -510,7 +510,7 @@ describe('GET /api/users/search', () => {
   });
 
   test('requires a name or an interest', async ({ env }) => {
-    const res = await env.device().get('/api/users/search');
+    const res = await env.device().get('/users/search');
     expect(res.statusCode, '/search must not be mistaken for /:id').toBe(400);
   });
 
@@ -562,7 +562,7 @@ describe('GET /api/users/search', () => {
     expect(hidden.statusCode).toBe(200);
     expect(usernamesOf(hidden)).toEqual(['visible-person']);
 
-    await env.device().post('/api/sessions', { email: gone.email, password: STRONG_PASSWORD });
+    await env.device().post('/sessions', { email: gone.email, password: STRONG_PASSWORD });
 
     const back = await search(env.device(), { name: 'person' });
     expect(usernamesOf(back).sort()).toEqual(['gone-person', 'visible-person']);

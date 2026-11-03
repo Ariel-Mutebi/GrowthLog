@@ -7,10 +7,10 @@ import { ALAN, GRACE, STRONG_PASSWORD, deleteAccount, signedInDevice } from './h
 
 type Person = Awaited<ReturnType<typeof signedInDevice>>;
 
-const follow = (device: Device, userId: string) => device.put(`/api/follow/${userId}`);
-const unfollow = (device: Device, userId: string) => device.delete(`/api/follow/${userId}`);
-const followersOf = (device: Device, userId: string) => device.get(`/api/followers/${userId}`);
-const followingOf = (device: Device, userId: string) => device.get(`/api/following/${userId}`);
+const follow = (device: Device, userId: string) => device.put(`/follow/${userId}`);
+const unfollow = (device: Device, userId: string) => device.delete(`/follow/${userId}`);
+const followersOf = (device: Device, userId: string) => device.get(`/followers/${userId}`);
+const followingOf = (device: Device, userId: string) => device.get(`/following/${userId}`);
 
 /** Usernames in a list response, sorted because the endpoints promise no order. */
 const usernamesOf = (res: LightMyRequestResponse) =>
@@ -35,7 +35,7 @@ async function people(env: TestEnv) {
 /** Logs in on a fresh device. Within the recovery window this also restores a soft-deleted account. */
 async function logIn(env: TestEnv, email: string) {
   const device = env.device();
-  const res = await device.post('/api/sessions', { email, password: STRONG_PASSWORD });
+  const res = await device.post('/sessions', { email, password: STRONG_PASSWORD });
   expect(res.statusCode, `login failed: ${res.body}`).toBe(200);
   return device;
 }
@@ -70,7 +70,7 @@ describe('authentication', () => {
   test.for([
     { method: 'PUT', call: follow },
     { method: 'DELETE', call: unfollow },
-  ])('$method /api/follow/:userId requires a session and leaves existing follows alone', async ({ call }, { env }) => {
+  ])('$method /follow/:userId requires a session and leaves existing follows alone', async ({ call }, { env }) => {
     const { ada, grace } = await people(env);
     await follow(ada.device, grace.id);
 
@@ -81,7 +81,7 @@ describe('authentication', () => {
   });
 });
 
-describe('PUT /api/follow/:userId (follow)', () => {
+describe('PUT /follow/:userId (follow)', () => {
   test('follows the user: one row owned by the caller, listed one-way in both public lists', async ({ env }) => {
     const { ada, grace } = await people(env);
 
@@ -152,7 +152,7 @@ describe('PUT /api/follow/:userId (follow)', () => {
   });
 });
 
-describe('DELETE /api/follow/:userId (unfollow)', () => {
+describe('DELETE /follow/:userId (unfollow)', () => {
   test('removes the follow from both public lists and the database', async ({ env }) => {
     const { ada, grace } = await people(env);
     await follow(ada.device, grace.id);
@@ -201,7 +201,7 @@ describe('DELETE /api/follow/:userId (unfollow)', () => {
   });
 });
 
-describe.for(lists)('GET /api/$name/:userId', ({ of, connect }) => {
+describe.for(lists)('GET /$name/:userId', ({ of, connect }) => {
   test('needs no session, and returns the same list to anonymous visitors, the user and other users', async ({ env }) => {
     const { ada, grace, alan } = await people(env);
     await connect(ada, grace);

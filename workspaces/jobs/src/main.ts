@@ -42,15 +42,20 @@ const emailWorker = new EmailWorker(
     user: runtime.config.SMTP_USER,
     pass: runtime.config.SMTP_PASS,
     from: runtime.config.FROM_EMAIL,
+    secure: runtime.config.NODE_ENV === 'production',
   },
 );
 
 await emailWorker.check();
 
 async function shutdown() {
+  console.log('closing deletionWorker');
   await deletionWorker.close();
+  console.log('closing deletionQueue');
   await deletionQueue.close();
+  console.log('closing emailWorker');
   await emailWorker.close();
+  console.log('stopping runtime');
   await runtime.stop();
   process.exit(0);
 }

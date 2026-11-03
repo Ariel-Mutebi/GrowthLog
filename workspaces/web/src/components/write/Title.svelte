@@ -13,7 +13,7 @@
   const saveTitle = debounce(async (value: string) => {
     if (value.length === 0) return;
 
-    const { data: updated, error } = await apiClient.PATCH('/api/me/drafts/{id}', {
+    const { data: updated, error } = await apiClient.PATCH('/me/drafts/{id}', {
       params: { path: { id } },
       body: { title: value },
     });

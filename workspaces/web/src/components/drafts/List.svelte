@@ -21,7 +21,7 @@
     const { sortBy, order, isPrivate, isPublished } = filters;
     const published = isPrivate === isPublished ? undefined: isPublished;
 
-    apiClient.GET('/api/me/drafts', {
+    apiClient.GET('/me/drafts', {
       params: {
         query: {
           sortBy,

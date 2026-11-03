@@ -5,8 +5,8 @@ import type { TestEnv } from '../test-env.js';
 import type { Device } from '../device.js';
 import { signedInDevice } from './helpers/user.js';
 
-const REQUEST = '/api/me/email/request-verification';
-const CONFIRM = '/api/me/email/confirm-token';
+const REQUEST = '/me/email/request-verification';
+const CONFIRM = '/me/email/confirm-token';
 
 /** Requests a code and captures it from the (stubbed) emailer, since only its hash is stored. */
 async function requestCode(env: TestEnv, device: Device) {

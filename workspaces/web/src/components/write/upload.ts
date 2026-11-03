@@ -6,7 +6,7 @@ export async function uploadPostImage(postId: string, file: File) {
   const {
     data: handoff,
     error: handoffError,
-  } = await apiClient.GET('/api/me/jwt');
+  } = await apiClient.GET('/me/jwt');
 
   if (!handoff && handoffError) {
     throw new HTTPError(handoffError);
@@ -15,7 +15,7 @@ export async function uploadPostImage(postId: string, file: File) {
   const {
     data: permission,
     error: permissionError,
-  } = await imagesClient.POST('/images/post-images/{postId}/request-upload/', {
+  } = await imagesClient.POST('/post-images/{postId}/request-upload/', {
     params: {
       header: {
         Authorization: `Bearer ${handoff.token}`,
@@ -49,7 +49,7 @@ export async function uploadPostImage(postId: string, file: File) {
     });
   }
 
-  const { data: image, error: confirmError } = await imagesClient.POST('/images/post-images/{postId}/{imageId}/confirm', {
+  const { data: image, error: confirmError } = await imagesClient.POST('/post-images/{postId}/{imageId}/confirm', {
     params: {
       header: {
         Authorization: `Bearer ${handoff.token}`,

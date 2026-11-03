@@ -8,7 +8,7 @@ import type { Device } from '../device.js';
 import { GRACE, SESSION, signedInDevice } from './helpers/user.js';
 import { docToDraftBytes, rawDraftBytes, seedDraft, seedImage, setContent } from './helpers/draft.js';
 
-const publishUrl = (id: string) => `/api/me/drafts/${id}/publish`;
+const publishUrl = (id: string) => `/me/drafts/${id}/publish`;
 
 const CUID_NOT_FOUND = 'cdoesnotexist'.padEnd(24, '0');
 const NOT_FOUND = { error: 'NotFound', message: 'This draft could not be found' };
@@ -141,11 +141,11 @@ describe('publishing', () => {
 
   test('a published post becomes discoverable through tag search', async ({ env }) => {
     const s = await setup(env);
-    expect((await env.device().get('/api/tags?search=alpha')).json(), 'hidden while a draft').toEqual([]);
+    expect((await env.device().get('/tags?search=alpha')).json(), 'hidden while a draft').toEqual([]);
 
     await s.publish();
 
-    const res = await env.device().get('/api/tags?search=alpha');
+    const res = await env.device().get('/tags?search=alpha');
     expect(res.json()).toEqual([expect.objectContaining({ name: 'alpha', postCount: 1 })]);
   });
 
@@ -202,7 +202,7 @@ describe('publishing', () => {
     const s = await setup(env);
     const tagsOf = async () => (await full(env, s.post.id)).tags.map((t) => t.name).sort();
     const searchNames = async (term: string) =>
-      ((await env.device().get(`/api/tags?search=${term}`)).json() as { name: string }[]).map((t) => t.name);
+      ((await env.device().get(`/tags?search=${term}`)).json() as { name: string }[]).map((t) => t.name);
 
     await s.publish({ tags: ['alpha', 'beta'] });
     expect(await tagsOf()).toEqual(['alpha', 'beta']);
@@ -238,7 +238,7 @@ describe('the draft being published', () => {
   test('malformed ids are a clean 4xx, never a 5xx', async ({ env }) => {
     const s = await setup(env);
     for (const id of ['nonexistent', '%00', '%27%20OR%20%271%27%3D%271', '..%2Fusers', '0', 'a'.repeat(500)]) {
-      const res = await s.device.post(`/api/drafts/${id}/publish`, s.body);
+      const res = await s.device.post(`/drafts/${id}/publish`, s.body);
       expect([400, 404], `${id} -> ${res.statusCode}`).toContain(res.statusCode);
     }
   });
@@ -600,13 +600,13 @@ describe('prepublish and unpublish', () => {
   test('unpublish hides the post from tag search and is idempotent', async ({ env }) => {
     const s = await setup(env);
     await s.publish();
-    expect((await env.device().get('/api/tags?search=alpha')).json()).toHaveLength(1);
+    expect((await env.device().get('/tags?search=alpha')).json()).toHaveLength(1);
 
     expect((await s.device.delete(publishUrl(s.post.id))).statusCode).toBe(204);
     expect((await s.device.delete(publishUrl(s.post.id))).statusCode).toBe(204);
 
     expect((await full(env, s.post.id)).publishedAt).toBeNull();
-    expect((await env.device().get('/api/tags?search=alpha')).json()).toEqual([]);
+    expect((await env.device().get('/tags?search=alpha')).json()).toEqual([]);
   });
 });
 

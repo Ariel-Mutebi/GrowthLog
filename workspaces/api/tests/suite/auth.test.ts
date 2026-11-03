@@ -34,7 +34,7 @@ async function failLogins(env: TestEnv, email: string, count: number) {
   for (let i = 0; i < count; i++) {
     const device = env.device();
     ips.push(device.ip);
-    const res = await device.post('/api/sessions', { email, password: WRONG_PASSWORD });
+    const res = await device.post('/sessions', { email, password: WRONG_PASSWORD });
     expect(res.statusCode, `attempt ${i + 1} should be a plain bad-credentials 401`).toBe(401);
   }
   return ips;
@@ -45,7 +45,7 @@ describe('login', () => {
     await register(env.device());
 
     // A separate device, so this is a clean login and not a re-login on a live session.
-    const res = await env.device().post('/api/sessions', ADA_LOGIN);
+    const res = await env.device().post('/sessions', ADA_LOGIN);
 
     expect(res.statusCode).toBe(200);
     expect(res.json()).toMatchObject({
@@ -65,22 +65,22 @@ describe('login', () => {
 
   test('rejects a wrong password with 401', async ({ env }) => {
     await register(env.device());
-    const res = await env.device().post('/api/sessions', wrongPassword);
+    const res = await env.device().post('/sessions', wrongPassword);
     expect(res.statusCode).toBe(401);
   });
 
   test('rejects an unknown email with 401', async ({ env }) => {
-    const res = await env.device().post('/api/sessions', { ...ADA_LOGIN, email: 'nobody@example.com' });
+    const res = await env.device().post('/sessions', { ...ADA_LOGIN, email: 'nobody@example.com' });
     expect(res.statusCode).toBe(401);
   });
 
   test('gives identical errors for a wrong password and an unknown email', async ({ env }) => {
     await register(env.device());
 
-    const wrongPw = await env.device().post('/api/sessions', wrongPassword);
+    const wrongPw = await env.device().post('/sessions', wrongPassword);
     const unknownEmail = await env
       .device()
-      .post('/api/sessions', { ...wrongPassword, email: 'nobody@example.com' });
+      .post('/sessions', { ...wrongPassword, email: 'nobody@example.com' });
 
     expect(wrongPw.statusCode).toBe(401);
     expect(unknownEmail.statusCode).toBe(401);
@@ -92,7 +92,7 @@ describe('login', () => {
   test('rejects a body without a password with 400 and does not count as a failed attempt', async ({ env }) => {
     await register(env.device());
 
-    const res = await env.device().post('/api/sessions', { email: ADA_LOGIN.email });
+    const res = await env.device().post('/sessions', { email: ADA_LOGIN.email });
 
     expect(res.statusCode).toBe(400);
     expect(await env.app.redis.get(failedLoginKey(env, ADA_LOGIN.email))).toBeNull();
@@ -105,7 +105,7 @@ describe('per-email lockout', () => {
     await failLogins(env, ADA_LOGIN.email, 5);
 
     // Fresh IP, correct password: lockout short-circuits before credentials are checked.
-    const locked = await env.device().post('/api/sessions', ADA_LOGIN);
+    const locked = await env.device().post('/sessions', ADA_LOGIN);
 
     expect(locked.statusCode, 'a locked email returns 423 even with the right password').toBe(423);
     expect(locked.json().error).toBe('Locked');
@@ -115,7 +115,7 @@ describe('per-email lockout', () => {
   test('locks unknown emails the same way, so lockout does not reveal which accounts exist', async ({ env }) => {
     await failLogins(env, 'nobody@example.com', 5);
 
-    const res = await env.device().post('/api/sessions', { ...ADA_LOGIN, email: 'nobody@example.com' });
+    const res = await env.device().post('/sessions', { ...ADA_LOGIN, email: 'nobody@example.com' });
     expect(res.statusCode).toBe(423);
   });
 
@@ -132,13 +132,13 @@ describe('per-email lockout', () => {
     await register(env.device());
     await failLogins(env, ADA_LOGIN.email, 4);
 
-    const ok = await env.device().post('/api/sessions', ADA_LOGIN);
+    const ok = await env.device().post('/sessions', ADA_LOGIN);
     expect(ok.statusCode).toBe(200);
     expect(await env.app.redis.get(failedLoginKey(env, ADA_LOGIN.email))).toBeNull();
 
     // Without the reset, the 2nd of these would be attempt #6 and return 423.
     await failLogins(env, ADA_LOGIN.email, 4);
-    const stillOpen = await env.device().post('/api/sessions', ADA_LOGIN);
+    const stillOpen = await env.device().post('/sessions', ADA_LOGIN);
     expect(stillOpen.statusCode).toBe(200);
   });
 
@@ -148,11 +148,11 @@ describe('per-email lockout', () => {
     await register(env.device(), { email: grace.email, username: 'grace-hopper' });
 
     const adaIps = await failLogins(env, ADA_LOGIN.email, 5);
-    const adaLocked = await env.device().post('/api/sessions', ADA_LOGIN);
+    const adaLocked = await env.device().post('/sessions', ADA_LOGIN);
     expect(adaLocked.statusCode, 'ada should be locked').toBe(423);
 
     // Grace logs in from an IP that ada's failures came from.
-    const graceOk = await env.device(adaIps[0]).post('/api/sessions', grace);
+    const graceOk = await env.device(adaIps[0]).post('/sessions', grace);
     expect(graceOk.statusCode).toBe(200);
   });
 
@@ -161,7 +161,7 @@ describe('per-email lockout', () => {
 
     // 20 simultaneous wrong guesses, each from its own IP so only the per-email counter is in play.
     const responses = await Promise.all(
-      Array.from({ length: 20 }, () => env.device().post('/api/sessions', wrongPassword)),
+      Array.from({ length: 20 }, () => env.device().post('/sessions', wrongPassword)),
     );
 
     const statuses = responses.map((r) => r.statusCode);
@@ -176,26 +176,26 @@ describe('per-IP rate limiting', () => {
 
     // Rotate the email so no single failed_login counter reaches the lockout threshold.
     for (let i = 0; i < 5; i++) {
-      const res = await device.post('/api/sessions', { ...wrongPassword, email: `nobody-${i}@example.com` });
+      const res = await device.post('/sessions', { ...wrongPassword, email: `nobody-${i}@example.com` });
       expect(res.statusCode, `request ${i + 1} should reach auth and fail with 401`).toBe(401);
     }
 
     // The limiter trips before passport runs, so credentials are irrelevant.
-    const throttled = await device.post('/api/sessions', { ...ADA_LOGIN, email: 'nobody-6@example.com' });
+    const throttled = await device.post('/sessions', { ...ADA_LOGIN, email: 'nobody-6@example.com' });
     expect(throttled.statusCode).toBe(429);
   });
 
   test('the throttle is scoped to the IP, not the email', async ({ env }) => {
     const spammer = env.device();
     for (let i = 0; i < 5; i++) {
-      await spammer.post('/api/sessions', { ...wrongPassword, email: `spammer-${i}@example.com` });
+      await spammer.post('/sessions', { ...wrongPassword, email: `spammer-${i}@example.com` });
     }
-    const throttled = await spammer.post('/api/sessions', { ...wrongPassword, email: 'spammer-6@example.com' });
+    const throttled = await spammer.post('/sessions', { ...wrongPassword, email: 'spammer-6@example.com' });
     expect(throttled.statusCode, 'the saturated IP is throttled').toBe(429);
 
     const otherIp = await env
       .device()
-      .post('/api/sessions', { ...wrongPassword, email: 'spammer-0@example.com' });
+      .post('/sessions', { ...wrongPassword, email: 'spammer-0@example.com' });
     expect(otherIp.statusCode, 'a fresh IP still reaches auth (401, not 429)').toBe(401);
   });
 });
@@ -204,11 +204,11 @@ describe('session', () => {
   test('authenticates later requests, and rejects missing or forged cookies', async ({ env }) => {
     const { device } = await signedInDevice(env);
 
-    const me = await device.get('/api/me');
+    const me = await device.get('/me');
     expect(me.statusCode).toBe(200);
     expect(me.json().email).toBe(ADA_LOGIN.email);
 
-    expect((await env.device().get('/api/me')).statusCode, 'no cookie').toBe(401);
+    expect((await env.device().get('/me')).statusCode, 'no cookie').toBe(401);
     expect((await profileWithSession(env, 'forged-session-id')).statusCode, 'forged cookie').toBe(401);
   });
 
@@ -218,12 +218,12 @@ describe('session', () => {
       const before = sessionOf(device);
 
       // Same device, so the existing session cookie is sent with this login.
-      const res = await device.post('/api/sessions', ADA_LOGIN);
+      const res = await device.post('/sessions', ADA_LOGIN);
       expect(res.statusCode).toBe(200);
 
       expect(sessionOf(device), 'session id must rotate on re-login').not.toBe(before);
       expect((await profileWithSession(env, before)).statusCode, 'old id must be dead').toBe(401);
-      expect((await device.get('/api/me')).statusCode, 'new id works').toBe(200);
+      expect((await device.get('/me')).statusCode, 'new id works').toBe(200);
     });
   });
 });
@@ -231,15 +231,15 @@ describe('session', () => {
 describe('soft-delete restore', () => {
   test('re-login within the recovery window restores the account and opens a session', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
-    const deleted = await device.delete('/api/me', confirmPassword);
+    const deleted = await device.delete('/me', confirmPassword);
     expect(deleted.statusCode).toBeLessThan(300);
 
     const restored = env.device();
-    const res = await restored.post('/api/sessions', ADA_LOGIN);
+    const res = await restored.post('/sessions', ADA_LOGIN);
 
     expect(res.statusCode, 're-login should succeed within the recovery window').toBe(200);
     expect(restored.cookies.has(SESSION), 'a new session should be established').toBe(true);
-    expect((await restored.get('/api/me')).statusCode, 'restored account must authenticate').toBe(200);
+    expect((await restored.get('/me')).statusCode, 'restored account must authenticate').toBe(200);
 
     const user = await env.app.prisma.user.findUniqueOrThrow({ where: { id } });
     expect(user.deletedAt).toBeNull();
@@ -247,19 +247,19 @@ describe('soft-delete restore', () => {
 
   test('still restores a deletion that is 6 days old', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
-    await device.delete('/api/me', confirmPassword);
+    await device.delete('/me', confirmPassword);
     await backdateDeletion(env, id, 6);
 
-    const res = await env.device().post('/api/sessions', ADA_LOGIN);
+    const res = await env.device().post('/sessions', ADA_LOGIN);
     expect(res.statusCode).toBe(200);
   });
 
   test('rejects re-login 8 days after deletion with 401 and leaves the account deleted', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
-    await device.delete('/api/me', confirmPassword);
+    await device.delete('/me', confirmPassword);
     await backdateDeletion(env, id, 8);
 
-    const res = await env.device().post('/api/sessions', ADA_LOGIN);
+    const res = await env.device().post('/sessions', ADA_LOGIN);
 
     expect(res.statusCode).toBe(401);
     expect(res.json().message).toBe('Account permanently deleted');
@@ -270,14 +270,14 @@ describe('soft-delete restore', () => {
   test('deleting the account on one device invalidates the session on the other device', async ({ env }) => {
     const { device: deviceA } = await signedInDevice(env);
     const deviceB = env.device();
-    await deviceB.post('/api/sessions', ADA_LOGIN);
-    expect((await deviceB.get('/api/me')).statusCode).toBe(200);
+    await deviceB.post('/sessions', ADA_LOGIN);
+    expect((await deviceB.get('/me')).statusCode).toBe(200);
 
-    await deviceA.delete('/api/me', confirmPassword);
+    await deviceA.delete('/me', confirmPassword);
 
     expect(deviceA.cookies.has(SESSION), 'the deleting device has its cookie cleared').toBe(false);
     expect(
-      (await deviceB.get('/api/me')).statusCode,
+      (await deviceB.get('/me')).statusCode,
       'the other device must not keep a working session after the account is deleted',
     ).toBe(401);
   });
@@ -288,7 +288,7 @@ describe('logout', () => {
     const { device } = await signedInDevice(env);
     const sessionId = sessionOf(device);
 
-    const res = await device.delete('/api/sessions');
+    const res = await device.delete('/sessions');
 
     expect(res.statusCode).toBe(204);
     expect(device.cookies.has(SESSION), 'logout should clear the session cookie').toBe(false);
@@ -297,18 +297,18 @@ describe('logout', () => {
   });
 
   test('requires a session', async ({ env }) => {
-    const res = await env.device().delete('/api/sessions');
+    const res = await env.device().delete('/sessions');
     expect(res.statusCode).toBe(401);
   });
 
   test('logging out on one device leaves the other devices signed in', async ({ env }) => {
     const { device: deviceA } = await signedInDevice(env);
     const deviceB = env.device();
-    await deviceB.post('/api/sessions', ADA_LOGIN);
+    await deviceB.post('/sessions', ADA_LOGIN);
 
-    await deviceA.delete('/api/sessions');
+    await deviceA.delete('/sessions');
 
-    expect((await deviceA.get('/api/me')).statusCode).toBe(401);
-    expect((await deviceB.get('/api/me')).statusCode).toBe(200);
+    expect((await deviceA.get('/me')).statusCode).toBe(401);
+    expect((await deviceB.get('/me')).statusCode).toBe(200);
   });
 });

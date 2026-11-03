@@ -24,12 +24,12 @@ const OTHER_EMAIL = 'augusta.king@example.com';
 const MAX_ATTEMPTS = 5;
 const wrongAttempt = { passwordAttempt: WRONG_PASSWORD };
 
-const getMe = (device: Device) => device.get('/api/me');
-const patchMe = (device: Device, body: Record<string, unknown>) => device.patch('/api/me', body);
-const deleteMe = (device: Device, body?: Record<string, unknown>) => device.delete('/api/me', body);
+const getMe = (device: Device) => device.get('/me');
+const patchMe = (device: Device, body: Record<string, unknown>) => device.patch('/me', body);
+const deleteMe = (device: Device, body?: Record<string, unknown>) => device.delete('/me', body);
 const userRow = (env: TestEnv, id: string) => env.app.prisma.user.findUniqueOrThrow({ where: { id } });
 const login = (env: TestEnv, creds: { email: string; password: string }) =>
-  env.device().post('/api/sessions', creds);
+  env.device().post('/sessions', creds);
 
 const wrongEmailChange = (device: Device) => patchMe(device, { email: NEW_EMAIL, ...wrongAttempt });
 
@@ -44,16 +44,16 @@ async function failPrompt(device: Device, count: number) {
 /** Signs the same account in on a second device. */
 async function secondDevice(env: TestEnv) {
   const device = env.device();
-  const res = await device.post('/api/sessions', ADA_LOGIN);
+  const res = await device.post('/sessions', ADA_LOGIN);
   expect(res.statusCode, `second login failed: ${res.body}`).toBe(200);
   return device;
 }
 
 describe('authentication', () => {
   test.for([
-    { name: 'GET /api/me', call: (device: Device) => getMe(device) },
-    { name: 'PATCH /api/me', call: (device: Device) => patchMe(device, { forename: 'Augusta' }) },
-    { name: 'DELETE /api/me', call: (device: Device) => deleteMe(device, confirmPassword) },
+    { name: 'GET /me', call: (device: Device) => getMe(device) },
+    { name: 'PATCH /me', call: (device: Device) => patchMe(device, { forename: 'Augusta' }) },
+    { name: 'DELETE /me', call: (device: Device) => deleteMe(device, confirmPassword) },
   ])('$name requires a session and changes nothing', async ({ call }, { env }) => {
     const { id } = await signedInDevice(env);
 
@@ -66,7 +66,7 @@ describe('authentication', () => {
   });
 });
 
-describe('GET /api/me', () => {
+describe('GET /me', () => {
   test('returns the signed-in user without secrets, and never anyone else’s account', async ({ env }) => {
     const ada = await signedInDevice(env);
     const grace = await signedInDevice(env, GRACE);
@@ -89,7 +89,7 @@ describe('GET /api/me', () => {
   });
 });
 
-describe('PATCH /api/me', () => {
+describe('PATCH /me', () => {
   describe('profile fields', () => {
     test('updates them without asking for the password, and only for the signed-in user', async ({ env }) => {
       const { device, id } = await signedInDevice(env);
@@ -295,7 +295,7 @@ describe('PATCH /api/me', () => {
       expect((await getMe(other)).statusCode, 'the other device is signed out').toBe(401);
 
       const relogin = env.device();
-      const loggedIn = await relogin.post('/api/sessions', { ...ADA_LOGIN, password: NEW_PASSWORD });
+      const loggedIn = await relogin.post('/sessions', { ...ADA_LOGIN, password: NEW_PASSWORD });
       expect(loggedIn.statusCode).toBe(200);
       expect((await getMe(relogin)).statusCode, 'a session issued after the change works').toBe(200);
     });
@@ -364,7 +364,7 @@ describe('PATCH /api/me', () => {
   });
 });
 
-describe('DELETE /api/me', () => {
+describe('DELETE /me', () => {
   test('requires passwordAttempt in the body', async ({ env }) => {
     const { device, id } = await signedInDevice(env);
 
@@ -415,7 +415,7 @@ describe('DELETE /api/me', () => {
     const { device } = await signedInDevice(env);
     await deleteAccount(device);
 
-    const res = await env.device().post('/api/users', newUser());
+    const res = await env.device().post('/users', newUser());
 
     expect(res.statusCode).toBe(409);
   });

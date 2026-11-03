@@ -12,14 +12,14 @@ import { ADA_LOGIN } from './helpers/user.js';
 const raw = (env: TestEnv, payload: string, contentType: string) =>
   env.app.inject({
     method: 'POST',
-    url: '/api/sessions',
+    url: '/sessions',
     headers: { 'content-type': contentType, 'x-forwarded-for': uniqueIp() },
     payload,
   });
 
 describe('framework-generated errors keep their status', () => {
   test('a schema validation failure is a 400 that names the offending field', async ({ env }) => {
-    const res = await env.device().post('/api/sessions', { email: ADA_LOGIN.email });
+    const res = await env.device().post('/sessions', { email: ADA_LOGIN.email });
 
     expect(res.statusCode, res.body).toBe(400);
     expect(res.json()).toMatchObject({ error: 'BadRequest' });
@@ -40,7 +40,7 @@ describe('framework-generated errors keep their status', () => {
   });
 
   test('a validation failure never reveals stack traces or internals', async ({ env }) => {
-    const res = await env.device().post('/api/sessions', { email: ADA_LOGIN.email });
+    const res = await env.device().post('/sessions', { email: ADA_LOGIN.email });
 
     expect(res.body).not.toContain('node_modules');
     expect(res.body).not.toContain('FST_ERR');

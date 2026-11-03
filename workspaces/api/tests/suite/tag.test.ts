@@ -14,8 +14,8 @@ interface Suggestion {
 }
 
 const search = (env: TestEnv, term: string) =>
-  env.device().get(`/api/tags?search=${encodeURIComponent(term)}`);
-const searchRaw = (env: TestEnv, rawQuery: string) => env.device().get(`/api/tags?${rawQuery}`);
+  env.device().get(`/tags?search=${encodeURIComponent(term)}`);
+const searchRaw = (env: TestEnv, rawQuery: string) => env.device().get(`/tags?${rawQuery}`);
 const names = (res: LightMyRequestResponse) => (res.json() as Suggestion[]).map((t) => t.name);
 
 async function seedTags(env: TestEnv, tagNames: string[]) {
@@ -95,7 +95,7 @@ describe('search', () => {
     await seedLiveTags(env, ['javascript']);
     const device = env.device();
 
-    const res = await device.get('/api/tags?search=java');
+    const res = await device.get('/tags?search=java');
 
     expect(res.statusCode).toBe(200);
     expect(res.cookies).toHaveLength(0);
@@ -217,7 +217,7 @@ describe('visibility', () => {
     expect((await search(env, 'recoverable')).json(), 'hidden after deletion').toEqual([]);
 
     const restored = env.device();
-    const relogin = await restored.post('/api/sessions', { email, password: STRONG_PASSWORD });
+    const relogin = await restored.post('/sessions', { email, password: STRONG_PASSWORD });
     expect(relogin.statusCode).toBe(200);
     expect(names(await search(env, 'recoverable')), 'visible after restore').toEqual(['recoverable']);
 

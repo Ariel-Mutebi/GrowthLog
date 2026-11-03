@@ -46,7 +46,7 @@ export class DeletionWorker extends GrowthLogWorker {
         createdAt: { lte: cutoff },
         OR: [
           { status: { in: ['PENDING', 'FAILED'] } },
-          { avatar: null, post: null },
+          { avatar: null, postImage: null },
         ],
       },
     });

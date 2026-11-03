@@ -3,8 +3,8 @@ import { test } from '../fixtures.js';
 import type { TestEnv } from '../test-env.js';
 import { IMAGE_MAX_BYTES, PNG, makePost, makeUser, UNKNOWN_ID } from './shared.js';
 
-const requestUrl = (postId: string) => `/images/post-images/${postId}/request-upload`;
-const confirmUrl = (postId: string, imageId: string) => `/images/post-images/${postId}/${imageId}/confirm`;
+const requestUrl = (postId: string) => `/post-images/${postId}/request-upload`;
+const confirmUrl = (postId: string, imageId: string) => `/post-images/${postId}/${imageId}/confirm`;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -40,10 +40,10 @@ async function startUpload(env: TestEnv, userId: string, postId: string, sizeByt
 }
 
 // ---------------------------------------------------------------------------
-// POST /images/post-images/:postId/request-upload
+// POST /post-images/:postId/request-upload
 // ---------------------------------------------------------------------------
 
-describe('POST /images/post-images/:postId/request-upload', () => {
+describe('POST /post-images/:postId/request-upload', () => {
   test('returns an image id and a presigned URL, and records a pending image', async ({ env }) => {
     const author = await makeUser(env);
     const post = await makePost(env, author.id);
@@ -197,10 +197,10 @@ describe('POST /images/post-images/:postId/request-upload', () => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /images/post-images/:postId/:imageId/confirm
+// POST /post-images/:postId/:imageId/confirm
 // ---------------------------------------------------------------------------
 
-describe('POST /images/post-images/:postId/:imageId/confirm', () => {
+describe('POST /post-images/:postId/:imageId/confirm', () => {
   test('happy path: request, PUT to storage, confirm', async ({ env }) => {
     const author = await makeUser(env);
     const post = await makePost(env, author.id);

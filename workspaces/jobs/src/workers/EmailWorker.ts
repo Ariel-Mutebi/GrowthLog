@@ -1,5 +1,5 @@
 import { GrowthLogWorker } from './GrowthLogWorker.js';
-import nodmailer, { type Transporter } from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 
 import type { Logger } from 'pino';
 import type { RedisClientType } from 'redis';
@@ -19,8 +19,8 @@ export class EmailWorker extends GrowthLogWorker {
     super('email', redis, log, prisma);
     this.from = credentials.from;
 
-    this.transporter = nodmailer.createTransport({
-      secure: true,
+    this.transporter = nodemailer.createTransport({
+      secure: credentials.secure,
       host: credentials.host,
       port: credentials.port,
       auth: {
@@ -44,9 +44,9 @@ export class EmailWorker extends GrowthLogWorker {
     }
   }
 
-  async close() {
-    await this.transporter.close();
-    await this.close();
+  override async close(force?: boolean) {
+    await super.close(force);
+    this.transporter.close();
   }
 
   private async sendVerificationEmail({ userId, code }: VerificationEmailJobData) {
@@ -60,16 +60,11 @@ export class EmailWorker extends GrowthLogWorker {
       },
     });
 
-    try {
-      await this.transporter.sendMail({
-        from: this.from,
-        to: user.email,
-        subject: 'Verify your email',
-        text: `Your GrowthLog verification code is ${code}. It expires in ten minutes`,
-      });
-    } catch (error) {
-      this.log.error(error, 'sendMail error');
-      throw error;
-    }
+    await this.transporter.sendMail({
+      from: this.from,
+      to: user.email,
+      subject: 'Verify your email',
+      text: `Hello, ${user.forename}! Your GrowthLog verification code is ${code}. It expires in ten minutes`,
+    });
   }
 }

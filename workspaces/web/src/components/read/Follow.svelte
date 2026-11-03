@@ -19,7 +19,7 @@
 
   async function handleFollow() {
     try {
-      const { error } = await apiClient.PUT('/api/follow/{userId}', {
+      const { error } = await apiClient.PUT('/follow/{userId}', {
         params: {
           path: {
             userId: author.id,

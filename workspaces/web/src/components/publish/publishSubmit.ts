@@ -15,7 +15,7 @@ export const createPublishSubmit = (postId: string, defaultCoverImageId: string)
     coverImageId = defaultCoverImageId;
   }
 
-  const { error } = await apiClient.POST('/api/me/drafts/{id}/publish', {
+  const { error } = await apiClient.POST('/me/drafts/{id}/publish', {
     params: {
       path: {
         id: postId,

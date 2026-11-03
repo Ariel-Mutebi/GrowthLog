@@ -20,6 +20,7 @@ class Runtime {
     this.log = pino();
 
     this.config = loadEnv([
+      'NODE_ENV',
       'REDIS_URL',
       'DATABASE_URL',
       'SMTP_HOST',

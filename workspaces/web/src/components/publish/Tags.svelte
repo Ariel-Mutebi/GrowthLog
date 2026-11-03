@@ -30,7 +30,7 @@
     controller = requestController;
 
     try {
-      const { data } = await apiClient.GET('/api/tags', {
+      const { data } = await apiClient.GET('/tags', {
         params: {
           query: {
             search: term,

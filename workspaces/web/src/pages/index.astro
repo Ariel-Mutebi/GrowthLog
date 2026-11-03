@@ -9,7 +9,7 @@ import { createApiClient } from "../server/clients.ts";
 
 const { user } = Astro.locals;
 const cookie = Astro.request.headers.get("cookie");
-const { data } = await createApiClient(cookie).GET("/api/posts");
+const { data } = await createApiClient(cookie).GET("/posts");
 ---
 
 <HeadLayout title="Front Page | GrowthLog">

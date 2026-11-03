@@ -3,8 +3,8 @@ import { test } from '../fixtures.js';
 import type { TestEnv } from '../test-env.js';
 import { AVATAR_MAX_BYTES, PNG, makeUser, UNKNOWN_ID } from './shared.js';
 
-const REQUEST_URL = '/images/avatars/request-upload';
-const confirmUrl = (imageId: string) => `/images/avatars/${imageId}/confirm`;
+const REQUEST_URL = '/avatars/request-upload';
+const confirmUrl = (imageId: string) => `/avatars/${imageId}/confirm`;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -39,10 +39,10 @@ async function startUpload(env: TestEnv, userId: string, sizeBytes = PNG.length)
 }
 
 // ---------------------------------------------------------------------------
-// POST /images/avatars/request-upload
+// POST /avatars/request-upload
 // ---------------------------------------------------------------------------
 
-describe('POST /images/avatars/request-upload', () => {
+describe('POST /avatars/request-upload', () => {
   test('returns an image id and a presigned URL, and records a pending image', async ({ env }) => {
     const user = await makeUser(env);
 
@@ -171,10 +171,10 @@ describe('POST /images/avatars/request-upload', () => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /images/avatars/:id/confirm
+// POST /avatars/:id/confirm
 // ---------------------------------------------------------------------------
 
-describe('POST /images/avatars/:id/confirm', () => {
+describe('POST /avatars/:id/confirm', () => {
   test('happy path: request, PUT to storage, confirm', async ({ env }) => {
     const user = await makeUser(env);
     const { imageId, uploadUrl } = await startUpload(env, user.id);
