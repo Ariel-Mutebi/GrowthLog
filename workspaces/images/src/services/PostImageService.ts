@@ -57,7 +57,7 @@ export class PostImageService extends ImageUploadService<RequestUploadParams, Co
     });
 
     const uploadUrl = await getSignedUrl(
-      this.deps.presigner,
+      this.deps.storage,
       new PutObjectCommand({
         Bucket: this.deps.bucket,
         Key: key,

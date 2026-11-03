@@ -19,6 +19,7 @@ export const envDefinitions = {
   DATABASE_URL: z.url().regex(/^postgres(ql)?:\/\/\S+/),
 
   STORAGE_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
+  PRESIGNER_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
   STORAGE_ACCESS_KEY_ID: hexSecret(64),
   STORAGE_SECRET_ACCESS_KEY: hexSecret(64),
   STORAGE_REGION: z.string().min(1),

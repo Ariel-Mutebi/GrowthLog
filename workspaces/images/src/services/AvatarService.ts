@@ -46,7 +46,7 @@ export class AvatarService extends ImageUploadService<RequestUploadParams, Confi
     });
 
     const uploadUrl = await getSignedUrl(
-      this.deps.presigner,
+      this.deps.storage,
       new PutObjectCommand({
         Bucket: this.deps.bucket,
         Key: key,

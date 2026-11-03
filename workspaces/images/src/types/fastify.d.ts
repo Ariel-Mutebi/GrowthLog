@@ -9,7 +9,6 @@ declare module 'fastify' {
     prisma: PrismaClient;
     config: Config;
     storage: S3Client;
-    presigner: S3Client;
   }
 
   interface FastifyRequest {

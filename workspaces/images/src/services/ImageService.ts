@@ -20,7 +20,6 @@ import type { Image, PrismaClient } from '@growthlog/db';
 interface ServiceDependencies {
   prisma: PrismaClient;
   storage: S3Client;
-  presigner: S3Client;
   bucket: string;
   maxSizeBytes: number;
   logError: FastifyLogFn;
