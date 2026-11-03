@@ -20,7 +20,7 @@ import { underPressurePlugin } from './plugins/pressure.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function buildApp(overrides: Config) {
+export function buildApp(overrides?: Config) {
   const config = loadEnv([
     'API_PORT',
     'NODE_ENV',
