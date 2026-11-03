@@ -7,7 +7,6 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
     prisma: app.prisma,
     storage: app.storage,
     logError: app.log.error,
-    presigner: app.presigner,
     bucket: app.config.PUBLIC_AVATAR_BUCKET,
     maxSizeBytes: app.config.PUBLIC_MAX_AVATAR_SIZE_BYTES,
     presignedUrlExpirySeconds: app.config.PRESIGNED_URL_EXPIRY_SECONDS,
