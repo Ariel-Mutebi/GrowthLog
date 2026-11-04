@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-// You can generate a secret using: openssl rand -hex 32
+// You can generate a 64-character secret using: openssl rand -hex 32
 const hexSecret = (length: number) =>
-  z.string().length(length).regex(new RegExp(`^[0-9a-f]{${length}}$`));
+  z.string().min(length).regex(new RegExp(`^[0-9a-f]{${length},}$`));
 
 const port = z.coerce.number().int().min(0).max(65535);
 const positive = z.coerce.number().positive();
@@ -20,7 +20,7 @@ export const envDefinitions = {
 
   STORAGE_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
   PRESIGNER_ENDPOINT: z.url().regex(/^https?:\/\/\S+/),
-  STORAGE_ACCESS_KEY_ID: hexSecret(64),
+  STORAGE_ACCESS_KEY_ID: hexSecret(32),
   STORAGE_SECRET_ACCESS_KEY: hexSecret(64),
   STORAGE_REGION: z.string().min(1),
   PRESIGNED_URL_EXPIRY_SECONDS: positive,
