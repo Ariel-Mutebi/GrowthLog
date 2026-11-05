@@ -6,6 +6,7 @@ import {
   SelfFollowError,
   FollowTargetNotFoundError,
 } from '@/services/users/FollowerService.js';
+import fp from 'fastify-plugin';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new FollowerService(app.prisma);
@@ -62,4 +63,4 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default router;
+export default fp(router);

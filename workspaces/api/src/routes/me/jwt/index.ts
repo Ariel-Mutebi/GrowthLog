@@ -1,3 +1,4 @@
+import fp from 'fastify-plugin';
 import jwt from 'jsonwebtoken';
 import { Handoff } from './schema.js';
 import { assertIsLoggedIn } from '@/auth/preHandler.js';
@@ -22,4 +23,4 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default router;
+export default fp(router);

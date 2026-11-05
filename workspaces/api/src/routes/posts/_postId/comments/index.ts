@@ -1,3 +1,4 @@
+import fp from 'fastify-plugin';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { CommentService } from '@/services/posts/CommentService.js';
 import { isLoggedIn, assertIsLoggedIn } from '@/auth/preHandler.js';
@@ -34,4 +35,4 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default router;
+export default fp(router);

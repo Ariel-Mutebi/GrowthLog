@@ -1,3 +1,4 @@
+import fp from 'fastify-plugin';
 import { Confirm, RequestUpload } from './schema.js';
 import { AvatarService } from '../../services/AvatarService.js';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
@@ -36,4 +37,4 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default router;
+export default fp(router);

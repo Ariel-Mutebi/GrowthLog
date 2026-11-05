@@ -1,3 +1,4 @@
+import fp from 'fastify-plugin';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { Register, GetUser, UserSearch } from './schema.js';
 import { RegistrationService } from '@/services/users/RegistrationService.js';
@@ -98,4 +99,4 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default router;
+export default fp(router);

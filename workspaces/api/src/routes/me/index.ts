@@ -8,6 +8,7 @@ import {
   UserConflictError,
   WeakPasswordError,
 } from '@/services/users/shared/errors.js';
+import fp from 'fastify-plugin';
 
 const router: FastifyPluginAsyncTypebox = async (app) => {
   const service = new PersonalService(
@@ -103,4 +104,4 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default router;
+export default fp(router);

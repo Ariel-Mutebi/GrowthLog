@@ -1,3 +1,4 @@
+import fp from 'fastify-plugin';
 import type { FastifyPluginAsync } from 'fastify';
 import { isLoggedIn, localStrategy } from '@/auth/preHandler.js';
 import { CreateSessionSchema, DeleteSessionSchema } from './schema.js';
@@ -29,4 +30,4 @@ const router: FastifyPluginAsync = async (app) => {
   });
 };
 
-export default router;
+export default fp(router);
