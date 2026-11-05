@@ -63,6 +63,7 @@ export class TestEnv {
       PRESIGNED_URL_EXPIRY_SECONDS: 300,
       JWT_SECRET: randomBytes(32).toString('hex'),
       DATABASE_URL: `${withDatabase(adminUrl, database)}?connection_limit=2`,
+      WEB_ENDPOINT: 'http://localhost:5000', // only relevant for CORS in prod
     });
     await app.ready();
 

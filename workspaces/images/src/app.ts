@@ -56,14 +56,12 @@ export async function buildApp(overrides?: Config) {
     secret: app.config.JWT_SECRET,
   });
 
-  if (app.config.WEB_ENDPOINT) {
-    await app.register(cors, {
-      origin: [app.config.WEB_ENDPOINT],
-      credentials: true,
-      allowedHeaders: ['Content-Type', 'Authorization'],
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    });
-  }
+  await app.register(cors, {
+    origin: [app.config.WEB_ENDPOINT],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  });
 
   app.register(autoload, {
     dir: join(__dirname, 'routes'),

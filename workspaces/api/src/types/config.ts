@@ -7,6 +7,6 @@ export interface Config {
   PUBLIC_STORAGE_ENDPOINT: string;
   PUBLIC_IMAGE_BUCKET: string;
   NODE_ENV: 'development' | 'production' | 'test';
-  WEB_ENDPOINT?: string;
+  WEB_ENDPOINT: string;
   REDIS_KEY_PREFIX?: string;
 };

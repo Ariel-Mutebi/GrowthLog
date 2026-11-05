@@ -62,14 +62,12 @@ export async function buildApp(overrides?: Config) {
   app.register(queuesPlugin);
   app.register(swaggerPlugin);
 
-  if (app.config.WEB_ENDPOINT) {
-    await app.register(cors, {
-      origin: [app.config.WEB_ENDPOINT],
-      credentials: true,
-      allowedHeaders: ['Content-Type'],
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    });
-  }
+  await app.register(cors, {
+    origin: [app.config.WEB_ENDPOINT],
+    credentials: true,
+    allowedHeaders: ['Content-Type'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  });
 
   // Auto-register all default-exported routers within the `routes` directory tree.
   app.register(autoload, {

@@ -2,7 +2,7 @@ export interface Config {
   IMAGES_PORT: number;
   DATABASE_URL: string;
   JWT_SECRET: string;
-  WEB_ENDPOINT?: string;
+  WEB_ENDPOINT: string;
   STORAGE_ENDPOINT: string;
   STORAGE_REGION: string;
   STORAGE_ACCESS_KEY_ID: string;

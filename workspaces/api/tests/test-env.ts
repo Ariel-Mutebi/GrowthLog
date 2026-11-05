@@ -32,6 +32,7 @@ export class TestEnv {
       NODE_ENV: 'test',
       REDIS_URL: redisUrl,
       REDIS_KEY_PREFIX: redisPrefix,
+      WEB_ENDPOINT: 'http://localhost:5000', // only relevant for CORS in prod
       PUBLIC_IMAGE_BUCKET: 'images',
       PUBLIC_STORAGE_ENDPOINT: 'http://localhost:9000',
       JWT_SECRET: randomBytes(32).toString('hex'),
