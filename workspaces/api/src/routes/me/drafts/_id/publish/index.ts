@@ -1,4 +1,3 @@
-import fp from 'fastify-plugin';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { assertIsLoggedIn } from '@/auth/preHandler.js';
 import { PublishService } from '@/services/posts/PublishService.js';
@@ -93,4 +92,4 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default fp(router);
+export default router;

@@ -1,4 +1,3 @@
-import fp from 'fastify-plugin';
 import { Confirm, RequestUpload } from './schema.js';
 import {
   PostImageService,
@@ -55,4 +54,4 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default fp(router);
+export default router;

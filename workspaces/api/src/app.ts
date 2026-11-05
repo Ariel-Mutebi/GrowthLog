@@ -70,7 +70,6 @@ export function buildApp(overrides?: Config) {
   });
 
   // Auto-register all default-exported routers within the `routes` directory tree.
-  // fp needed so that cors works: cors attaches to the root scope, as do the routes.
   app.register(autoload, {
     dir: join(__dirname, 'routes'),
     dirNameRoutePrefix: true,

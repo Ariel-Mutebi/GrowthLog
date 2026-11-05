@@ -1,5 +1,4 @@
 import type { FastifyPluginAsync } from 'fastify';
-import fp from 'fastify-plugin';
 
 const report = (isHealthy: boolean) => isHealthy ? 'ok' : 'unavailable';
 
@@ -34,4 +33,4 @@ const router: FastifyPluginAsync = async (app) => {
   });
 };
 
-export default fp(router);
+export default router;

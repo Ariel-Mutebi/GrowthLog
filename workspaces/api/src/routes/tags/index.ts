@@ -1,4 +1,3 @@
-import fp from 'fastify-plugin';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { TagSearch } from './schema.js';
 import { TagService } from '@/services/TagService.js';
@@ -14,4 +13,4 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default fp(router);
+export default router;

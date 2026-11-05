@@ -1,4 +1,3 @@
-import fp from 'fastify-plugin';
 import { GetFeed, ReadPost } from './schema.js';
 import { ReadService } from '@/services/posts/ReadService.js';
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
@@ -21,4 +20,4 @@ const router: FastifyPluginAsyncTypebox = async (app) => {
   });
 };
 
-export default fp(router);
+export default router;
