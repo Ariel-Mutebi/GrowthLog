@@ -2,12 +2,12 @@ import type { FastifyPluginAsync } from 'fastify';
 
 const report = (isHealthy: boolean) => isHealthy ? 'ok' : 'unavailable';
 
-export const healthPlugin: FastifyPluginAsync = async (app) => {
-  app.get('/health/live', async (_req, res) => {
+const router: FastifyPluginAsync = async (app) => {
+  app.get('/live', async (_req, res) => {
     return res.code(200).send({ status: 'ok' });
   });
 
-  app.get('/health/ready', async (_req, res) => {
+  app.get('/ready', async (_req, res) => {
     const checks = await Promise.allSettled([
       app.prisma.$queryRaw`SELECT 1`,
       app.redis.ping(),
@@ -32,3 +32,5 @@ export const healthPlugin: FastifyPluginAsync = async (app) => {
     });
   });
 };
+
+export default router;

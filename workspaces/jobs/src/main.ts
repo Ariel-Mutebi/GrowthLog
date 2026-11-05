@@ -49,13 +49,9 @@ const emailWorker = new EmailWorker(
 await emailWorker.check();
 
 async function shutdown() {
-  console.log('closing deletionWorker');
   await deletionWorker.close();
-  console.log('closing deletionQueue');
   await deletionQueue.close();
-  console.log('closing emailWorker');
   await emailWorker.close();
-  console.log('stopping runtime');
   await runtime.stop();
   process.exit(0);
 }
