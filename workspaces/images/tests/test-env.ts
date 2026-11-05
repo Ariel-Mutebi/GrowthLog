@@ -49,12 +49,11 @@ export class TestEnv {
     await s3.send(new CreateBucketCommand({ Bucket: buckets.avatars }));
     await s3.send(new CreateBucketCommand({ Bucket: buckets.images }));
 
-    const app = buildApp({
+    const app = await buildApp({
       NODE_ENV: 'test',
       IMAGES_PORT: 3002,
       STORAGE_ENDPOINT: minio.endpoint,
       STORAGE_REGION: 'us-east-1',
-      PUBLIC_STORAGE_ENDPOINT: minio.endpoint,
       STORAGE_ACCESS_KEY_ID: minio.user,
       STORAGE_SECRET_ACCESS_KEY: minio.password,
       PUBLIC_AVATAR_BUCKET: buckets.avatars,

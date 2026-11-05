@@ -2,7 +2,7 @@ import { buildApp } from '../src/app.js';
 import { writeFile } from 'node:fs/promises';
 import openapiTS, { astToString, type OpenAPI3 } from 'openapi-typescript';
 
-const app = buildApp();
+const app = await buildApp();
 await app.ready();
 
 const doc = app.swagger();

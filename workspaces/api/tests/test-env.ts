@@ -27,7 +27,7 @@ export class TestEnv {
     const redisPrefix = `${database}:`;
     await runSql(adminUrl, `CREATE DATABASE "${database}" TEMPLATE "${TEMPLATE_DB}";`);
 
-    const app = buildApp({
+    const app = await buildApp({
       API_PORT: 3000,
       NODE_ENV: 'test',
       REDIS_URL: redisUrl,

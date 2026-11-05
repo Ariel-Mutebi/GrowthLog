@@ -11,7 +11,6 @@ export const envDefinitions = {
   API_PORT: port,
   DOCS_PORT: port,
   IMAGES_PORT: port,
-  WEB_ENDPOINT: z.string(),
   NODE_ENV: z.enum(['development', 'production', 'test']),
 
   SESSION_SECRET: hexSecret(64),
@@ -37,6 +36,7 @@ export const envDefinitions = {
   SMTP_USER: z.string(),
   SMTP_PASS: z.string(),
   FROM_EMAIL: z.string(),
+  WEB_ENDPOINT: z.string(),
 } satisfies Record<string, z.ZodType>;
 
 export type EnvKey = keyof typeof envDefinitions;
