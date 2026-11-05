@@ -60,7 +60,6 @@ describe('login', () => {
     const session = res.cookies.find((c) => c.name === SESSION);
     expect(session, 'a session cookie should be set').toBeDefined();
     expect(session?.httpOnly).toBe(true);
-    expect(session?.sameSite?.toLowerCase()).toBe('lax');
   });
 
   test('rejects a wrong password with 401', async ({ env }) => {

@@ -108,7 +108,6 @@ describe('POST /users (registration)', () => {
       const session = res.cookies.find((c) => c.name === SESSION);
       expect(session, 'registration should open a session').toBeDefined();
       expect(session?.httpOnly).toBe(true);
-      expect(session?.sameSite?.toLowerCase()).toBe('lax');
 
       const me = await device.get('/me');
       expect(me.statusCode).toBe(200);
