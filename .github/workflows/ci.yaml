@@ -89,9 +89,11 @@ jobs:
       success()
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Dokploy deployment
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
-          method: 'GET'
-          timeout: 30000
+      - name: Trigger Dokploy deployment via API
+        run: |
+          curl -X POST "https://dokploy.growthlog.fyi/api/compose.deploy" \
+            -H "x-api-key: ${{ secrets.DOKPLOY_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+                  "composeId": "${{ secrets.DOKPLOY_COMPOSE_ID }}"
+                }'
