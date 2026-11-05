@@ -2,6 +2,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import autoload from '@fastify/autoload';
+import cors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
 import fastifyHelmet from '@fastify/helmet';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
@@ -22,6 +23,7 @@ export function buildApp(overrides?: Config) {
     'IMAGES_PORT',
     'JWT_SECRET',
     'DATABASE_URL',
+    'WEB_ENDPOINT',
     'STORAGE_ENDPOINT',
     'STORAGE_REGION',
     'STORAGE_ACCESS_KEY_ID',
@@ -52,6 +54,13 @@ export function buildApp(overrides?: Config) {
 
   app.register(fastifyJwt, {
     secret: app.config.JWT_SECRET,
+  });
+
+  app.register(cors, {
+    origin: [app.config.WEB_ENDPOINT],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   app.register(autoload, {

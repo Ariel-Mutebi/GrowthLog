@@ -11,6 +11,7 @@ export const envDefinitions = {
   API_PORT: port,
   DOCS_PORT: port,
   IMAGES_PORT: port,
+  WEB_ENDPOINT: z.string(),
   NODE_ENV: z.enum(['development', 'production', 'test']),
 
   SESSION_SECRET: hexSecret(64),

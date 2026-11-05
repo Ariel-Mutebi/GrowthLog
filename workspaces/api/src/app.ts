@@ -1,6 +1,7 @@
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import autoload from '@fastify/autoload';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
@@ -30,6 +31,7 @@ export function buildApp(overrides?: Config) {
     'DATABASE_URL',
     'PUBLIC_STORAGE_ENDPOINT',
     'PUBLIC_IMAGE_BUCKET',
+    'WEB_ENDPOINT',
   ], overrides as object as Record<string, string>);
 
   const app = Fastify({
@@ -60,10 +62,14 @@ export function buildApp(overrides?: Config) {
   app.register(queuesPlugin);
   app.register(swaggerPlugin);
 
-  /**
-   * Auto-register all default-exported routers within the `routes` directory tree,
-   * using directory names as route prefixes.
-   */
+  app.register(cors, {
+    origin: [app.config.WEB_ENDPOINT],
+    credentials: true,
+    allowedHeaders: ['Content-Type'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  });
+
+  // Auto-register all default-exported routers within the `routes` directory tree.
   app.register(autoload, {
     dir: join(__dirname, 'routes'),
     dirNameRoutePrefix: true,
