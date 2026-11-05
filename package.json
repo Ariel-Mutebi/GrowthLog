@@ -11,9 +11,7 @@
     "predev": "pnpm run docker:up",
     "dev": "pnpm --parallel --filter api --filter web --filter images --filter docs --filter jobs dev",
     "test": "pnpm --parallel --filter api --filter images test",
-    "build": "pnpm --filter api --filter images --filter jobs --filter docs --filter env --filter db --sort build",
-    "smoke:start": "TAG=local docker compose -p growthlog-smoke -f compose.prod.yaml -f compose.smoke.yaml up --build",
-    "smoke:stop": "docker compose -p growthlog-smoke down"
+    "build": "pnpm --filter api --filter images --filter jobs --filter docs --filter env --filter db --sort build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

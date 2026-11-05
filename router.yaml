@@ -1,0 +1,88 @@
+# Traefik dynamic configuration for the GrowthLog Compose stack.
+# Workaround for Dokploy bug: Compose-service domains do not get a dynamic
+# Traefik file generated automatically (Dokploy/dokploy#2994).
+#
+# Deploy to: /etc/dokploy/traefik/dynamic/router.yaml
+# Reload with: docker restart dokploy-traefik
+
+http:
+  middlewares:
+    growthlog-https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  routers:
+    growthlog-web:
+      rule: "Host(`growthlog.fyi`)"
+      entryPoints: [web]
+      middlewares: [growthlog-https-redirect]
+      service: growthlog-web
+    growthlog-web-secure:
+      rule: "Host(`growthlog.fyi`)"
+      entryPoints: [websecure]
+      service: growthlog-web
+      tls:
+        certResolver: letsencrypt
+
+    growthlog-api:
+      rule: "Host(`api.growthlog.fyi`)"
+      entryPoints: [web]
+      middlewares: [growthlog-https-redirect]
+      service: growthlog-api
+    growthlog-api-secure:
+      rule: "Host(`api.growthlog.fyi`)"
+      entryPoints: [websecure]
+      service: growthlog-api
+      tls:
+        certResolver: letsencrypt
+
+    growthlog-docs:
+      rule: "Host(`docs.growthlog.fyi`)"
+      entryPoints: [web]
+      middlewares: [growthlog-https-redirect]
+      service: growthlog-docs
+    growthlog-docs-secure:
+      rule: "Host(`docs.growthlog.fyi`)"
+      entryPoints: [websecure]
+      service: growthlog-docs
+      tls:
+        certResolver: letsencrypt
+
+    growthlog-images:
+      rule: "Host(`images.growthlog.fyi`)"
+      entryPoints: [web]
+      middlewares: [growthlog-https-redirect]
+      service: growthlog-images
+    growthlog-images-secure:
+      rule: "Host(`images.growthlog.fyi`)"
+      entryPoints: [websecure]
+      service: growthlog-images
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    growthlog-web:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://web:5000"
+
+    growthlog-api:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://api:3000"
+
+    growthlog-docs:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://docs:3001"
+
+    growthlog-images:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://images:3002"
+  
