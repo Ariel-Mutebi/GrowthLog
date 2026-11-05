@@ -605,6 +605,9 @@ importers:
       bits-ui:
         specifier: ^2.19.5
         version: 2.19.5(@internationalized/date@3.12.4)(svelte@5.57.1(@typescript-eslint/types@8.70.1))
+      cn:
+        specifier: ^0.5.0
+        version: 0.5.0
       dayjs:
         specifier: ^1.11.23
         version: 1.11.23
@@ -648,9 +651,6 @@ importers:
       '@types/nprogress':
         specifier: ^0.2.3
         version: 0.2.3
-      cn:
-        specifier: ^0.5.0
-        version: 0.5.0
       shadcn-svelte:
         specifier: ^1.7.0
         version: 1.7.0(svelte@5.57.1(@typescript-eslint/types@8.70.1))
