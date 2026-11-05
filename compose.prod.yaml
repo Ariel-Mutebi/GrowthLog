@@ -6,6 +6,7 @@ x-app: &app
   init: true
   env_file: .env
   mem_limit: 256m
+  pull_policy: always
   logging: &logging
     driver: json-file
     options:
