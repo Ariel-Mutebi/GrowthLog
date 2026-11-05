@@ -21,7 +21,7 @@ import { underPressurePlugin } from './plugins/pressure.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function buildApp(overrides?: Config) {
+export async function buildApp(overrides?: Config) {
   const config = loadEnv([
     'API_PORT',
     'NODE_ENV',
@@ -29,9 +29,9 @@ export function buildApp(overrides?: Config) {
     'SESSION_SECRET',
     'JWT_SECRET',
     'DATABASE_URL',
+    'WEB_ENDPOINT',
     'PUBLIC_STORAGE_ENDPOINT',
     'PUBLIC_IMAGE_BUCKET',
-    'WEB_ENDPOINT',
   ], overrides as object as Record<string, string>);
 
   const app = Fastify({
@@ -62,7 +62,7 @@ export function buildApp(overrides?: Config) {
   app.register(queuesPlugin);
   app.register(swaggerPlugin);
 
-  app.register(cors, {
+  await app.register(cors, {
     origin: [app.config.WEB_ENDPOINT],
     credentials: true,
     allowedHeaders: ['Content-Type'],

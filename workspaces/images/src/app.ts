@@ -17,7 +17,7 @@ import { healthPlugin } from './plugins/health.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function buildApp(overrides?: Config) {
+export async function buildApp(overrides?: Config) {
   const config = loadEnv([
     'NODE_ENV',
     'IMAGES_PORT',
@@ -56,7 +56,7 @@ export function buildApp(overrides?: Config) {
     secret: app.config.JWT_SECRET,
   });
 
-  app.register(cors, {
+  await app.register(cors, {
     origin: [app.config.WEB_ENDPOINT],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
