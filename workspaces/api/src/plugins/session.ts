@@ -1,9 +1,11 @@
 import fp from 'fastify-plugin';
-import fastifySession from '@fastify/session';
+import session from '@fastify/session';
 import { RedisStore } from 'connect-redis';
 
 export const sessionPlugin = fp(async (app) => {
-  app.register(fastifySession, {
+  const isProd = app.config.NODE_ENV === 'production';
+
+  app.register(session, {
     secret: app.config.SESSION_SECRET,
     saveUninitialized: false,
     store: new RedisStore({
@@ -11,11 +13,12 @@ export const sessionPlugin = fp(async (app) => {
       prefix: app.config.REDIS_KEY_PREFIX ?? '',
     }),
     cookie: {
-      secure: app.config.NODE_ENV === 'production',
-      httpOnly: true,
-      sameSite: 'lax',
       path: '/',
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'strict',
       maxAge: 30 * 24 * 3600 * 1000,
+      ...(isProd && { domain: '.growthlog.fyi' }),
     },
   });
 });

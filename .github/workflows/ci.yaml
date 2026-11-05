@@ -71,7 +71,6 @@ jobs:
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
-          # build-args because Astro needs them at build time
           build-args: |
             PUBLIC_API_URL=${{ vars.PUBLIC_API_URL }}
             PUBLIC_IMAGES_URL=${{ vars.PUBLIC_IMAGES_URL }}
@@ -81,3 +80,18 @@ jobs:
             PUBLIC_IMAGE_BUCKET=${{ vars.PUBLIC_IMAGE_BUCKET }}
             PUBLIC_MAX_AVATAR_SIZE_BYTES=${{ vars.PUBLIC_MAX_AVATAR_SIZE_BYTES }}
             PUBLIC_MAX_IMAGE_SIZE_BYTES=${{ vars.PUBLIC_MAX_IMAGE_SIZE_BYTES }}
+
+  deploy:
+    needs: build-images
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Dokploy deployment
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
+          method: 'GET'
+          timeout: 30000
