@@ -5,8 +5,10 @@ import Avatar from "./Avatar.svelte";
 import NavLink from "./NavLink.astro";
 import Layers from "@lucide/astro/icons/layers";
 import Newspaper from "@lucide/astro/icons/newspaper";
+import UserRoundArrowLeft from "@lucide/astro/icons/user-round-arrow-left";
 
 interface Props {
+  // null means default avatar, undefined means unauthenticated
   avatarKey: string | null | undefined;
 }
 
@@ -15,20 +17,29 @@ const { avatarKey } = Astro.props;
 
 <nav class="w-full flex justify-between py-2 px-3 sm:px-0">
   <a href="/"><Logo /></a>
-  <div class="flex gap-2 sm:gap-6 items-center px-2 sm:px-6">
-    <div class="flex gap-3">
-      <NavLink
-        href="/"
-        text="Front Page"
-        Icon={Newspaper}
-      />
-      <NavLink
-        href="/my-drafts"
-        text="My Drafts"
-        Icon={Layers}
-      />
+  <div class="flex gap-3 sm:gap-6 items-center px-2 sm:px-6">
+    <div class="flex gap-2">
+      <NavLink href="/" text="Front Page" Icon={Newspaper} />
+      {
+        avatarKey == undefined && (
+          <a
+            href="/sign-up"
+            class="px-3 py-1.5 sm:py-3 sm:min-w-50 flex gap-2 items-center bg-yellow-300 dark:bg-orange-900
+              text-stone-800 hover:text-stone-900 dark:text-stone-200 dark:hover:text-stone-100 rounded-xl
+              inset-shadow-[1px_1px_4px] inset-shadow-stone-300 dark:inset-shadow-stone-400/25"
+          >
+            <UserRoundArrowLeft aria-hidden="true" class="size-4 sm:size-6" />
+            Sign up
+          </a>
+        )
+      }
+      {
+        avatarKey !== undefined && (
+          <NavLink href="/my-drafts" text="My Drafts" Icon={Layers} />
+        )
+      }
     </div>
     <Theme client:load />
-    <Avatar {avatarKey} size="md" />
+    {avatarKey !== undefined && <Avatar {avatarKey} size="md" />}
   </div>
 </nav>
