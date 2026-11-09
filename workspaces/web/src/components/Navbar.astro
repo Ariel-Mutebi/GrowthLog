@@ -21,7 +21,7 @@ const { avatarKey } = Astro.props;
     <div class="flex gap-2">
       <NavLink href="/" text="Front Page" Icon={Newspaper} />
       {
-        avatarKey == undefined && (
+        avatarKey === undefined && (
           <a
             href="/sign-up"
             class="px-3 py-1.5 sm:py-3 sm:min-w-50 flex gap-2 items-center bg-yellow-300 dark:bg-orange-900
