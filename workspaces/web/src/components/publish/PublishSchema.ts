@@ -26,9 +26,19 @@ export const createPublishSchema = (hasExistingCover: boolean) =>
         .min(1, 'Tag cannot be empty')
         .max(25, 'Tag must be at most 25 characters')
         .regex(/^[a-zA-Z0-9]+$/, 'Tag must contain only alphanumeric characters'),
-    ).min(1).max(10),
-    publishedTitle: z.string().trim().min(1).max(20),
-    publishedHook: z.string().trim().min(1).max(120),
+    )
+      .min(1, 'Please add at least one tag')
+      .max(10, 'You can add a maximum of 10 tags'),
+
+    publishedTitle: z.string()
+      .trim()
+      .min(1, 'Please enter a title')
+      .max(20, 'Title must be 20 characters or fewer'),
+
+    publishedHook: z.string()
+      .trim()
+      .min(1, 'Please enter a hook')
+      .max(120, 'Hook must be 120 characters or fewer'),
     coverImage: hasExistingCover ? coverFile.optional() : coverFile,
   });
 
