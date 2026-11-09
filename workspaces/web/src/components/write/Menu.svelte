@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Popover } from 'bits-ui';
+  import { toast } from 'svelte-sonner';
   import { HTTPError, toastError } from '../errorHandling.ts';
   import { apiClient } from '../clients.ts';
   import { navigate } from 'astro:transitions/client';
@@ -28,6 +29,10 @@
       if (error) {
         throw new HTTPError(error);
       }
+
+      toast.success('Draft unpublished', {
+        description: 'Your post is no longer publicly accessible',
+      });
     } catch (error) {
       toastError(error);
     }
@@ -46,6 +51,10 @@
       if (error) {
         throw new HTTPError(error);
       }
+
+      toast.success('Draft deleted', {
+        description: 'This draft has been deleted, but you can recover it within the next seven days.',
+      })
 
       navigate('/my-drafts');
     } catch (error) {

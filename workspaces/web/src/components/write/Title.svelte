@@ -3,12 +3,14 @@
   import { toast } from 'svelte-sonner';
   import { apiClient } from '../clients.ts';
   import { autoResize } from '../Textarea.svelte';
+
   interface Props {
     id: string;
     title: string;
+    onEnter?: () => void;
   }
 
-  let { id, title = $bindable() }: Props = $props();
+  let { id, title = $bindable(), onEnter }: Props = $props();
 
   const saveTitle = debounce(async (value: string) => {
     if (value.length === 0) return;
@@ -24,6 +26,13 @@
 
     document.title = `Editing ${updated.title} | GrowthLog`;
   }, 10000);
+
+  function handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      onEnter?.();
+    }
+  }
 </script>
 
 <textarea
@@ -34,6 +43,7 @@
   oninput={(event) => {
     saveTitle(event.currentTarget.value);
   }}
+  onkeydown={handleKeyDown}
   class="resize-none font-serif soft text-6xl mb-4 focus:outline-none text-stone-800
     dark:text-stone-50 placeholder:text-stone-400 w-full font-semibold"
 ></textarea>

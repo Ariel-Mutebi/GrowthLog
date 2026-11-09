@@ -145,6 +145,10 @@
     return () => window.removeEventListener('editor:image-uploaded', onImageUploaded);
   });
 
+  function handleTitleEnter() {
+    editor?.commands.focus('end');
+  }
+
   onDestroy(() => {
     editor?.destroy();
     provider?.destroy();
@@ -157,7 +161,11 @@
 {/if}
 
 <main class="w-[min(100%,800px)]">
-  <Title id={postId} bind:title />
+  <Title
+    id={postId}
+    bind:title
+    onEnter={handleTitleEnter}
+  />
   <div
     bind:this={element}
     in:fade={{ duration: 1000 }}
